@@ -413,8 +413,7 @@ def lint(root: Path) -> list[Finding]:
     for vol, defined in sorted(by_volume.items()):
         if vol == "volume-00":
             continue
-        if not any(d.rel == f"{vol}/99-volume-register.md" or
-                   d.rel.startswith(f"{vol}/") and d.rel.endswith("99-volume-register.md")
+        if not any(volume_of(d.rel) == vol and d.rel.endswith("99-volume-register.md")
                    for d in docs):
             findings.append(Finding(
                 "error", f"{vol}/", 1, "register-absent",
@@ -432,7 +431,8 @@ def lint(root: Path) -> list[Finding]:
         vol = volume_of(doc.rel)
         register = next(
             (d for d in docs
-             if vol and d.rel == f"{vol}/99-volume-register.md"), None)
+             if vol and volume_of(d.rel) == vol and
+             d.rel.endswith("99-volume-register.md")), None)
         covered = ("PENDING VALIDATION" in oq_text) or (
             register and any("PENDING VALIDATION" in l or "Open questions" in l
                              for _, l in register.prose))
