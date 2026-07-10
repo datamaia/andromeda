@@ -33,3 +33,6 @@ unless noted.
 | [ADR-024](../annexes/adr/ADR-024.md) | Schema Validation | Accepted | santhosh-tekuri/jsonschema/v6 for JSON Schema; typed layer over TOML config |
 | [ADR-025](../annexes/adr/ADR-025.md) | Git Engine: System git Behind Adapter | Accepted | Shell out to system git (min 2.40) in PAL boundary; go-git read-only ops PENDING VALIDATION |
 | [ADR-026](../annexes/adr/ADR-026.md) | Brand Identity and TUI Theming | Accepted | Closed design tokens (#7C5CFF/#8C7B6E/#F5F2ED/#121417, Geist/JetBrains Mono, cat mascot, tagline); dark-first theme, truecolor→monochrome tiers |
+| [ADR-027](../annexes/adr/ADR-027.md) | ULID Primary Keys | Accepted | 26-char Crockford base32 ULIDs, monotonic per process; explicit sequence_no as ordering authority |
+| [ADR-028](../annexes/adr/ADR-028.md) | Database Split: Workspace + Global | Accepted | `.andromeda/state.db` per workspace + global.db per machine (credentials global-only); index.db is a rebuildable cache |
+| [ADR-029](../annexes/adr/ADR-029.md) | Forward-Only Migrations | Accepted | Pre-migration backup + integrity checks; clean refusal of future schemas; exit code 9; recovery via backup restore |
