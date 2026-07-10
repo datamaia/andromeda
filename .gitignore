@@ -1,0 +1,59 @@
+# === Valores sensibles ===
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+credentials*.json
+secrets*
+*.secret
+
+# === Go ===
+/bin/
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.work
+go.work.sum
+
+# === Python ===
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+ENV/
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.coverage
+htmlcov/
+.ipynb_checkpoints/
+
+# === Node / otros lenguajes ===
+node_modules/
+.cache/
+*.tsbuildinfo
+target/
+
+# === Logs y temporales ===
+*.log
+logs/
+*.tmp
+*.bak
+
+# === IDE / OS ===
+.idea/
+.vscode/
+!.vscode/extensions.json
+*.swp
+.DS_Store
+Thumbs.db
