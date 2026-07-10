@@ -1,0 +1,30 @@
+#!/bin/sh
+# Andromeda commit-message policy (mandatory — see CLAUDE.md and ADR-015).
+# 1) Subject follows Conventional Commits.
+# 2) Messages carry change information only: no co-authorship, attribution,
+#    or advertising trailers of any kind (AI tools, vendors, companies).
+
+msg_file="$1"
+first_line=$(head -n 1 "$msg_file")
+
+if ! printf '%s' "$first_line" | grep -qE '^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9./-]+\))?!?: .{1,100}$'; then
+  case "$first_line" in
+    Merge\ *|Revert\ *|fixup!\ *|squash!\ *) ;;
+    *)
+      echo "commit-msg: subject must follow Conventional Commits:" >&2
+      echo "  <type>(<scope>)?: <imperative description>" >&2
+      echo "  types: feat fix docs style refactor perf test build ci chore revert" >&2
+      exit 1
+      ;;
+  esac
+fi
+
+if grep -qiE '^[[:space:]]*(co-authored-by|generated[- ](with|by)|assisted[- ]by|signed-off-by:.*(claude|anthropic|codex|copilot|gemini|openai))' "$msg_file" \
+   || grep -q '🤖' "$msg_file"; then
+  echo "commit-msg: attribution/advertising lines are not allowed" >&2
+  echo "(Co-Authored-By, Generated with/by, Assisted by, robot emoji)." >&2
+  echo "Commit messages carry change information only." >&2
+  exit 1
+fi
+
+exit 0
