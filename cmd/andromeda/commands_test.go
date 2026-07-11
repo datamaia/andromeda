@@ -122,6 +122,46 @@ func TestIndexQueryCommand(t *testing.T) {
 	}
 }
 
+func TestWorkflowCommands(t *testing.T) {
+	list, err := runCmd(t, "workflow", "list")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{"intake", "release-preparation"} {
+		if !strings.Contains(list, want) {
+			t.Errorf("workflow list missing %q", want)
+		}
+	}
+	// Non-interactive run halts at the first gate without --auto-approve.
+	halt, err := runCmd(t, "workflow", "run", "sdd")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(halt, "awaiting_approval") && !strings.Contains(halt, "halted at gate") {
+		t.Errorf("expected a gate halt, got %q", halt)
+	}
+	// With --auto-approve the whole 14-stage pipeline completes.
+	full, err := runCmd(t, "workflow", "run", "sdd", "--auto-approve")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(full, "14 stages") || !strings.Contains(full, "completed") {
+		t.Errorf("expected a completed 14-stage run, got %q", full)
+	}
+}
+
+func TestProviderListCommand(t *testing.T) {
+	out, err := runCmd(t, "provider", "list")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{"ollama", "anthropic", "openai-compatible"} {
+		if !strings.Contains(out, want) {
+			t.Errorf("provider list missing %q", want)
+		}
+	}
+}
+
 func TestVersionCommandOutput(t *testing.T) {
 	out, err := runCmd(t, "version")
 	if err != nil {

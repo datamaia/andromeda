@@ -325,6 +325,23 @@ enforced on every commit.
 **Gate status:** `make ci` passes. **All 18 ports implemented;** a usable multi-command CLI with
 a working agent.
 
+### EP — Workflow Engine (SDD) and more commands · 🔄
+
+- ✅ Workflow Engine (`internal/workflow`) implementing specification-driven development
+  (**FR-WF-001**): a stage executor driving the frozen Workflow Run states (pending → running →
+  awaiting_approval → completed/failed/cancelled/interrupted), human-approval **gate** stages,
+  stage/gate/run events, and **resume from a stage boundary**. The 14-stage SDD pipeline
+  (intake → release-preparation) is a built-in definition with the correct gate stages.
+- ✅ Verified: full-pipeline completion, stage-failure → failed, gate-halt without approver,
+  gate approval, and resume; the CLI runs the 14-stage pipeline live.
+- ✅ More CLI commands: `workflow list|run sdd [--auto-approve]`, `provider list`,
+  `model list` (live model discovery via the provider adapters).
+- ⬜ Per-stage agent wiring for SDD, workflow persistence/resume across processes,
+  gate approvals through the TUI — later.
+
+**Gate status:** `make ci` passes. CLI groups: **13**. All 18 ports done; agent + SDD workflow
+shell both runnable from the command line.
+
 ## Deliberate deviations from the specification (free-tier accommodations)
 
 Recorded honestly so they can be reverted when the constraint lifts.
