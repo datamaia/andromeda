@@ -133,18 +133,22 @@ events, traces, and audit records are): 10 files × 32 MiB × 30 days bounds the
 
 ## Redaction
 
-The redaction handler enforces, on every record and every field, the following categories.
+The redaction handler enforces, on every record and every field, the categories below.
 Rule *content* for secrets and sensitive material is Volume 9's (keystone FR-SEC-102); the
-observability pipeline enforces it at the handler layer (ADR-011 rule 4):
+observability pipeline enforces it at the handler layer (ADR-011 rule 4). Replacement
+tokens follow Volume 9 FR-SEC-109 — `[REDACTED:<fingerprint>]` for redaction-registry
+matches and `[REDACTED]` for every other (structural or pattern) match; the lowercase
+`[redacted:<detector>]` renderings of chapter 02's configuration findings are that
+surface's own finding grammar, distinct from the FR-SEC-109 sink token.
 
 | Category | Rule |
 |---|---|
-| Secret material | Never present in any form. Secret values are typed (`SecretValue`, Volume 3) and unloggable by construction; the handler additionally rejects attribute values matching Volume 9 secret patterns and replaces them with `"[REDACTED:secret]"` |
+| Secret material | Never present in any form. Secret values are typed (`SecretValue`, Volume 3) and unloggable by construction; the handler additionally rejects attribute values matching Volume 9 secret patterns and replaces them with the FR-SEC-109 token (`[REDACTED:<fingerprint>]` for registry matches, `[REDACTED]` otherwise) |
 | Secret references | Only opaque `secret_ref` identifiers may appear; metadata such as provider association may appear, key material never |
 | Environment variables | Values never logged; names only, and only for the `ANDROMEDA_*` namespace |
 | File content | Not logged beyond Volume 9 excerpt limits; logs carry paths, sizes, hashes, and counts instead |
 | Prompts and model output | Never logged at `INFO` or above; at `DEBUG`, only under Volume 9 content gates with size caps |
-| Credentials in URLs | Userinfo and query-credential components of any URL are replaced with `"[REDACTED:url-credential]"` |
+| Credentials in URLs | Userinfo and query-credential components of any URL are replaced with `"[REDACTED]"` (FR-SEC-109 pattern-match case) |
 | Personal identifiers | OS username and hostname appear only in fields explicitly defined to carry them (none in the canonical set); free-text occurrences are the operator's own content and are not scanned |
 
 Redaction is structural first (typed safe-to-log classification on Core Domain types),
@@ -442,7 +446,7 @@ RISK-OBS-001; ADR-138; ADR-022; FR-OBS-002.
 - Source: Provided
 - Owner: Logging
 - Affected components: Logging; all producers; Secret Store (typed material)
-- Dependencies: ADR-011 (handler-layer redaction); Volume 9 redaction rules (keystone FR-SEC-102); FR-OBS-002
+- Dependencies: ADR-011 (handler-layer redaction); Volume 9 redaction rules (keystone FR-SEC-102) and replacement-token grammar (FR-SEC-109); FR-OBS-002
 - Related risks: RISK-OBS-001
 
 #### Description
@@ -473,9 +477,9 @@ Handler chain assembled per FR-OBS-002 (redaction strictly before encoding).
 
 1. A record reaches the redaction handler.
 2. Typed safe-to-log classification is honored (secret-typed values render as
-   `"[REDACTED:secret]"` unconditionally).
-3. Pattern matchers scan string fields; matches are replaced with category-tagged
-   placeholders.
+   `"[REDACTED]"` unconditionally, the FR-SEC-109 structural case).
+3. Pattern matchers scan string fields; matches are replaced with the FR-SEC-109 tokens
+   (`[REDACTED:<fingerprint>]` for registry matches, `[REDACTED]` otherwise).
 4. The redacted record proceeds to encoding.
 
 #### Alternative flows
@@ -490,7 +494,8 @@ Handler chain assembled per FR-OBS-002 (redaction strictly before encoding).
   retained prefix — truncation is marked, never silent.
 - Binary attribute values: rendered as size + SHA-256, never raw bytes.
 - A matcher false-positive redacting benign text: acceptable by policy — redaction errs
-  toward removal; the placeholder names the category so diagnosis remains possible.
+  toward removal; the per-category redaction counter (Observability below) records which
+  matcher fired so diagnosis remains possible.
 
 #### Inputs
 
@@ -541,9 +546,9 @@ pipeline contract.
 - Given a canary secret planted in provider configuration, when the full integration suite
   runs, then zero occurrences of the canary appear in any log file or stderr capture.
 - Given an attribute containing `https://user:pass@host/path`, when logged, then the record
-  contains the host and path with `"[REDACTED:url-credential]"` replacing the userinfo.
+  contains the host and path with `"[REDACTED]"` replacing the userinfo.
 - Given a `SecretValue`-typed attribute, when logged at any level, then the rendered value is
-  `"[REDACTED:secret]"`.
+  `"[REDACTED]"`.
 - Negative case: given redaction handler failure injected, when a record passes, then the
   record is dropped, the counter increments, and no unredacted content reaches any sink.
 - Permission case: redaction applies identically in headless mode (ADR-032) — no mode

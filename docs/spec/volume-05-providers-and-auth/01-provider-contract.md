@@ -43,7 +43,7 @@ resolves each request to one configured Provider, obtains request credentials th
 `AuthPort` (never raw secrets — chapter 08), consults `PermissionPort` for network-egress
 grants, and drives the selected adapter. Each adapter is one package implementing
 `ProviderPort` for one API family over stdlib `net/http` per ADR-019, with official SDK
-adoption PENDING VALIDATION per adapter (register entry in `98-register-b.md`, adapter
+adoption PENDING VALIDATION per adapter (register entry in `99-volume-register.md`, adapter
 catalog chapter 09). Constraints: no consumer may hold an adapter directly; no adapter may
 depend on another adapter or on any engine (Volume 3 dependency matrix, ADR-030/ADR-033).
 

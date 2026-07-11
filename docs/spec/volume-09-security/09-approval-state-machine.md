@@ -88,9 +88,10 @@ Transition rules:
   permissions fresh (chapter 05 re-evaluation).
 - **Timeouts:** `expires_at = requested_at + permissions.approval_timeout` (default
   `"10m"`); `"0s"` disables expiry for interactive contexts, in which case only decision or
-  cancellation resolve the Approval. Workflow gate approvals may declare longer per-gate
-  deadlines (Volume 4 definitions), which set `expires_at` explicitly; the shorter of
-  gate-declared and configured non-zero timeouts applies. Expiry is evaluated lazily on
+  cancellation resolve the Approval. Workflow gate approvals instead set `expires_at`
+  explicitly from the gate deadline — the gate's `expires` or, when the definition declares
+  none, `workflows.default_gate_expiry` (Volume 4 definitions); `permissions.approval_timeout`
+  does not apply to gate approvals. Expiry is evaluated lazily on
   read and by the pending-approvals sweep at session activation — no background timer is
   required for correctness, and the sweep guarantees expiry is recorded even for abandoned
   sessions.

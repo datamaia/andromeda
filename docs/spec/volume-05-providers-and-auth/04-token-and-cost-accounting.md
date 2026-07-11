@@ -25,7 +25,7 @@ Adapters MUST NOT compute, extrapolate, or back-fill token counts: a provider th
 nothing yields an empty report and downstream `cost_basis = unavailable`. Which providers
 report which fields is declared per adapter (FR-PROV-002) and recorded in the catalog
 (chapter 09) — per-provider reporting facts are PENDING VALIDATION against official
-documentation where undocumented (register entry in `98-register-a.md`).
+documentation where undocumented (register entry in `99-volume-register.md`).
 
 ## Cost Record emission
 

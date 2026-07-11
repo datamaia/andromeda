@@ -70,8 +70,12 @@ Rules:
 
 1. Provider inference traffic (model requests through `ProviderPort`) is authenticated,
    costed, and audited through its own layers (Volumes 5 and 10) and does not consume the
-   `network` permission; `network` governs *tool-originated* connections. This split keeps
-   the permission surface aligned with what the user is actually asked to trust.
+   `network` permission; `network` governs *tool-originated* connections. One exception:
+   activating a local-to-cloud fallback chain step (Volume 5 chapter 05, egress guard F2)
+   requires a standing `network` grant with a `provider` resource selector — the egress
+   decision to leave the machine, not the per-request provider traffic, is what consumes
+   the permission. This split keeps the permission surface aligned with what the user is
+   actually asked to trust.
 2. `credential_access` is required for any resolution of secret material on behalf of a tool,
    plugin, or MCP server; the Authentication Layer's own resolution for provider requests is
    covered by the credential's binding (chapter [07](07-credential-and-secret-management.md)).
@@ -409,7 +413,9 @@ with the same vocabulary; extension-facing names are frozen public contract (SM-
 
 - Given a fresh workspace with no grants, when a tool requests its first `write`, then an
   Approval is raised interactively, and in `--no-input` mode the invocation is denied with
-  E-SEC-001 and exit code 5 at the CLI boundary.
+  E-SEC-001 — inside an agent run the denial reaches the agent as a structured Tool Result
+  (denial-as-data, FR-AGT-010) and the run continues; exit code 5 applies when the denial
+  terminates the command (Volume 8 exit-code rules).
 - Given a workspace deny rule and a session allow grant matching the same query, when
   evaluated, then the outcome is deny (deny-overrides), and the audit record references the
   deny rule.

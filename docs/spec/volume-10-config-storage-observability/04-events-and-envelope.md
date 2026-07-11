@@ -4,7 +4,7 @@ This chapter is the single home of the **event envelope and delivery semantics**
 chapter 03): the shape every event carries, how events are validated, persisted, distributed
 in-process over the Event Bus (EventBusPort, ADR-012), bridged over IPC, retained, and
 exported. Each area volume mints its own event *names and payloads* under the Volume 0
-grammar `<area>.<noun>.<verb-past>`; the persisted Event entity is Volume 2's (chapter 08);
+grammar `<area>[.<noun>].<verb-past>` (the `<noun>` segment is omitted when the event's subject is the area entity itself); the persisted Event entity is Volume 2's (chapter 08);
 this chapter defines everything between: the envelope (keystone FR-OBS-001), the registry,
 delivery, ordering, overflow, retention, privacy, and failure behavior. Decided shape:
 ADR-137.
@@ -18,7 +18,7 @@ persisted.
 | Group | Field | Type | Presence | Meaning |
 |---|---|---|---|---|
 | Identity | `id` | ULID | always | Minted at emission (ADR-027); global ordering *hint* only |
-| Identity | `name` | string | always | Registered event name, `<area>.<noun>.<verb-past>` |
+| Identity | `name` | string | always | Registered event name, `<area>[.<noun>].<verb-past>` |
 | Identity | `schema_version` | integer ≥ 1 | always | Version of this name's payload schema (Volume 2, INV-EVT-01 context) |
 | Identity | `occurred_at` | RFC 3339 UTC timestamp | always | When the occurrence happened (≠ persistence instant) |
 | Identity | `producer` | string | always | Emitting component, Volume 3 component names |

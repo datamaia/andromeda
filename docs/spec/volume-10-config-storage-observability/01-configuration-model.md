@@ -1589,7 +1589,11 @@ ADR-029, ADR-133; FR-CFG-007; RISK-CFG-004; SM-20.
 
 This volume owns operational storage behavior over the ADR-028 topology: backup execution
 for the ADR-029 migration discipline, retention windows for workspace history, and the
-workspace-database locking rules referenced by `WorkspacePort.Open` (Volume 3). Database
+workspace-database locking rules referenced by `WorkspacePort.Open` (Volume 3). These
+procedures (FR-CFG-009) are the storage-mechanics elaboration of the frozen
+`SessionStorePort` contract (Volume 3 chapter 02), which defers storage mechanics to this
+volume: backups, retention, and single-writer locking govern the workspace database that
+port persists Sessions and Runs to, while run/turn semantics remain Volume 4's. Database
 schema conventions and the migration *model* are Volume 2 chapter 10's; this section adds
 the operational procedures and their configuration keys, and chapter 02 mints their errors.
 
@@ -1606,7 +1610,7 @@ cross-database transaction or ATTACH path (ADR-028 rule 6).
 - Source: Provided
 - Owner: Persistence Layer (Volume 10)
 - Affected components: Persistence Layer, Workspace Engine, Updater
-- Dependencies: ADR-007, ADR-022, ADR-028, ADR-029; Volume 2 chapter 10
+- Dependencies: ADR-007, ADR-022, ADR-028, ADR-029; Volume 2 chapter 10; `SessionStorePort` (Volume 3 chapter 02)
 - Related risks: RISK-CFG-004
 
 #### Description

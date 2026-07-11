@@ -354,7 +354,7 @@ validation_retries = 1   # router-enforced ceiling on re-requests per turn
 
 Which providers document native structured-output enforcement, and for which model families,
 is recorded per adapter in the catalog (chapter 09) and is PENDING VALIDATION per adapter
-against official documentation (register entry in `98-register-a.md`).
+against official documentation (register entry in `99-volume-register.md`).
 
 ### FR-PROV-022 — Structured outputs
 

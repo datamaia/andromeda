@@ -21,7 +21,7 @@ stateDiagram-v2
     checking --> update_available : offer selected (T2)
     checking --> failed : check error (T3)
     update_available --> downloading : consent or policy (T4)
-    update_available --> failed : consent declined / expired (T5)
+    update_available --> failed : consent declined (T5)
     downloading --> verifying : staging complete (T6)
     downloading --> failed : download error / timeout / cancel (T7)
     verifying --> applying : verification passed (T8)

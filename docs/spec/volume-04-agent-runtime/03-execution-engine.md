@@ -266,13 +266,16 @@ A task failure with its error envelope and the attempt's attribution records ava
 1. Classify: envelope retryability × side-effect presence.
 2. Auto-retry path: schedule re-ready after backoff; increment `attempt`; emit
    `task.retried`.
-3. Gated path: raise a revision trigger or a confirmation request; the task holds `failed`
-   pending that resolution as a fresh dispatch decision.
+3. Gated path: the task records `failed` (terminal, chapter 05) with its attempt history,
+   and a revision trigger or a confirmation request is raised; any further attempt is a
+   fresh dispatch decision on new work — never a re-entry of the `failed` task
+   (FR-AGT-015).
 
 #### Alternative flows
 
-- Confirmation granted on a gated retry: the task re-enters `ready` with `attempt`
-  incremented and the confirmation recorded as an Approval.
+- Confirmation granted on a gated retry: the confirmation is recorded as an Approval and a
+  plan revision (FR-AGT-008) mints a successor task covering the failed task's objective;
+  the successor dispatches as new work while the `failed` task stays terminal (FR-AGT-015).
 - Backoff interrupted by run cancellation: the pending retry cancels with the subtree.
 
 #### Edge cases
@@ -335,8 +338,9 @@ plugin, MCP).
   classified, then no automatic retry occurs and a revision/confirmation path is raised.
 - Error case: given exhaustion, then the task records `failed` with the full attempt
   history and propagation applies.
-- Permission case: given a gated retry confirmed by the user, when re-dispatched, then
-  permission evaluation runs afresh and the confirmation is recorded as an Approval.
+- Permission case: given a gated retry confirmed by the user, when the successor task
+  dispatches, then permission evaluation runs afresh, the confirmation is recorded as an
+  Approval, and the original task remains `failed`.
 - Observability case: attempt history (count, delays, classifications) is reconstructable
   from the task's records alone.
 

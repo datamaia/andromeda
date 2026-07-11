@@ -23,6 +23,7 @@ tree.
   (`NDJSON + envelope`) and export-document output.
 - **Global flags** (FR-CLI-005, accepted by every command): `--help`/`-h`, `--json`,
   `--quiet`/`-q`, `--verbose`/`-v`, `--debug`, `--no-input`, `--yes`/`-y`,
+  `--approve-destructive` (class-D git consent, Volume 8 ch 02),
   `--workspace`/`-C <path>`, `--profile <name>`, `--config <path>`,
   `--color auto|always|never`, `--timeout <duration>`; root only: `--version`.
 - **Exit codes** follow the closed ADR-016 scheme (0–9); multi-item commands aggregate by

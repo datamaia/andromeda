@@ -154,8 +154,8 @@ The sequence shows ADR-146 in operation order. Every mutation asks the Permissio
 first; a `deny` terminates with E-GIT-008 and an audit record. For class D operations, a
 granted or standing permission is not sufficient: the engine raises an Approval (Volume 2
 Approval states) that names the operation, the refs it will move or delete, and what can be
-lost; non-interactive contexts require the explicit per-invocation flag Volume 8 defines,
-and anything else is a denial (PRD-009). After confirmation, the engine writes safety refs
+lost; non-interactive contexts require the explicit per-invocation flag Volume 8 defines
+(`--approve-destructive`), and anything else is a denial (PRD-009). After confirmation, the engine writes safety refs
 under `refs/andromeda/safety/<ulid>` for every ref about to move, then executes. Refusals
 at any step are structured errors — never silent no-ops — and every decision is
 audit-recorded. Constraint: the gate is inside the engine, so no consumer can skip it.

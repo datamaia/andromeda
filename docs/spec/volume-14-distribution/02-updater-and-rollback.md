@@ -561,7 +561,7 @@ SM-19; PRD-010; ADR-192, ADR-029; Volume 8 `update rollback`; chapter 05 T12–T
 - Phase: v1
 - Metric: Wall-clock time of the full update path (check → download → verify → apply → report), N−1 to N, p95; and the same excluding download transfer time
 - Target: ≤ 60 s p95 end-to-end on the Volume 1 reference network; ≤ 10 s p95 excluding transfer
-- Minimum threshold: ≤ 90 s / ≤ 15 s p95 (measured, non-gating, from MVP; gating at v1 per SM-18)
+- Minimum threshold: ≤ 60 s / ≤ 10 s p95 (SM-18; weakening requires the Volume 0 change procedure; measured non-gating from MVP, gating at v1)
 - Measurement method: automated update test from release N−1 to N in the Volume 13 release suite, instrumented per state, ≥ 20 iterations per platform
 - Test environment: Volume 12 reference machines; Volume 1 reference network (50 Mbit/s, 40 ms RTT)
 - Measurement frequency: every release; trend dashboards from MVP
@@ -577,7 +577,7 @@ SM-19; PRD-010; ADR-192, ADR-029; Volume 8 `update rollback`; chapter 05 T12–T
 - Phase: v1
 - Metric: Wall-clock time to restore the previously installed version from retained artifacts, p95, with all network interfaces disabled
 - Target: ≤ 30 s p95, executable fully offline
-- Minimum threshold: ≤ 45 s p95 offline (measured from MVP; gating at v1 per SM-19)
+- Minimum threshold: ≤ 30 s p95 offline (SM-19; weakening requires the Volume 0 change procedure; measured non-gating from MVP, gating at v1)
 - Measurement method: automated rollback test per release under OS-level network disablement, ≥ 20 iterations per platform, including verification and health probe
 - Test environment: Volume 12 reference machines, offline condition (Volume 1)
 - Measurement frequency: every release

@@ -441,10 +441,11 @@ Every Memory Record MUST be governed by a per-layer retention policy. Defaults (
 in `[memory]` configuration): `session` layer — records expire 90 days after their owning
 session ends; `workspace` layer — 365 days after `last_accessed_at` (or `created_at` when
 never accessed); `long_term` layer — retained indefinitely (`0` = no expiry) because
-preferences do not rot on a clock. When `memory.archive_before_expire` is `true` (default),
-records pass through `archived` for `memory.archive_grace_days` (default 30) before
-`expired`; `expired` records are excluded from all retrieval and are purged (content erased,
-tombstone per FR-MEM-008 mechanics) after `memory.purge_after_days` (default 30).
+preferences do not rot on a clock. When `memory.retention.archive_before_expire` is `true`
+(default), records pass through `archived` for `memory.retention.archive_grace_days`
+(default 30) before `expired`; `expired` records are excluded from all retrieval and are
+purged (content erased, tombstone per FR-MEM-008 mechanics) after
+`memory.retention.purge_after_days` (default 30).
 `MemoryStorePort.Expire` executes one policy pass and returns an `ExpireReport` (counts per
 layer/kind/transition). Passes run as supervised background tasks (SchedulerPort) on
 workspace open and at most once per 24 h thereafter, and are user-invocable via Volume 8

@@ -126,7 +126,7 @@ process-tree control are applied by Andromeda's own code and portable OS primiti
 execution. The OS-level layer is added per platform from Beta/v1 — Seatbelt profiles on
 macOS, Landlock/namespaces/bubblewrap on Linux — and each mechanism remains PENDING
 VALIDATION until its availability and behavior are validated on supported platform versions
-(open-questions register, `98-register-b.md`). The arrow from L1 to L2 is the additivity
+(open-questions register, `99-volume-register.md`). The arrow from L1 to L2 is the additivity
 constraint: OS-level enforcement wraps, never replaces, the floor, so a mechanism failure
 degrades to the floor rather than to nothing. The **honesty rule** is normative: user-facing
 surfaces and records MUST describe MVP containment as process-level controls and MUST NOT

@@ -264,34 +264,42 @@ invocations of the session with state, duration, and tool name, filterable per c
 |                                                                              |
 |   +--------------------- Permission required ---------------------------+    |
 |   |                                                                     |    |
-|   |  ! The agent requests: execute                                      |    |
+|   |  ! The agent requests: git_mutation (with network)                  |    |
 |   |                                                                     |    |
 |   |  command   git push origin main                                     |    |
 |   |  scope     repository ~/code/myproject (remote: origin)             |    |
-|   |  requested by  task 3 "Update CHANGELOG" - tool git.push            |    |
+|   |  requested by  task 3 "Update CHANGELOG" - tool git.exec (push)     |    |
 |   |  risk      pushes 2 commits to a shared remote; not undoable        |    |
 |   |            locally                                                  |    |
 |   |                                                                     |    |
 |   |  [1] allow once                                                     |    |
 |   |  [2] allow for this session                                         |    |
 |   |  [3] allow for this workspace                                       |    |
-|   |  [4] deny once                                                      |    |
-|   |  [5] always deny                                                    |    |
+|   |  [4] always allow (policy)                                          |    |
+|   |  [5] deny once                                                      |    |
+|   |  [6] always deny                                                    |    |
+|   |  [7] ask every time                                                 |    |
 |   |                                                                     |    |
 |   |  expires in 04:58 - unanswered requests are denied                  |    |
 |   +---------------------------------------------------------------------+    |
 |                                                                              |
-| [1-5]decide  [Enter]details  approval 01JZXB requested                       |
+| [1-7]decide  [Enter]details  approval 01JZXB requested                       |
 +------------------------------------------------------------------------------+
 ```
 
 The approval modal (Approval states, Volume 2) traps focus per FR-TUI-003 and discards
-typed-ahead input. It states the requested permission (frozen enum name from Volume 9),
-the precise subject (command, path, or resource), the requesting task and tool
+typed-ahead input. It states the requested permission (frozen enum names from Volume 9;
+a push binds `git_mutation` plus `network` — Volume 11 remote-operation rules), the
+precise subject (command, path, or resource), the requesting task and tool
 (attribution chain), and a risk statement from the tool's declaration. Digits map to the
-frozen decision names: `1` `allow_once`, `2` `allow_for_session`, `3`
-`allow_for_workspace`, `4` `deny_once`, `5` `always_deny` (`always_allow_policy` and
-`ask_every_time` are policy-file settings, not prompt outcomes — Volume 9). The expiry
+frozen decision names, in Volume 9's decision-table order: `1` `allow_once`, `2`
+`allow_for_session`, `3` `allow_for_workspace`, `4` `always_allow_policy`, `5`
+`deny_once`, `6` `always_deny`, `7` `ask_every_time`. Where Volume 9's decision
+constraints refuse `always_allow_policy` (`system_modification` requests, or selectors
+unbounded on all resource qualifiers for `execute`/`write`/`credential_access`), its
+entry is not rendered and its digit is inert; the remaining entries keep their digits.
+`always_allow_policy` and `always_deny` persist a selector no broader than the subject
+the modal displays (Volume 9 decision constraint). The expiry
 countdown reflects the Approval's `expires_at`; expiry records `expired` and the subject
 does not proceed. Decisions are explicit: `Esc` merely lowers the modal (status bar keeps
 an "approval pending" badge and the run stays `awaiting_approval`). The danger marker

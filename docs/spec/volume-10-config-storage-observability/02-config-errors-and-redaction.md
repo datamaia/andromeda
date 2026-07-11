@@ -351,7 +351,7 @@ value of every layer document, profile, environment mapping, and override:
 | `pem_block` | definite | Value contains a PEM private-key header (`-----BEGIN` … `PRIVATE KEY-----`) |
 | `bearer_header` | definite | Header-typed value carrying an authorization scheme followed by token material |
 | `url_userinfo` | definite | URL value with a non-empty userinfo password component |
-| `known_prefix` | definite | Value matches a registered third-party token prefix pattern; the concrete pattern set is PENDING VALIDATION against each vendor's published token-format documentation (open question in `98-register-a.md`) and ships as versioned registry data |
+| `known_prefix` | definite | Value matches a registered third-party token prefix pattern; the concrete pattern set is PENDING VALIDATION against each vendor's published token-format documentation (open question in `99-volume-register.md`) and ships as versioned registry data |
 | `high_entropy` | heuristic | String of length ≥ 20 with Shannon entropy ≥ 3.5 bits/character, not a path, URL without userinfo, or ULID |
 
 **Behavior.** A `definite` match in any configuration document is the fatal finding

@@ -30,7 +30,7 @@ owns schema, precedence, and validation for all of them.
 | [04 — Events and Envelope](04-events-and-envelope.md) | Keystone FR-OBS-001; the event envelope, registration, families and overflow policy, delivery semantics, IPC bridging, persistence and retention |
 | [05 — Traces, Metrics, and Costs](05-traces-metrics-costs.md) | OTel trace model over runs, metric registry and naming, latency/token/cost/retry metrics, cost observability, SM-13 formalization |
 | [06 — Telemetry and Consent](06-telemetry-and-consent.md) | Local/remote pipeline split, consent model, collected vs prohibited data, retention, export, deletion, enterprise lock, OTLP export |
-| 99 — Volume Register | Everything this volume minted (merged from authoring fragments `98-register-a.md` and `98-register-b.md` at the Phase B gate) |
+| [99 — Volume Register](99-volume-register.md) | Everything this volume minted (merged from the per-agent authoring fragments at the Phase B gate) |
 
 ## Reading guide
 

@@ -212,8 +212,10 @@ V6A-OQ-1). Permissions: `network`, `process_spawn`. Not idempotent.
 Per ADR-074, each tool below uses its service's official, documented public API through the
 Authentication Layer; per-service API versions, auth modes, scopes, and rate limits are
 PENDING VALIDATION until verified at the tool's phase start (register entry V6A-OQ-2). All
-declare `external_service_access` and `network` required (except `docker.control`, local by
-default); operation vocabularies below are contract sketches.
+declare `external_service_access` and `network` required, except the container-runtime
+tools — `docker.control` and `kubernetes.control` — which declare `container_access` in
+place of `external_service_access` (`docker.control` is additionally local by default, with
+`network` optional); operation vocabularies below are contract sketches.
 
 ### docker.control — Beta
 

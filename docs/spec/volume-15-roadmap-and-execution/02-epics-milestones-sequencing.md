@@ -33,7 +33,7 @@ milestone (release-scoped or phase-gate-scoped per Volume 11 chapter 05).
 | EP-12 | Git engine | FR-GIT-001, FR-GIT-002, FR-GIT-003, FR-GIT-004, FR-GIT-005, FR-GIT-008, NFR-GIT-001 | EP-05, EP-09 |
 | EP-13 | CLI | FR-CLI-001, FR-CLI-002, FR-CLI-003, FR-CLI-005, FR-CLI-006, FR-CLI-007, FR-CLI-008, FR-CLI-009, FR-CLI-010, FR-CLI-011, FR-CLI-012, FR-CLI-013, FR-CLI-014, FR-CLI-015, FR-CLI-016, FR-UX-001, FR-UX-002, FR-UX-003, NFR-CLI-002, NFR-CLI-003, FR-ARCH-007 | EP-11, EP-12 |
 | EP-14 | TUI | FR-TUI-001, FR-TUI-002, FR-TUI-003, FR-TUI-004, FR-TUI-005, FR-TUI-006, FR-TUI-007, FR-TUI-008, FR-TUI-009, FR-UX-040, FR-UX-041, FR-UX-042, FR-UX-043, FR-TUI-060, FR-TUI-061, FR-TUI-063, FR-TUI-064, FR-TUI-066, FR-TUI-067, FR-TUI-068, FR-UX-070, FR-UX-071, FR-UX-072, FR-UX-073, FR-UX-074, FR-UX-075, FR-UX-076, NFR-TUI-001, NFR-TUI-002, NFR-UX-040, NFR-TUI-069, NFR-UX-077, NFR-UX-078 | EP-11, EP-12 |
-| EP-15 | Distribution and update | FR-REL-001, FR-REL-002, FR-REL-003, FR-REL-004, FR-REL-005, FR-REL-006, FR-REL-008, FR-REL-009, FR-REL-010, FR-REL-011, FR-REL-012, FR-REL-014, FR-REL-015, FR-REL-016, NFR-PORT-003 | EP-01, EP-13 |
+| EP-15 | Distribution and update | FR-REL-001, FR-REL-002, FR-REL-003, FR-REL-004, FR-REL-005, FR-REL-006, FR-REL-008, FR-REL-009, FR-REL-010, FR-REL-011, FR-REL-012, FR-REL-014, FR-REL-015, FR-REL-016, FR-GH-011, NFR-PORT-003 | EP-01, EP-13 |
 | EP-16 | Reliability operations and MVP qualification | FR-PERF-001, FR-PERF-002, FR-PERF-003, FR-PERF-004, FR-PERF-005, FR-PERF-006, NFR-PERF-024, FR-ARCH-009, FR-ARCH-010, NFR-ARCH-003, NFR-PORT-001, FR-TEST-001, FR-TEST-002, FR-TEST-003, FR-TEST-005, FR-TEST-006, FR-TEST-007, FR-TEST-008, FR-TEST-009, NFR-TEST-001, NFR-TEST-002, NFR-TEST-003, NFR-TEST-005, NFR-TEST-006 | all MVP epics |
 
 Notes on the mapping:
@@ -42,6 +42,18 @@ Notes on the mapping:
   first within each epic; chapter 01 keeps the phase distinction).
 - FR-ARCH-007 (IPC surface) rides in EP-13 because the CLI and the IPC surface share the
   Runtime API mediation contract (FR-CLI-002); its Beta consumer is headless mode (EP-27).
+- FR-GH-011 (release, upgrade, and documentation pipelines) rides in EP-15, not EP-01
+  with the other FR-GH requirements: its `release.yml` is the CI realization of the
+  Volume 14 release semantics that EP-15's FR-REL set builds (Volume 11 register
+  delegation), and its first real run needs a releasable binary — EP-15's dependency on
+  EP-01 and EP-13 supplies both the FR-GH-009/FR-GH-010 gates it consumes and the
+  artifact it packages.
+- FR-TOOL-007's `git.exec` catalog entry executes through the Git Engine (GitPort) that
+  EP-12 builds, and EP-12 depends on EP-09 — so, as the one noted exception to the
+  fan-out rule above, the `git.exec` child issue rides in EP-12's task list while
+  carrying FR-TOOL-007 in its Requirements field. EP-09 exits with the remainder of the
+  MVP tool subset covered; MS-4, which requires EP-09 through EP-12 to exit, verifies
+  the joint behavior.
 - FR-ARCH-009/FR-ARCH-010 (recovery, shutdown) are cross-cutting; EP-16 owns their
   end-to-end verification while each engine epic implements its own recovery duties.
 - EP-16 is deliberately last-closing: it owns the offline suite, crash-injection
@@ -229,6 +241,13 @@ operationalizes the Volume 11 required checks plus the corpus quality rules:
    the change procedure (Volume 0 chapter 10) — an ADR from the appropriate block where a
    decision was made.
 
-An **epic** is Done when every child issue is Done, its requirement ID set is fully
-covered by merged work, the suites named in those requirements' verification methods run
-in CI at their designated tiers, and the epic's row in the phase-gate evidence is green.
+An **epic** is Done when every child issue is Done, the phase-appropriate portion of its
+requirement ID set — the behavior those requirements phase at or before the epic's phase
+— is fully covered by merged work, the suites named in those requirements' verification
+methods run in CI at their designated tiers, and the epic's row in the phase-gate
+evidence is green. A requirement whose content spans phases does not hold an epic open
+for its later-phased portion: FR-TOOL-007's Beta/v1/v2 catalog tranches and FR-CLI-014's
+reserved Beta command groups land with the epics and backlog of their own phases
+([chapter 03](03-backlog-and-prioritization.md)), not inside EP-09 or EP-13. Item-level
+placements recorded in the mapping notes above (the `git.exec` issue in EP-12) bind epic
+coverage the same way.

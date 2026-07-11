@@ -17,7 +17,7 @@ registered `name`, `schema_version`, `occurred_at`, `producer`), **correlation**
 `payload.span_id` are reserved payload keys), and **content** (the redacted, canonical-JSON
 `payload` whose schema the minting area owns; `payload.error_code` carries the `E-<AREA>-NNN`
 identity on failure events) — plus a transit-only **delivery** group (`family`, bridge
-`attempt`). Names follow the Volume 0 chapter 03 grammar `<area>.<noun>.<verb-past>`. Every
+`attempt`). Names follow the Volume 0 chapter 03 grammar `<area>[.<noun>].<verb-past>`. Every
 name is registered in a closed, compiled-in registry; free-form emission is rejected
 (E-OBS-002). Each name belongs to exactly one delivery family — `lifecycle`, `action`,
 `progress`, `security`, or `telemetry` — which fixes its overflow policy and default buffer;

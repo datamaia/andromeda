@@ -188,7 +188,9 @@ built-in tool exposes configuration mutation (FR-CFG-005 constraint).
   `process_spawn` as its permissions without a required/optional split; both are rendered
   R here (note 9) per the catalog convention that classes are required when every
   operation needs them.
-- **Integration-tool preamble.** Volume 6 chapter 03 states that all platform/service
-  integration tools declare `external_service_access` and `network` as required except
-  `docker.control` (local by default) — the matrix reflects the per-tool entries, which
+- **Integration-tool preamble.** Volume 6 chapter 03 states that platform/service
+  integration tools declare `external_service_access` and `network` as required, except the
+  container-runtime tools `docker.control` and `kubernetes.control`, which declare
+  `container_access` in place of `external_service_access` (`docker.control` additionally
+  local by default, `network` optional) — the matrix reflects the per-tool entries, which
   agree with that preamble.

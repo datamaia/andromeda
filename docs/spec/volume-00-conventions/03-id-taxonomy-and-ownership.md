@@ -121,7 +121,8 @@ lives in `annexes/catalog-errors.md`.
 
 ### Events
 
-Event names use `<area>.<noun>.<verb-past>` in lowercase dot notation — e.g., `run.completed`,
+Event names use `<area>[.<noun>].<verb-past>` in lowercase dot notation; the `<noun>` segment
+is omitted when the event's subject is the area entity itself — e.g., `run.completed`,
 `tool.invocation.denied`, `provider.request.failed`. The event envelope (version, producer,
 correlation ID, timestamp, ordering, delivery semantics, persistence, retention, privacy,
 redaction, compatibility, failure behavior) is defined in Volume 10; each area owner mints its

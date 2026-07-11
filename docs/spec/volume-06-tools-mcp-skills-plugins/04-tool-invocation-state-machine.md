@@ -20,6 +20,8 @@ stateDiagram-v2
     approved --> executing : sandbox ready, origin available
     approved --> failed : sandbox or origin failure
     approved --> cancelled : cancelled before start
+    approved --> awaiting_approval : grant revoked, re-ask permitted
+    approved --> denied : grant revoked, deny resolution
     executing --> succeeded : success result, output valid
     executing --> failed : error result or breach
     executing --> timed_out : effective timeout expired
@@ -35,7 +37,10 @@ The diagram shows the four live states and five terminal outcomes. An invocation
 `requested`; validation and permission evaluation resolve it toward `approved` (directly or
 through `awaiting_approval`), `denied`, or early `failed`/`cancelled`. From `approved` the
 runtime places the sandbox and starts execution; `executing` ends in exactly one of four
-outcomes. There is no `interrupted` state for invocations: crash recovery resolves live
+outcomes. A grant revoked while an invocation waits in `approved` re-enters permission
+evaluation before anything executes: a re-`ask` returns it to `awaiting_approval` under a
+new Approval, and a `deny` — or `ask` in a non-interactive mode — resolves it `denied`
+(transitions 16 and 17). There is no `interrupted` state for invocations: crash recovery resolves live
 invocations to terminal states (below), because a tool call — unlike a run — cannot resume
 mid-flight without re-executing side effects.
 
@@ -64,13 +69,15 @@ immutable; a Tool Result row exists for exactly `succeeded`, `failed`, and `time
 | 6 | `awaiting_approval` → `approved` | Approval `granted` | Grant covers the requested scope | `approval_id` + minted grants recorded; `tool.invocation.approved` |
 | 7 | `awaiting_approval` → `denied` | Approval `denied` or `expired` | Expiry resolves denied-class (INV-APR-05) | As transition 4 |
 | 8 | `awaiting_approval` → `cancelled` | Approval `cancelled` | Subject run/invocation cancelled before decision | `tool.invocation.cancelled` |
-| 9 | `approved` → `executing` | Sandbox prepared, `Execute` started | Origin available (E-TOOL-010 otherwise); concurrency capacity (E-TOOL-011 otherwise); grants still valid — a revoked grant re-enters permission evaluation | `started_at` set; sandbox handle bound; `tool.invocation.started` |
+| 9 | `approved` → `executing` | Sandbox prepared, `Execute` started | Origin available (E-TOOL-010 otherwise); concurrency capacity (E-TOOL-011 otherwise); grants still valid — a revoked grant re-enters permission evaluation via transition 16 or 17 | `started_at` set; sandbox handle bound; `tool.invocation.started` |
 | 10 | `approved` → `failed` | Sandbox/origin failure | Preparation failed or origin left service | Error Tool Result (E-TOOL-010 or surfaced E-SEC); `tool.invocation.failed` |
 | 11 | `approved` → `cancelled` | Cancellation | Before `Execute` begins | `tool.invocation.cancelled`; no Tool Result |
 | 12 | `executing` → `succeeded` | Terminal `result` event, `success` | Output validates (FR-TOOL-002); caps respected (spillover per ADR-071 as needed) | `success` Tool Result written atomically with the transition; `ended_at`; `tool.invocation.succeeded` |
 | 13 | `executing` → `failed` | Terminal `result` error, output-validation failure, limit breach, or broken stream | E-TOOL-004/006/009 classes | Error Tool Result; teardown; `tool.invocation.failed` |
 | 14 | `executing` → `timed_out` | Effective timeout expiry | Timeout clock (below) elapsed | Cooperative cancel then teardown escalation; error Tool Result (E-TOOL-007) with partial output preserved; `tool.invocation.timed_out` |
 | 15 | `executing` → `cancelled` | `Cancel` / context cancellation | Teardown completed within budget | Error-free termination record; Tool Result policy: a `cancelled` invocation that produced committed side effects records them via File Change/Command Execution rows even though no Tool Result exists; `tool.invocation.cancelled` |
+| 16 | `approved` → `awaiting_approval` | Grant revocation detected at the transition-9 guard | Re-evaluation returns `ask` and interactive consent is permitted in this mode | New Approval created (`requested` state, Volume 9 machine); revoked grant reference retained on the row for audit; no new `tool.invocation.requested` — the invocation resolves onward via transitions 6/7/8 |
+| 17 | `approved` → `denied` | Grant revocation detected at the transition-9 guard | Re-evaluation returns `deny`, or `ask` in a non-interactive mode (PRD-009) | As transition 4 |
 
 ### Side effects
 
@@ -133,7 +140,7 @@ force re-evaluation. `tool.invocation.retried` is emitted with both invocation I
 ### Errors
 
 All error classes of this machine are the chapter 02 catalog: E-TOOL-003 (transition 1),
-E-TOOL-005 (4, 7 — surfaced denial class), E-TOOL-010/E-TOOL-011 (9's guard failures →
+E-TOOL-005 (4, 7, 17 — surfaced denial class), E-TOOL-010/E-TOOL-011 (9's guard failures →
 transition 10), E-TOOL-004/E-TOOL-006/E-TOOL-009 (13), E-TOOL-007 (14), E-TOOL-008 (15's
 surfaced class), E-TOOL-012 (recovery). Evaluation failures inside the Permission Manager
 surface from the E-SEC family and terminate the invocation `failed` — an evaluation error is
@@ -152,7 +159,7 @@ follow the Volume 0 grammar.
 | `tool.enablement.changed` | Enable/disable | tool identity, new flag, actor (user/policy/cascade) |
 | `tool.invocation.requested` | Row created | invocation ID, tool snapshot, run/turn/task/agent IDs |
 | `tool.invocation.approved` | Transitions 2, 6 | invocation ID, approval ID or grant refs, decider kind |
-| `tool.invocation.denied` | Transitions 4, 7 | invocation ID, deciding record, decider kind, requested permissions |
+| `tool.invocation.denied` | Transitions 4, 7, 17 | invocation ID, deciding record, decider kind, requested permissions |
 | `tool.invocation.started` | Transition 9 | invocation ID, sandbox containment level, effective limits |
 | `tool.invocation.succeeded` | Transition 12 | invocation ID, duration, payload size, truncated flag |
 | `tool.invocation.failed` | Transitions 1, 10, 13; recovery | invocation ID, E-TOOL code, tool-local code where present |
@@ -206,8 +213,9 @@ The happy path: transitions 2 → 9 → 12 with records and events at each step.
 
 #### Alternative flows
 
-Approval path (3 → 6 → 9 → 12); denial paths (4, 7); failure paths (1, 10, 13); timeout
-(14); cancellation (5, 8, 11, 15); retry chains per ADR-072.
+Approval path (3 → 6 → 9 → 12); denial paths (4, 7, 17); revoked-grant re-evaluation
+(16, then 6, 7, or 8); failure paths (1, 10, 13); timeout (14); cancellation (5, 8, 11,
+15); retry chains per ADR-072.
 
 #### Edge cases
 

@@ -40,7 +40,7 @@ Two mechanisms, both bounded:
   documented equivalent) normalizes to E-PROV-003. A documented retry-delay signal
   (`Retry-After` or equivalent metadata) is honored, capped by `retry.retry_after_cap_ms`
   (default 60000). Which metadata each provider documents is an adapter-catalog fact
-  (chapter 09), PENDING VALIDATION per adapter (register entry in `98-register-a.md`).
+  (chapter 09), PENDING VALIDATION per adapter (register entry in `99-volume-register.md`).
 
 Sustained rate pressure (breaker window statistics below) moves the Provider connection
 state to `degraded`, which routing treats as eligible-but-deprioritized (chapter 11 machine).

@@ -28,5 +28,5 @@ is Volume 9's.
 | 10 — Local and Offline Operation | `10-local-and-offline-operation.md` | Volume 1 offline guarantees mapped to provider behavior | Authored (draft) |
 | 11 — State Machines | `11-state-machines.md` | Full machines: Authentication Session, Provider connection | Authored (draft) |
 
-Register fragments `98-register-a.md` (chapters 01–06) and `98-register-b.md` (chapters
-07–11) are merged into `99-volume-register.md` at consolidation.
+The volume register `99-volume-register.md` consolidates everything this volume minted
+(merged from the per-agent authoring fragments at the Phase B gate).

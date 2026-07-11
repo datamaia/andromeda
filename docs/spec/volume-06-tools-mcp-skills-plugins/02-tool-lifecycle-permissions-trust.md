@@ -156,7 +156,7 @@ allowed_origins = ["builtin", "plugin", "mcp"]
 - Source: Derived
 - Owner: Tool Runtime (Volume 6)
 - Affected components: Tool Runtime, Plugin Runtime, MCP Runtime, Persistence Layer, Event Bus
-- Dependencies: FR-TOOL-001, FR-TOOL-002, FR-TOOL-003; FR-MCP-001, FR-PLUG-001
+- Dependencies: FR-TOOL-001, FR-TOOL-002, FR-TOOL-003; FR-MCP-001, FR-PLUG-001 (both Beta — origin activation)
 - Related risks: RISK-TOOL-001, RISK-TOOL-002
 
 #### Description
@@ -166,7 +166,11 @@ of this chapter: validated registration, provider-coupled availability (plugin `
 MCP connection `ready`), enable/disable with cascade from Extensions (INV-EXT-03), retention
 of referenced rows on unregistration (INV-TOOL-04), and registry listings that always carry
 origin and trust. Registration, rejection, and enablement changes MUST emit their events and
-persist per Volume 2 scoping rules.
+persist per Volume 2 scoping rules. Phase note: the `origin` values and the registry schema
+are reserved from Core (FR-TOOL-001; Volume 2 Tool row), but the `plugin` and `mcp` origin
+mechanics activate with their Beta subsystems (FR-PLUG-001, FR-MCP-001) — at MVP only
+`builtin` registers, and the plugin- and MCP-origin behaviors and acceptance criteria of
+this requirement bind at Beta.
 
 #### Motivation
 
@@ -317,7 +321,9 @@ Registered, available tool; validated input.
 - Expired Approval: resolves denied-class (INV-APR-05); the invocation reaches `denied`.
 - Revoked grant between approval and execution: re-evaluation runs at the `approved` →
   `executing` guard; a now-unsatisfied requirement returns the invocation to permission
-  evaluation rather than executing on stale consent.
+  evaluation rather than executing on stale consent (chapter 04 transitions 16 and 17: a
+  re-`ask` moves it to `awaiting_approval` under a new Approval; a `deny` — or `ask` in a
+  non-interactive mode — resolves it `denied`).
 
 #### Edge cases
 
@@ -380,7 +386,9 @@ differs by mode (PRD-009).
 - Given the same invocation in CI mode, when policy does not pre-allow, then it reaches
   `denied` without prompting and the deciding policy is recorded (negative case).
 - Given a revoked grant after approval, when execution would start, then the invocation does
-  not execute on the stale grant (error case).
+  not execute on the stale grant and resolves per chapter 04 transitions 16/17 —
+  `awaiting_approval` under a new Approval where re-asking is permitted, `denied` otherwise
+  (error case).
 - Given any denial, when records are inspected, then Approval/Permission references and the
   `tool.invocation.denied` event exist and correlate (observability case).
 

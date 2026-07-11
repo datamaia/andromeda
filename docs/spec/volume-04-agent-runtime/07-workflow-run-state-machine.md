@@ -69,7 +69,7 @@ and `paused` never dispatch new steps; no transition skips persistence.
 | T10 | `paused` | `cancelled` | `workflow.run.cancelled` | User cancel | — | As T5 side effects |
 | T11 | `running` | `completed` | `workflow.run.completed` | Final step `completed` | All steps terminal; outputs mapped | Persist `outputs`, `ended_at`; disarm timers; emit completion |
 | T12 | `running` | `failed` | `workflow.run.failed` | Step failure with `fail` routing; retries exhausted (E-WF-008); step/run timeout (E-WF-009); integrity failure (E-WF-012) | Retry policy exhausted; no `continue`/`route` applies | Persist `error`; cancel in-flight steps; optional rollback per declaration |
-| T13 | `running` | `cancelled` | `workflow.run.cancelled` | User/budget/policy cancel (E-WF-010) | — | Cancel in-flight spawned Runs through their groups (FR-ARCH-004); cancel pending Approvals; optional rollback |
+| T13 | `running` / `awaiting_approval` | `cancelled` | `workflow.run.cancelled` | User/budget/policy cancel (E-WF-010) | — | Cancel in-flight spawned Runs through their groups (FR-ARCH-004); cancel pending Approvals — a pending gate Approval records `cancelled`, never `denied` (Volume 9); optional rollback |
 | T14 | `running` / `awaiting_approval` | `interrupted` | `workflow.run.interrupted` | Crash or shutdown detected at recovery (`MarkInterrupted`) or orderly shutdown step 2 | Non-terminal state at process stop | Steps found `running` marked `interrupted` in `step_states`; timers persist as deadlines |
 | T15 | `interrupted` | `running` | `workflow.run.resumed` | User/driver resume (UC-11) | Definition version resolvable; `step_states` consistent (else E-WF-012); resume rules below | Re-arm timers from persisted deadlines; re-dispatch per resume rules |
 | T16 | `interrupted` | `cancelled` | `workflow.run.cancelled` | User closes without resuming | — | As T13 without live work |
@@ -164,7 +164,9 @@ step timers suspend with their remaining budget persisted; gate and run timers k
 ## Cancellation
 
 Cancellation (T2, T5, T10, T13, T16) is legal from every non-terminal state and always
-produces `cancelled` — never a success state. It cancels in-flight spawned Runs through
+produces `cancelled` — never a success state. A direct user/budget/policy cancel during a
+gate wait is T13 from `awaiting_approval`, cancelling the pending gate Approval (it records
+`cancelled`, never `denied` — Volume 9); T5 is the distinct gate-denial routing. It cancels in-flight spawned Runs through
 their supervision groups (FR-ARCH-004), cancels pending Approvals, disarms timers, persists
 the terminal state, and emits `workflow.run.cancelled` with the recorded reason (user,
 budget, policy, shutdown escalation). Cancellation itself never runs compensation

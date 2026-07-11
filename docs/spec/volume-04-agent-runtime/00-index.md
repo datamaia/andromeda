@@ -23,7 +23,7 @@ behavior. Volume 4 mints identifiers in the `AGT` and `WF` areas and ADRs 040–
 | 07 — Workflow Run State Machine (`07-workflow-run-state-machine.md`) | Full machine for Workflow Run | Authored (draft) |
 | 08 — Skill Engine Runtime (`08-skill-engine-runtime.md`) | Execution semantics for skills (format is Volume 6's) | Authored (draft) |
 | 09 — Task Scheduler (`09-task-scheduler.md`) | SchedulerPort behavioral elaboration and supervision per ADR-023 | Authored (draft) |
-| 99 — Volume Register (`99-volume-register.md`) | Everything Volume 4 minted; assembled from the per-agent register fragments at consolidation | Pending merge |
+| 99 — Volume Register (`99-volume-register.md`) | Everything Volume 4 minted; merged from the per-agent authoring fragments at the Phase B gate | Authored (draft) |
 
 ## Reading order and dependencies
 

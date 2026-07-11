@@ -72,8 +72,11 @@ runs reproducible (SM-12):
    by the profile with the profile parameters and the assembled material
    ([chapter 04](04-prompt-engine.md)); render provenance is recorded on the turn.
 4. **Tool declaration.** The Tool Runtime supplies descriptors for the tools admitted by the
-   profile's `tool_policy`; declarations are passed to the provider only when the model's
-   CapabilitySet declares `tool_calling` (Principle 2; capability semantics Volume 5).
+   profile's `tool_policy`. When the profile admits one or more tools, the turn declares
+   `tool_calling` as a required capability: a model whose effective CapabilitySet lacks it
+   fails negotiation with E-PROV-006 before any wire request (Volume 5 chapter 02) — the
+   turn never proceeds tool-less silently. Declarations are omitted only when the profile
+   admits zero tools (Principle 2; capability semantics Volume 5).
 5. **Request.** The engine calls `ChatStream` when the CapabilitySet declares `streaming`,
    `Chat` otherwise. The Turn row is persisted with `status = in_progress` before the request
    is issued; `provider_slug` and `model_name` record what is actually used (INV-TRN-03).
@@ -205,6 +208,10 @@ accepted by the Runtime with `config_snapshot` persisted (INV-RUN-04).
 
 - Malformed tool calls: at most `agent.loop.max_repair_attempts` structured repair messages,
   then the turn records `failed` and the loop applies error propagation (FR-AGT-012).
+- Profile admits one or more tools but the model's effective CapabilitySet lacks
+  `tool_calling`: the turn fails negotiation with E-PROV-006 (Volume 5 chapter 02) before
+  any wire request — the loop never degrades to a tool-less turn silently; the failure maps
+  to run outcomes per Volume 5 retryability.
 - Goal trivially satisfiable: the Planner emits a direct-execution plan (FR-AGT-007); the loop
   shape is unchanged.
 - Model switch shrinks the context window: the Context Manager re-budgets on the next turn;

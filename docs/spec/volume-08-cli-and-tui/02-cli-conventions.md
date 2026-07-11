@@ -21,6 +21,7 @@ The short-flag set below is frozen; new short flags require amending FR-CLI-005.
 | `--debug` | — | — | Debug diagnostics; implies `--verbose` |
 | `--no-input` | — | — | Force non-interactive mode (ADR-102) |
 | `--yes` | `-y` | — | Auto-confirm destructive confirmations (FR-CLI-010) |
+| `--approve-destructive` | — | — | Per-invocation consent for class-D destructive git operations in non-interactive contexts (FR-CLI-010, Volume 11) |
 | `--workspace` | `-C` | path | Workspace root override (before discovery) |
 | `--profile` | — | name | Configuration Profile selection |
 | `--config` | — | path | Explicit configuration file (ConfigPort layer input) |
@@ -588,8 +589,12 @@ can force interactivity when the probe fails. Truthy values for `ANDROMEDA_NO_IN
 empty, is falsy.
 
 Non-interactive semantics: prompts are structurally impossible — confirmations fail per
-FR-CLI-010; permission approvals resolve from policy and unresolved permissions deny with
-exit 5 (PRD-009; the denial is the E-SEC family's, Volume 9). **CI mode** additionally
+FR-CLI-010; permission approvals resolve from policy and unresolved permissions are
+denied without prompting (PRD-009; the denial is the E-SEC family's, Volume 9). Inside
+an agent run, the denial reaches the agent as a structured Tool Result (denial-as-data,
+Volume 4) and the run's own outcome governs the exit code per the
+[exit-code rules](#exit-codes); exit 5 applies when the denial terminates the command —
+a direct command denial, or a run that cannot proceed past it. **CI mode** additionally
 defaults color to off (ADR-103 step 4), replaces transient progress with milestone lines
 (FR-UX-003), and suppresses update notices (`cli.update_notice` ignored). Detection of
 vendor-specific CI variables beyond `CI` is PENDING VALIDATION (register entry); the
@@ -673,7 +678,9 @@ TTY probing via the PAL terminal surface; identical ladder on all platforms.
   runs without `--yes`, then it fails fast with E-CLI-003 — no prompt, no hang (negative +
   CI case).
 - Given a non-interactive run whose tool needs an ungranted permission, when executed,
-  then denial is recorded, the agent receives the structured denial, and exit is 5
+  then the denial is recorded and the agent receives it as a structured Tool Result;
+  when the run cannot proceed and terminates on the denial the exit code is 5, and when
+  the agent adapts and the run concludes the exit code follows the run's own outcome
   (permission case).
 - Observability: `cli.command.started.interactive` equals the resolved mode across the
   matrix.
@@ -719,7 +726,14 @@ Behavior:
 4. Every resolution emits `cli.confirmation.resolved` (outcome: `confirmed`, `declined`,
    `unavailable`; source: `prompt`, `yes_flag`) and is auditable.
 
-`--yes` never affects permission Approvals (ADR-102 decision 2).
+`--yes` never affects permission Approvals (ADR-102 decision 2). One narrowly scoped
+consent surface exists for **class-D destructive git operations** (Volume 11 taxonomy):
+`--approve-destructive`, a per-invocation flag that satisfies the class-D Approval
+requirement in non-interactive contexts, only for the class-D operations the invoked
+command itself performs. It never widens permissions, never affects any other Approval,
+and every use is audit-recorded with source `approve_destructive_flag`. In `--no-input`
+mode a class-D operation without the flag is denied with E-SEC-001 (exit code 5); `--yes`
+is not a substitute.
 
 #### Motivation
 
