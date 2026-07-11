@@ -1,12 +1,103 @@
 # 05 — Register: Assumptions
 
-Living register of technical assumptions and product hypotheses. Populated by volume authors via
-`99-volume-register.md` files and merged here during consolidation. An assumption that proves
-false triggers the change procedure (chapter 10).
+Living register of technical assumptions and product hypotheses, consolidated from the
+`99-volume-register.md` files of Volumes 1–14. Global identifiers are minted here in volume
+order: `AS-NNN` for technical assumptions (including provided constraints recorded as
+assumptions) and `HY-NNN` for product hypotheses, each a separate sequence. The source
+volume's register retains the full local entry, including its "If false" consequence; this
+register is the corpus-wide index. An assumption that proves false triggers the change
+procedure ([chapter 10](10-completeness-and-change-procedure.md)).
 
-Format: `AS-NNN` (assumption) / `HY-NNN` (hypothesis), global sequences minted at consolidation;
-during authoring, volumes list assumptions locally without global numbers.
+Status values: `Open` (not yet validated) | `Validated` (validation path completed with a
+recorded outcome). All entries are `Open` at consolidation.
 
-| ID | Kind | Statement | Affected volumes | Validation path | Status |
+| ID | Kind | Statement | Source volume | Validation path | Status |
 |---|---|---|---|---|---|
-| — | — | *(populated at consolidation)* | — | — | — |
+| HY-001 | Product hypothesis | Openly available local models with dependable tool calling exist for consumer hardware and continue to improve | Volume 1 | SM-04 local conformance suite results per release | Open |
+| HY-002 | Product hypothesis | Andromeda's target users are terminal-proficient and prefer terminal surfaces over GUIs for this class of work | Volume 1 | Adoption and feedback channels reviewed at phase gates | Open |
+| AS-001 | Technical assumption | An implementation in the preferred language (PC-04, Go) can meet the SM-06 – SM-09 latency and memory budgets on Tier 1 platforms | Volume 1 | Benchmark spike before MVP implementation begins, reported against Volume 1 chapter 06 reference conditions | Open |
+| AS-002 | Technical assumption | Official provider APIs expose enough surface (streaming, tool calling, usage accounting) to satisfy the Transparent AI visibility list without unofficial mechanisms | Volume 1 | Volume 5 capability matrix cross-checked against each provider's official documentation during adapter development | Open |
+| AS-003 | Technical assumption | GitHub's platform features used by Volume 11 (Actions, releases, security tooling) remain available to open-source projects on workable terms | Volume 1 | Release audits; PC-02 review at phase gates | Open |
+| AS-004 | Technical assumption | The SQLite build shipped via `modernc.org/sqlite` (ADR-007) provides the JSON functions and pragmas Volume 2 chapter 10 relies on (`json_valid`, `user_version`, `integrity_check`, `foreign_key_check`) | Volume 2 | Persistence Layer conformance tests (Volume 13) against the pinned driver | Open |
+| AS-005 | Technical assumption | Per-turn persistence of Context Item rows (including excluded candidates) stays within the storage and latency budgets Volume 12 sets | Volume 2 | Volume 12 storage/latency benchmarks on representative runs | Open |
+| AS-006 | Technical assumption | Embedding vectors stored as BLOBs in the index cache database support workspace-scale semantic retrieval within Volume 12 budgets, without a dedicated vector store | Volume 2 | Volume 7 retrieval design plus Volume 12 benchmarks | Open |
+| AS-007 | Technical assumption | A process-monotonic ULID source with crypto-grade randomness is implementable in pure Go within ADR-001 constraints | Volume 2 | Generator conformance tests (Volume 13) | Open |
+| AS-008 | Technical assumption | depguard (or a successor in the pinned golangci-lint) plus a Go-native graph test can express the full Volume 3 chapter 01 dependency matrix including its exceptions | Volume 3 | ADR-033 implementation spike at Core phase | Open |
+| AS-009 | Technical assumption | The four-pool scheduler taxonomy (`interactive`, `tools`, `background`, `io`) is sufficient granularity for Volume 12's budgets | Volume 3 | Volume 12 budget authoring; load benchmarks | Open |
+| AS-010 | Technical assumption | UID-based peer verification on Unix domain sockets is available and reliable on all Tier 1 platforms via the PAL Local IPC surface | Volume 3 | PAL conformance suite (Core) | Open |
+| AS-011 | Technical assumption | Per-instance runtime directories (ADR-022) exist or are creatable with 0700 modes in all supported environments including containers and SSH sessions | Volume 3 | Container/SSH CI jobs (FR-PORT-003 edge cases) | Open |
+| HY-003 | Product hypothesis | A persistent headless instance (ADR-032) is the shape editor and automation integrators actually want, versus embedding via the SDK | Volume 3 | Beta-phase integration feedback (Volume 15 channels) | Open |
+| HY-004 | Product hypothesis | Models declaring `structured_outputs` produce plan candidates that pass deterministic validation within `agent.planner.max_attempts` often enough for planning to be practical | Volume 4 | SM-04-class conformance runs against pinned local and cloud models; planning-failure rate metrics from MVP onward | Open |
+| AS-012 | Technical assumption | Side-effect attribution records (Volumes 2/6) are complete enough for the ADR-042/ADR-043 gating to be sound in practice | Volume 4 | SM-13 orphan-side-effect audits; fault injection with effect-recording tools | Open |
+| HY-005 | Product hypothesis | The default limits of Volume 4 (iterations 50, attempts 3, tasks/plan 30, revisions 10) are workable for UC-01-class workloads | Volume 4 | MVP field metrics on limit-triggered cancellations; revisited at the Beta gate | Open |
+| HY-006 | Product hypothesis | The fourteen-stage SDD granularity with four bounded loops matches real engineering iteration patterns | Volume 4 | Beta adoption metrics (completion/abandonment per stage); Volume 15 feedback channels | Open |
+| AS-013 | Technical assumption | Step-boundary persistence granularity yields acceptable lost-work windows for typical workflow stage durations | Volume 4 | Crash-injection lost-work measurements; Beta telemetry on stage durations | Open |
+| AS-014 | Technical assumption | A closed, machine-checkable predicate set suffices for most workflow entry/exit criteria, with free-text criteria carried to gate approvers | Volume 4 | Workflow-author feedback during Beta | Open |
+| AS-015 | Technical assumption | The 30-second timer sweep bound is imperceptible for minutes-scale workflow timeouts and 24-hour gate expiries | Volume 4 | Volume 12 firing-latency metrics | Open |
+| AS-016 | Technical assumption | Seed providers' documented error-body schemas are stable enough for table-driven `ErrorMapping` rules | Volume 5 | E-PROV-008 rates versus fault-injection baselines per release | Open |
+| AS-017 | Technical assumption | All seed providers' official streaming mechanisms normalize to the four-member `ChatEvent` union without losing consumer-relevant information | Volume 5 | Conformance suite round-trip checks per adapter (SM-04, SM-08) | Open |
+| HY-007 | Product hypothesis | Cost-sensitive users will maintain pricing tables given honest `unavailable` defaults | Volume 5 | Basis-distribution telemetry from consenting installs; feedback channels | Open |
+| AS-018 | Technical assumption | The OpenAI-compatible surface defined in FR-PROV-081 (chat completions + SSE, optional models/embeddings endpoints) is a sufficient common denominator for the catalog services classified to the generic path | Volume 5 | Conformance suite runs against each service as adapters are implemented (OQ-020) | Open |
+| AS-019 | Technical assumption | Provider expired-credential signals are distinguishable from other authentication rejections via documented error responses (needed for FR-AUTH-010 on-demand refresh) | Volume 5 | Per-adapter contract tests at implementation | Open |
+| AS-020 | Technical assumption | Loopback listeners on ephemeral 127.0.0.1 ports are available in target desktop environments for FR-AUTH-003 | Volume 5 | Beta-phase testing on Tier 1 platforms | Open |
+| HY-008 | Product hypothesis | Three MVP adapters (generic OpenAI-compatible, Anthropic, Ollama) cover the practical provider needs of MVP users given the generic path's reach | Volume 5 | MVP feedback channels (Volume 15) | Open |
+| AS-021 | Technical assumption | A 1 MiB inline output cap serves the common tool-output distribution without routine spillover | Volume 6 | Volume 12 benchmarks; Volume 7 context budgeting review | Open |
+| AS-022 | Technical assumption | Built-in tools can honor cooperative cancellation within the 2 s grace budget | Volume 6 | Teardown timing tests per platform (FR-TOOL-006 verification) | Open |
+| AS-023 | Technical assumption | Declared idempotency intersected with envelope retryability covers the useful automatic-retry space | Volume 6 | SM-10 field data and suite telemetry | Open |
+| HY-009 | Product hypothesis | Typed `*.request` operation surfaces (rather than raw REST pass-through) are what agents need from integration tools | Volume 6 | Beta/v1 usage telemetry and issue reports | Open |
+| AS-024 | Technical assumption | Line-delimited JSON-RPC framing with the 4 MiB cap and out-of-band artifacts serves plugin workloads within NFR-PLUG-002 budgets | Volume 6 | Volume 12 benchmarks; ADR-009/ADR-079 review conditions | Open |
+| AS-025 | Technical assumption | The official MCP SDK's supported revision set covers the practical server ecosystem until the protocol pin resolves | Volume 6 | SM-15 interop scorecard trends per release | Open |
+| HY-010 | Product hypothesis | Data-only skills express the majority of shareable procedural knowledge without executable hooks | Volume 6 | Beta/v1 usage telemetry and issue signals | Open |
+| AS-026 | Technical assumption | Independent publishers adopt cosign signing gradually; unsigned-but-checksummed packages dominate early Beta | Volume 6 | Signature-adoption statistics at phase gates (ADR-081 review condition) | Open |
+| AS-027 | Technical assumption | Embedding providers return stable vectors for identical input under a pinned model name within one provider revision; same-name silent revisions are rare enough that golden retrieval fixtures catch them | Volume 7 | Volume 13 semantic retrieval golden suites per release; provider deprecation monitoring (Volume 5) | Open |
+| AS-028 | Technical assumption | The ADR-087 heuristic (`ceil(bytes/4)+8`, ×1.15) plus the default 5% safety margin over-estimates true token counts for the supported model families' typical code-and-prose content | Volume 7 | NFR-CTX-001 overflow classification across counted and estimated models | Open |
+| AS-029 | Technical assumption | The ≤100,000-chunk workspace assumption of ADR-020 holds for the target user base at MVP | Volume 7 | Chunk-count metrics per workspace (ADR-020 observability); Volume 12 benchmarks | Open |
+| HY-011 | Product hypothesis | Assisted ingestion (agent-proposed, session-layer auto-accepted, durable layers consent-gated) is the right default authoring balance for memory | Volume 7 | Beta feedback channels (Volume 15); refusal/confirmation telemetry under consent | Open |
+| AS-030 | Technical assumption | The `CI` environment variable is set truthy by the CI systems users run Andromeda in (de-facto convention, not a standard) | Volume 8 | Field reports; CI-vendor documentation review at Beta (ADR-102 review condition) | Open |
+| AS-031 | Technical assumption | The `NO_COLOR` convention (any non-empty value disables color) remains stable in the ecosystem | Volume 8 | Convention page and ecosystem behavior review at Beta | Open |
+| AS-032 | Technical assumption | `PAGER`, `VISUAL`/`EDITOR`, and `TERM` semantics follow their established Unix conventions on Tier 1 platforms | Volume 8 | Tier 1 platform test matrix | Open |
+| AS-033 | Technical assumption | A six-character ULID prefix is a usable and sufficiently collision-resistant interactive identifier shorthand | Volume 8 | Usage friction reports; collision incidence in fixtures | Open |
+| HY-012 | Product hypothesis | A closed shared verb vocabulary with no convenience aliases yields higher first-guess correctness than muscle-memory alias compatibility | Volume 8 | Usability passes at Beta (ADR-100 review condition) | Open |
+| AS-034 | Technical assumption | `COLORTERM=truecolor\|24bit` is a widely deployed but unstandardized convention; the ADR-106 tier ladder treats it as a positive signal only | Volume 8 | Terminal compatibility matrix verification (Volume 8 chapter 12); ADR-106 review conditions | Open |
+| AS-035 | Technical assumption | Contrast figures for the ansi256 tier hold for the standard xterm 256-color cube/grayscale values, and ansi16 reference figures for the de-facto VGA palette; user-redefined palettes vary | Volume 8 | Terminal-matrix testing; doctor tier reporting; user reports (RISK-UX-040 detection) | Open |
+| AS-036 | Technical assumption | Most terminals bypass application mouse mode while a platform modifier is held, restoring native text selection; treated as a convenience with `tui.mouse = false` as the guaranteed path (ADR-109) | Volume 8 | Compatibility suite across the Tier A terminal set | Open |
+| AS-037 | Technical assumption | WCAG 2.x contrast arithmetic (relative-luminance formula) is the accepted accessibility criterion for terminal text rendering | Volume 8 | NFR-UX-040 automated contrast computation; accessibility review at Beta | Open |
+| AS-038 | Technical assumption | Locale variables (`LC_ALL`/`LC_CTYPE`/`LANG`) are a sufficient UTF-8 signal for glyph-set auto-selection | Volume 8 | Compatibility suite across the Tier A set and the Linux console | Open |
+| AS-039 | Technical assumption | Bracketed paste is available across the Tier A terminal set | Volume 8 | Compatibility suite paste fixtures | Open |
+| AS-040 | Technical assumption | The 33/100 ms coalescing windows satisfy the SM-08 ≤ 50 ms p95 added-overhead budget | Volume 8 | SM-08 benchmark harness (Volume 12) | Open |
+| AS-041 | Technical assumption | teatest/v2 can drive remote-PTY and multiplexer scenarios for FR-TUI-068 verification | Volume 8 | Volume 13 harness spike at suite build-out | Open |
+| AS-042 | Technical assumption | Threat probability ratings in the Volume 9 risk matrix are prior design estimates, to be recalibrated from the security telemetry of consenting installations (SM-16) | Volume 9 | Field metrics from consenting installations; phase-gate security review | Open |
+| AS-043 | Technical assumption | Process-level sandbox controls (env filtering, path policy, resource limits) eliminate the common failure classes at MVP without OS-level isolation (ADR-021) | Volume 9 | Sandbox conformance tests per platform (RISK-SEC-024 tests) | Open |
+| AS-044 | Provided constraint | Andromeda cannot defend against an attacker already holding the user's OS account; that defense is the operating system's | Volume 9 | Stated boundary; no test claims protection there | Open |
+| HY-013 | Product hypothesis | Effect-naming, default-deny approval prompts meaningfully reduce social-engineering success versus generic confirmations | Volume 9 | Beta/v1 usage telemetry; approval-audit review | Open |
+| AS-045 | Technical assumption | Official authentication flows do not issue secret material shorter than 8 characters, so the redaction-registry floor loses nothing real | Volume 9 | Review per provider adapter at its phase start (Volume 5 catalog) | Open |
+| AS-046 | Technical assumption | SHA-256 append cost and the O(1) audit-chain head check are negligible on the hot path and open path respectively | Volume 9 | NFR-SEC-005 benchmarks; Volume 12 startup budgets | Open |
+| AS-047 | Technical assumption | The process-level floor's resolve-then-act path policy, with per-sandbox temp dirs, eliminates the practical symlink/traversal classes short of a concurrently mutating attacker | Volume 9 | Path-policy fuzzing (FR-SEC-108); Volume 9 chapter 04 residual-risk review | Open |
+| HY-014 | Product hypothesis | A 10-minute default `approval_timeout` matches interactive rhythm without routine expiries | Volume 9 | Beta usage feedback; expiry-rate metrics | Open |
+| HY-015 | Product hypothesis | Five sandbox tiers cover all execution subjects through v1 without a sixth | Volume 9 | Volume 6/4 integration during Beta | Open |
+| AS-048 | Technical assumption | The reference configuration (4 files ≤ 64 KiB, 2 profiles, 20 env vars) represents real installations for NFR-CFG-001 | Volume 10 | Volume 12 benchmark corpus review at Beta | Open |
+| AS-049 | Technical assumption | A 1 MiB per-file cap and include bounds (depth 8, 64 files) exceed real configuration sizes by a wide margin | Volume 10 | E-CFG-001/E-CFG-007 frequency in field diagnostics | Open |
+| AS-050 | Technical assumption | Shannon entropy ≥ 3.5 bits/char at length ≥ 20 separates secrets from identifiers well enough for a non-blocking heuristic | Volume 10 | Detector true/false-positive suites; corpus review per release | Open |
+| AS-051 | Technical assumption | ADR-008 round-trip encoding cannot guarantee comment preservation, so configuration rewrites must be backup-first with comment loss documented | Volume 10 | Implementation spike on go-toml/v2 encode fidelity | Open |
+| AS-052 | Technical assumption | The pinned OTel Go SDK provides OTLP exporters for `http/protobuf` and `grpc` and view-based metric aggregation, per its official documentation at pin time | Volume 10 | SDK surface verification at pin time (ADR-011 commitment; only the pin's exact surface is deferred) | Open |
+| AS-053 | Technical assumption | ULIDs' 128-bit binary form maps bijectively onto OTel 128-bit trace IDs (ADR-027 fixes the ULID form; the mapping uses its 16 bytes directly) | Volume 10 | FR-OBS-007 trace-completeness and cross-boundary propagation tests | Open |
+| HY-016 | Product hypothesis | Opt-in telemetry volume will be low and self-selected (ADR-140 accepts this consciously) | Volume 10 | Consent-rate and volume observation from MVP onward; ADR-140 review conditions | Open |
+| AS-054 | Technical assumption | GitHub's platform features Volume 11 builds on (Actions with environments and OIDC, issue forms, Projects v2, squash-merge message control, required checks, code-owner review) remain available to open-source projects on workable terms | Volume 11 | Phase-gate reviews; mirrors AS-003 | Open |
+| AS-055 | Technical assumption | git's porcelain v2 and NUL-terminated output formats remain stable across versions ≥ 2.40 within the parsing contract | Volume 11 | NFR-GIT-001 equivalence suite across the pinned git version matrix, per release | Open |
+| AS-056 | Technical assumption | The squash-merge commit message can be composed as PR title + body with the generated `Refs` trailer via platform configuration and merge automation | Volume 11 | Verified during FR-GH-004 implementation; configuration audit | Open |
+| AS-057 | Technical assumption | A Go implementation over the pure-Go SQLite driver (ADR-007) meets the Volume 12 chapter 01 hot-path budgets (first-token overhead, session restore, memory retrieval) on RM-1 and RM-2 | Volume 12 | Pre-MVP benchmark spike per the AS-001 validation path; nightly trends from MVP | Open |
+| AS-058 | Technical assumption | At least one CI runner class can hold the ADR-160 ±10% calibration stably enough for gating | Volume 12 | Calibration telemetry during CI bring-up (OQ-048) | Open |
+| AS-059 | Technical assumption | Mock-provider pacing profiles are representative of real provider stream shapes for overhead measurement | Volume 12 | Non-gated comparison of overhead distributions against instrumented real-provider sessions at each phase gate | Open |
+| AS-060 | Technical assumption | CI runners (Volume 11 pipelines) can run Linux network namespaces for OS-level offline isolation | Volume 13 | First implementation of the offline harness on the chosen runners | Open |
+| AS-061 | Technical assumption | A local model server (Ollama with a pinned model) is runnable within CI resource limits for the offline and local-conformance lanes | Volume 13 | First SM-04/SM-05 lane bring-up | Open |
+| AS-062 | Technical assumption | Timed generative budgets (fuzz ≥ 15 min/target at T2) fit scheduled-lane capacity | Volume 13 | Lane runtime observation over the first month | Open |
+| AS-063 | Technical assumption | GitHub Releases' documented public API remains usable for unauthenticated release-metadata checks at the default daily cadence within its published rate limits | Volume 14 | Scheduled CI job exercising the check path against the live origin | Open |
+| AS-064 | Technical assumption | Same-filesystem rename-based binary replacement behaves atomically on Tier 1 platforms as the PAL Updater surface contract requires | Volume 14 | PAL golden tests per platform; crash injection during the swap (FR-REL-016 suites) | Open |
+| HY-017 | Product hypothesis | One retained version (`keep_versions = 1`) covers the dominant rollback scenario ("the update I just applied is bad") | Volume 14 | Rollback usage and failure telemetry under consent; support channels | Open |
+| HY-018 | Product hypothesis | `auto_check` on / `auto_download` and `auto_apply` off is the right default update automation posture | Volume 14 | Beta feedback (Volume 15); update-lag distribution under consent-based metrics | Open |
+
+Consolidation note: Volume 10's register additionally recorded a design note (not an
+assumption) that SM-12 is formalized as NFR-OBS-004 because its measurement is the
+observability record chain. Consolidation confirms NFR-OBS-004 as the single SM-12
+formalization; NFR-CFG-002 uses the same record-completeness validator for the configuration
+snapshot without minting a second formalization.
