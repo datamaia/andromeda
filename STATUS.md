@@ -147,8 +147,11 @@ migrations and backups, and emits enveloped events to persisted storage — all 
   standing grants with expiry and revocation, policy rules, interactive approvals minting
   scoped grants, decision persistence and per-decision audit (fail-closed on audit failure,
   E-SEC-014), and unknown-permission → E-SEC-002 deny. Backed by workspace-DB migration v3.
-- ⬜ Secret Store (`SecretStorePort`, FR-SEC-102): OS keychain via zalando/go-keyring + age
-  fallback (ADR-014) — next
+- ✅ Secret Store (`internal/secret`) implementing `SecretStorePort` (**FR-SEC-102**, ADR-014):
+  OS keychain backend via zalando/go-keyring (PAL `CredentialStore`, macOS/Linux) with an
+  opt-in age-encrypted file fallback (passphrase/scrypt, 0600, verified encrypted-at-rest and
+  wrong-passphrase-rejected); a per-namespace reference index so `List` works on keychains
+  that cannot enumerate; secrets never surface in errors (E-SEC PortErrors carry no material)
 - ⬜ Sandbox Engine (`SandboxPort`, FR-SEC-101): process-level MVP controls (ADR-021) — next
 - ⬜ Approval state machine wiring to a real driver (CLI/TUI) — with EP-13
 
