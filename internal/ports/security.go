@@ -20,6 +20,11 @@ type PermissionQuery struct {
 	Permission core.Permission
 	Scope      core.PermissionScope
 	Subject    string // the concrete resource: path, host, tool name, repository, ...
+
+	// Subject context — the ULIDs a grant's scope may enclose (all optional).
+	SessionID   ULID
+	RunID       ULID
+	WorkspaceID ULID
 }
 
 // PermissionRequest is a query that may raise an interactive Approval where permitted.

@@ -86,6 +86,35 @@ CREATE INDEX idx_events_name ON events(name);
 CREATE INDEX idx_events_correlation ON events(correlation_id);
 CREATE INDEX idx_events_run ON events(run_id);`,
 	},
+	{
+		Version: 3,
+		Name:    "add_permissions",
+		SQL: `
+CREATE TABLE grants (
+  id                TEXT PRIMARY KEY,
+  permission        TEXT NOT NULL,
+  scope             TEXT NOT NULL,
+  selector          TEXT NOT NULL,
+  effect            TEXT NOT NULL,
+  subject_session   TEXT,
+  subject_workspace TEXT,
+  valid_until       TEXT,
+  revoked           INTEGER NOT NULL DEFAULT 0,
+  created_at        TEXT NOT NULL
+);
+CREATE INDEX idx_grants_permission ON grants(permission);
+CREATE TABLE permission_audit (
+  id         TEXT PRIMARY KEY,
+  permission TEXT NOT NULL,
+  scope      TEXT NOT NULL,
+  subject    TEXT NOT NULL,
+  outcome    TEXT NOT NULL,
+  deciding   TEXT,
+  actor      TEXT,
+  ts         TEXT NOT NULL
+);
+CREATE INDEX idx_permission_audit_ts ON permission_audit(ts);`,
+	},
 }
 
 // OpenWorkspaceDB opens (creating on first use) the workspace database under

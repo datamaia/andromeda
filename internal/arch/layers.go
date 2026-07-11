@@ -23,18 +23,19 @@ const (
 // unclassified and rejected by the enforcement test, so adding a package forces a manifest
 // entry in the same change (FR-ARCH-001).
 var PackageLayer = map[string]Layer{
-	"core":      L0Core,
-	"buildinfo": L0Core, // build metadata is pure, dependency-free
-	"ports":     L1Contract,
-	"pal":       L1Contract,
-	"arch":      L1Contract, // the manifest itself is a contract artifact
-	"storage":   L2Infrastructure,
-	"config":    L2Infrastructure,
-	"streams":   L2Infrastructure,
-	"eventbus":  L2Infrastructure,
-	"logging":   L2Infrastructure,
-	"telemetry": L2Infrastructure,
-	"app":       L4Application,
+	"core":       L0Core,
+	"buildinfo":  L0Core, // build metadata is pure, dependency-free
+	"ports":      L1Contract,
+	"pal":        L1Contract,
+	"arch":       L1Contract, // the manifest itself is a contract artifact
+	"storage":    L2Infrastructure,
+	"config":     L2Infrastructure,
+	"streams":    L2Infrastructure,
+	"eventbus":   L2Infrastructure,
+	"logging":    L2Infrastructure,
+	"telemetry":  L2Infrastructure,
+	"permission": L3Engine,
+	"app":        L4Application,
 }
 
 // ModulePath is the module's import path prefix.

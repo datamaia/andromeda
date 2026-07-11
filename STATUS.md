@@ -24,7 +24,7 @@ The authoritative quality gate is **`make ci`** (runs locally, no CI-minute depe
 | Milestone | Epics | Status |
 |---|---|---|
 | MS-1 Foundations | EP-01 ✅, EP-02 ✅, EP-03 ✅, EP-04 ✅ | ✅ |
-| MS-2 Runtime core | EP-05, EP-06, EP-07, … | 🔄 |
+| MS-2 Runtime core | EP-05 🔄, EP-06, EP-07 | 🔄 |
 | MS-3+ | per Volume 15 ch 02 | ⬜ |
 
 ## Epics
@@ -138,6 +138,21 @@ Exit criterion met: the `andromeda` binary starts on macOS (verified) and Linux 
 configuration with source attribution, opens both the workspace and global databases with
 migrations and backups, and emits enveloped events to persisted storage — all demonstrated by
 `andromeda doctor` and covered by tests.
+
+### EP-05 — Security kernel · 🔄 (permission model done)
+
+- ✅ Permission Manager (`internal/permission`) implementing `PermissionPort` (**FR-SEC-100**):
+  the closed 13/10/7 enums, the deny > ask > allow > else-ask evaluation algorithm (ADR-121),
+  scope enclosure (session/workspace) and selector matching (exact, `/prefix/**`, `/prefix/*`),
+  standing grants with expiry and revocation, policy rules, interactive approvals minting
+  scoped grants, decision persistence and per-decision audit (fail-closed on audit failure,
+  E-SEC-014), and unknown-permission → E-SEC-002 deny. Backed by workspace-DB migration v3.
+- ⬜ Secret Store (`SecretStorePort`, FR-SEC-102): OS keychain via zalando/go-keyring + age
+  fallback (ADR-014) — next
+- ⬜ Sandbox Engine (`SandboxPort`, FR-SEC-101): process-level MVP controls (ADR-021) — next
+- ⬜ Approval state machine wiring to a real driver (CLI/TUI) — with EP-13
+
+**Gate status:** `make ci` passes.
 
 ## Deliberate deviations from the specification (free-tier accommodations)
 
