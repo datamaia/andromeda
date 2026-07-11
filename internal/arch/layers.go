@@ -45,6 +45,10 @@ var PackageLayer = map[string]Layer{
 	"tool":       L3Engine,
 	"agent":      L3Engine,
 	"terminal":   L3Engine,
+	"scheduler":  L2Infrastructure,
+	"auth":       L3Engine,
+	"updater":    L3Engine,
+	"pkgmgr":     L3Engine,
 	"app":        L4Application,
 }
 

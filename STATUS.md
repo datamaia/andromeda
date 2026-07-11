@@ -4,7 +4,7 @@ Living tracker of the build. The **specification** (`docs/spec/`, v1.0.0) is com
 file tracks the **implementation** against Volume 15's epics and milestones. Updated and
 pushed on every advance.
 
-**Last updated:** 2026-07-12 · **Current milestone:** MS-3 (Memory/context/index → runtime) · **Phase:** Core/MVP · **Ports:** 15/18 (recount)
+**Last updated:** 2026-07-12 · **Current milestone:** MS-3 (Memory/context/index → runtime) · **Phase:** Core/MVP · **Ports:** 18/18 ✅
 
 ## How work is organized
 
@@ -283,6 +283,30 @@ Package remain).
 MemoryStore, Indexer, EventBus, Permission, SecretStore, Sandbox, Config, SessionStore, Git,
 Workspace, Scheduler⬜, Updater⬜, Package⬜, Telemetry. Remaining: **Auth, Scheduler, Updater,
 Package**.
+
+### EP — Remaining ports: Scheduler, Auth, Updater, Package · ✅  → **ALL 18 PORTS DONE**
+
+- ✅ Task Scheduler (`internal/scheduler`) implementing `SchedulerPort` (ADR-023): named bounded
+  pools (interactive/tools/background/io), supervised submit with panic capture, cancellation,
+  structured groups with first-error propagation (errgroup semantics), and pool stats. Verified:
+  bounded concurrency, panic capture, group error propagation, cancel-before-start, shutdown.
+- ✅ Authentication Layer (`internal/auth`) implementing `AuthPort` (Volume 5): API-key intake
+  stored only behind Secret Store references (ADR-014), `Authenticate`/`Refresh`/`Revoke`/
+  `Rotate`/`ListProfiles`, `none` mechanism for local providers, and a clean "unsupported
+  mechanism" error for OAuth flows deferred to a later phase. Secrets never returned or logged.
+- ✅ Updater (`internal/updater`) implementing `UpdaterPort` (Volume 14): channel check,
+  download, SHA-256 verify, atomic binary swap with retained backup, and offline rollback;
+  Apply refuses to run unless Verify passed. Verified end-to-end with local artifacts.
+- ✅ Package Manager (`internal/pkgmgr`) implementing `PackagePort` (Volume 6): resolve →
+  install through the frozen installation states with checksum verification, verify, and remove;
+  a failed checksum leaves nothing active. Verified end-to-end.
+
+## 🎯 All 18 port interfaces now have real, tested implementations.
+
+Provider, Auth, Tool, Terminal, MemoryStore, Indexer, EventBus, Permission, SecretStore,
+Sandbox, Config, SessionStore, Git, Workspace, Scheduler, Updater, Package, Telemetry — every
+frozen Volume 3 port is implemented and exercised by tests, and the layer dependency rule is
+enforced on every commit.
 
 ## Deliberate deviations from the specification (free-tier accommodations)
 
