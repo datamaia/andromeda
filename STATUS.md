@@ -24,8 +24,8 @@ The authoritative quality gate is **`make ci`** (runs locally, no CI-minute depe
 | Milestone | Epics | Status |
 |---|---|---|
 | MS-1 Foundations | EP-01 ✅, EP-02 ✅, EP-03 ✅, EP-04 ✅ | ✅ |
-| MS-2 Runtime core | EP-05 ✅, EP-06 ✅, EP-07 | 🔄 |
-| MS-3+ | per Volume 15 ch 02 | ⬜ |
+| MS-2 Runtime core | EP-05 ✅, EP-06 ✅, EP-07 ✅ | ✅ |
+| MS-3+ | per Volume 15 ch 02 | 🔄 |
 
 ## Epics
 
@@ -175,6 +175,29 @@ migrations and backups, and emits enveloped events to persisted storage — all 
   projects, VCS summary via the Git Engine, timestamp), and clean `Close`.
 
 **Gate status:** `make ci` passes. Ports implemented: 10 / 18.
+
+### EP-07 — Providers, models, and routing · ✅
+
+Realizes the provider contract (**FR-PROV-001**) and the MVP provider seed.
+
+- ✅ Provider Layer base (`internal/provider`): the E-PROV error family with HTTP→code mapping
+  and retryability, a shared JSON/SSE HTTP client, and the **Router** that itself implements
+  `ProviderPort` — failing over primary→fallbacks only on retryable errors (connectivity, rate
+  limit, 5xx) and never on auth/bad-request, so a fallback can't mask a misconfiguration or run
+  a costly retry on a correctly-rejected request; emits change notices (Transparent AI).
+- ✅ OpenAI-compatible adapter (`provider/openaicompat`, FR-PROV-081): Chat, streaming Chat
+  (SSE), Embed, model discovery, capability declaration; the generic adapter covering many
+  services.
+- ✅ Anthropic adapter (`provider/anthropic`): Messages API Chat and streaming (content-block
+  deltas), system-message extraction, capability declaration.
+- ✅ Ollama adapter (`provider/ollama`): local `/api/chat`, `/api/embed`, `/api/tags`
+  discovery — a thin hand-rolled client (ADR-019).
+- All adapters use documented public APIs only and are verified with `httptest` mock servers
+  (no real network). Capabilities are declared honestly; token counting returns the
+  unavailable error so the Context Manager estimates.
+
+**Milestone MS-2 (Runtime core) complete.** Ports implemented: **14 / 18** (adds Provider;
+Auth/Tool/Terminal/Memory/Indexer/Updater/Package remain).
 
 ## Deliberate deviations from the specification (free-tier accommodations)
 
