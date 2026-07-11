@@ -45,7 +45,7 @@ in-code definitions to them).
 | `catalog-errors.md` | Every `E-<AREA>-NNN` error code with its ADR-016 envelope summary and exit-code mapping | Volume registers ("Error codes minted"); ADR-016 |
 | `catalog-events.md` | Every event name (`<area>.<noun>.<verb-past>`), producer, and meaning; envelope semantics per Volume 10 | Volume registers ("Events minted"); FR-OBS-001 |
 | `catalog-commands.md` | The full `andromeda` CLI command surface: syntax, flags, exit codes, JSON output schemas by reference | Volume 8, chapters 02–06 (FR-CLI-001) |
-| `catalog-configuration.md` | Every `andromeda.toml` table and key with type, default, and owning volume; schema/precedence per Volume 10 | Volume registers ("Config keys minted"); FR-CFG-001 |
+| [`catalog-config.md`](catalog-config.md) | Every `andromeda.toml` table and key with type, default, and owning volume; schema/precedence per Volume 10 | Volume registers ("Config keys minted"); FR-CFG-001 |
 | `catalog-permissions.md` | The frozen permission, scope, and decision enums with every binding site (which actions require which permission) | Volume 9, chapter 05 (FR-SEC-100); tool/extension declarations (Volume 6) |
 | `catalog-capabilities.md` | The provider capability enum and its resolution model (provenance, degradation strategies) | Volume 5, chapter 02 (FR-PROV-010/011; ADR-056) |
 
