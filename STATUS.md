@@ -4,7 +4,7 @@ Living tracker of the build. The **specification** (`docs/spec/`, v1.0.0) is com
 file tracks the **implementation** against Volume 15's epics and milestones. Updated and
 pushed on every advance.
 
-**Last updated:** 2026-07-12 · **Current milestone:** MS-1 (Foundations) · **Phase:** Core
+**Last updated:** 2026-07-12 · **Current milestone:** MS-3 (Memory/context/index → runtime) · **Phase:** Core/MVP · **Ports:** 16/18
 
 ## How work is organized
 
