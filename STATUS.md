@@ -4,7 +4,7 @@ Living tracker of the build. The **specification** (`docs/spec/`, v1.0.0) is com
 file tracks the **implementation** against Volume 15's epics and milestones. Updated and
 pushed on every advance.
 
-**Last updated:** 2026-07-12 · **Current milestone:** MS-3 (Memory/context/index → runtime) · **Phase:** Core/MVP · **Ports:** 16/18
+**Last updated:** 2026-07-12 · **Current milestone:** MS-3 (Memory/context/index → runtime) · **Phase:** Core/MVP · **Ports:** 17/18
 
 ## How work is organized
 
@@ -215,6 +215,21 @@ Auth/Tool/Terminal/Memory/Indexer/Updater/Package remain).
 
 **Gate status:** `make ci` passes. Ports implemented: **16 / 18** (adds MemoryStore, Indexer;
 Auth, Tool/Terminal, Updater, Package remain).
+
+### EP — Tool Runtime and built-in tools (Volume 6) · 🔄
+
+- ✅ Tool Runtime (`internal/tool`) implementing the mediation of `ToolPort` (**FR-TOOL-001**):
+  registry, per-invocation input validation, permission evaluation via `PermissionPort` with
+  **denial-as-data** (a refused invocation returns a terminal error event, not a transport
+  failure), and path-level permission derivation for tools that declare their resources.
+- ✅ Built-in filesystem tools (`internal/tool/builtin`): `fs_read`, `fs_write`, `fs_search`,
+  each a `ToolPort` with input/output schemas, declared permissions, and path-scoped resource
+  queries so grants apply per file/path.
+- ⬜ Terminal Engine (`TerminalPort`) and a `terminal.run` tool over the sandbox — next.
+- ⬜ Remaining built-in tools (git, http, patch, …), tool state machine wiring — later.
+
+**Gate status:** `make ci` passes. Ports implemented: **17 / 18** (Tool; Terminal, Auth,
+Updater, Package remain).
 
 ## Deliberate deviations from the specification (free-tier accommodations)
 
