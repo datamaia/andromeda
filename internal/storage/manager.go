@@ -67,6 +67,25 @@ CREATE TABLE run_records (
 );
 CREATE INDEX idx_run_records_run ON run_records(run_id, seq);`,
 	},
+	{
+		Version: 2,
+		Name:    "add_events",
+		SQL: `
+CREATE TABLE events (
+  id             TEXT PRIMARY KEY,
+  name           TEXT NOT NULL,
+  version        INTEGER NOT NULL,
+  producer       TEXT NOT NULL,
+  correlation_id TEXT,
+  session_id     TEXT,
+  run_id         TEXT,
+  ts             TEXT NOT NULL,
+  payload        BLOB
+);
+CREATE INDEX idx_events_name ON events(name);
+CREATE INDEX idx_events_correlation ON events(correlation_id);
+CREATE INDEX idx_events_run ON events(run_id);`,
+	},
 }
 
 // OpenWorkspaceDB opens (creating on first use) the workspace database under

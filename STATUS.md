@@ -23,8 +23,8 @@ The authoritative quality gate is **`make ci`** (runs locally, no CI-minute depe
 
 | Milestone | Epics | Status |
 |---|---|---|
-| MS-1 Foundations | EP-01 ✅, EP-02 ✅, EP-03 ✅, EP-04 | 🔄 |
-| MS-2 Runtime core | EP-05, EP-06, EP-07, … | ⬜ |
+| MS-1 Foundations | EP-01 ✅, EP-02 ✅, EP-03 ✅, EP-04 ✅ | ✅ |
+| MS-2 Runtime core | EP-05, EP-06, EP-07, … | 🔄 |
 | MS-3+ | per Volume 15 ch 02 | ⬜ |
 
 ## Epics
@@ -107,9 +107,37 @@ single-underscore fallback when no `__` is present (so the spec's `ANDROMEDA_TUI
 tui.theme.mode` example still works). This resolves the underscore ambiguity the spec itself
 flags; Volume 10's text should adopt the same rule.
 
-### EP-04 — Observability foundation · ⬜
-Event bus, event envelope (FR-OBS-001), `slog` JSON logging, OpenTelemetry traces/metrics,
-persisted event storage. Completes MS-1.
+### EP-04 — Observability foundation · ✅
+
+Realizes FR-OBS-001 (event envelope) and the ADR-011/012 observability decisions. **Completes
+milestone MS-1.**
+
+- ✅ Event bus (`internal/eventbus`) implementing `EventBusPort` (ADR-012): in-process typed
+  pub/sub, exact-name and prefix topic selectors, bounded per-subscriber buffers with a
+  drop-oldest overflow policy that never blocks publishers, context-cancel auto-close
+- ✅ Event envelope (FR-OBS-001): `NewEvent` builder (version, UTC timestamp, correlation ID)
+  and event-name grammar validation (`<area>[.<noun>].<verb-past>`)
+- ✅ Structured logging (`internal/logging`, ADR-011): `slog` JSON handler with level control
+  and secret redaction at the handler (Volume 9 redaction)
+- ✅ Telemetry (`internal/telemetry`) implementing `TelemetryPort`: local-first metric registry
+  and span tree; never fails the observed operation
+- ✅ Event persistence (`internal/storage`): workspace-DB `events` table (migration v2) and an
+  `EventStore` writing/reading enveloped Event records
+- ✅ **`andromeda doctor`** composition (`internal/app`) exercising the MS-1 exit end to end:
+  resolves config with attribution, opens both databases with migrations, emits and persists
+  an enveloped event — verified live and by hermetic tests
+- ⬜ OpenTelemetry Go SDK + OTLP export wiring (consent-gated) — local sinks now; SDK later
+- ⬜ Full metric/trace/cost catalogs — owning volumes' later epics
+
+**Gate status:** `make ci` passes — coverage 77.0%. `andromeda doctor` exits 0 with all checks
+green.
+
+## Milestone MS-1 — Foundations · ✅ COMPLETE
+
+Exit criterion met: the `andromeda` binary starts on macOS (verified) and Linux (CI), resolves
+configuration with source attribution, opens both the workspace and global databases with
+migrations and backups, and emits enveloped events to persisted storage — all demonstrated by
+`andromeda doctor` and covered by tests.
 
 ## Deliberate deviations from the specification (free-tier accommodations)
 

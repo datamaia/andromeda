@@ -31,6 +31,10 @@ var PackageLayer = map[string]Layer{
 	"storage":   L2Infrastructure,
 	"config":    L2Infrastructure,
 	"streams":   L2Infrastructure,
+	"eventbus":  L2Infrastructure,
+	"logging":   L2Infrastructure,
+	"telemetry": L2Infrastructure,
+	"app":       L4Application,
 }
 
 // ModulePath is the module's import path prefix.

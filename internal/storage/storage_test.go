@@ -92,8 +92,8 @@ func TestOpenWorkspaceAndGlobalDBs(t *testing.T) {
 		t.Fatalf("workspace write: %v", err)
 	}
 	v, err := ws.SchemaVersion(ctx)
-	if err != nil || v != 1 {
-		t.Fatalf("workspace schema version = %d, %v; want 1", v, err)
+	if err != nil || v != len(workspaceMigrations) {
+		t.Fatalf("workspace schema version = %d, %v; want %d", v, err, len(workspaceMigrations))
 	}
 	if _, statErr := ws.SQL().Exec(`SELECT 1`); statErr != nil {
 		t.Fatalf("workspace db not usable: %v", statErr)
