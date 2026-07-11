@@ -9,6 +9,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/datamaia/andromeda/internal/app"
 	"github.com/datamaia/andromeda/internal/buildinfo"
@@ -50,7 +51,62 @@ func newRootCommand() *cobra.Command {
 	root.CompletionOptions.HiddenDefaultCmd = true
 	root.AddCommand(newVersionCommand())
 	root.AddCommand(newDoctorCommand())
+	root.AddCommand(newRunCommand())
 	return root
+}
+
+func newRunCommand() *cobra.Command {
+	var (
+		providerName string
+		baseURL      string
+		apiKeyEnv    string
+		model        string
+		system       string
+		allowWrite   bool
+		maxIter      int
+	)
+	cmd := &cobra.Command{
+		Use:   "run <goal>",
+		Short: "Run an agent to accomplish a goal in the current workspace",
+		Args:  cobra.MinimumNArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			wd, err := os.Getwd()
+			if err != nil {
+				return err
+			}
+			apiKey := ""
+			if apiKeyEnv != "" {
+				apiKey = os.Getenv(apiKeyEnv)
+			}
+			prov, err := app.BuildProvider(app.ProviderSpec{Name: providerName, BaseURL: baseURL, APIKey: apiKey})
+			if err != nil {
+				return err
+			}
+			goal := strings.Join(args, " ")
+			res, err := app.RunAgent(cmd.Context(), app.RunAgentOptions{
+				WorkspaceRoot: wd, Goal: goal, System: system, Model: model,
+				Provider: prov, AllowWrite: allowWrite, MaxIterations: maxIter,
+			})
+			out := cmd.OutOrStdout()
+			if err != nil {
+				fmt.Fprintf(out, "run %s (%s)\n", res.State, res.RunID)
+				return err
+			}
+			fmt.Fprintln(out, res.FinalText)
+			fmt.Fprintf(cmd.ErrOrStderr(),
+				"\n[run %s · %d iterations · %d tool calls · %d/%d tokens]\n",
+				res.State, res.Iterations, res.ToolCalls, res.InputTokens, res.OutputTokens)
+			return nil
+		},
+	}
+	cmd.Flags().StringVar(&providerName, "provider", "ollama", "provider: ollama|openai-compatible|anthropic")
+	cmd.Flags().StringVar(&baseURL, "base-url", "", "provider base URL (required for openai-compatible)")
+	cmd.Flags().StringVar(&apiKeyEnv, "api-key-env", "", "environment variable holding the API key")
+	cmd.Flags().StringVar(&model, "model", "llama3", "model identifier")
+	cmd.Flags().StringVar(&system, "system", "You are Andromeda, a helpful engineering agent.", "system prompt")
+	cmd.Flags().BoolVar(&allowWrite, "allow-write", false, "grant the agent write access within the workspace")
+	cmd.Flags().IntVar(&maxIter, "max-iterations", 0, "iteration budget (0 = default)")
+	return cmd
 }
 
 func newDoctorCommand() *cobra.Command {

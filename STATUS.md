@@ -25,8 +25,9 @@ The authoritative quality gate is **`make ci`** (runs locally, no CI-minute depe
 |---|---|---|
 | MS-1 Foundations | EP-01 ✅, EP-02 ✅, EP-03 ✅, EP-04 ✅ | ✅ |
 | MS-2 Runtime core | EP-05 ✅, EP-06 ✅, EP-07 ✅ | ✅ |
-| MS-3 Memory/context/index | Vol 7 ports 🔄 | 🔄 |
-| MS-3+ | agent runtime, tools, CLI, TUI, dist | ⬜ |
+| MS-3 Memory/index/tools/agent | memory, indexer, tool, agent ✅ | ✅ |
+| MS-4 Usable CLI agent | `andromeda run` end-to-end ✅ | 🔄 |
+| MS-4+ | TUI, auth, MCP/skills/plugins, dist | ⬜ |
 
 ## Epics
 
@@ -245,6 +246,27 @@ Updater, Package remain).
 - ⬜ `andromeda run` CLI wiring (compose agent + real provider from config + fs tools) — next.
 
 **Gate status:** `make ci` passes. The keystone agent loop is implemented and tested.
+
+### EP — Usable CLI agent (`andromeda run`) · ✅ (MVP slice)
+
+- ✅ End-to-end composition (`internal/app`): `RunAgent` opens the workspace, sets up the
+  permission manager with **safe-by-default grants** (read within the workspace subtree; write
+  only with `--allow-write`), registers the built-in filesystem tools in the Tool Runtime,
+  persists a session, and drives the Agent Engine loop.
+- ✅ `BuildProvider` selects and configures an adapter (Ollama local, OpenAI-compatible,
+  Anthropic) — unknown names error rather than silently defaulting; cloud adapters require a
+  key.
+- ✅ **`andromeda run <goal>`** command with `--provider/--base-url/--api-key-env/--model/
+  --system/--allow-write/--max-iterations` flags. Verified: reads a real file end-to-end via a
+  scripted provider; write denied without `--allow-write`; an unreachable provider fails
+  cleanly with `E-PROV-005` and a run ID.
+
+**This is the MVP payoff: a real agent that plans, calls permission-mediated tools against the
+workspace, and answers — driven from the command line.** Point `--provider ollama` at a running
+Ollama, or `--provider anthropic --api-key-env ANDROMEDA_ANTHROPIC_KEY`, for a live run.
+
+**Gate status:** `make ci` passes. Ports implemented: **17 / 18** (Terminal, Auth, Updater,
+Package remain).
 
 ## Deliberate deviations from the specification (free-tier accommodations)
 
