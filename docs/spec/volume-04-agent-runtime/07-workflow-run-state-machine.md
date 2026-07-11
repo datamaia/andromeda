@@ -202,7 +202,7 @@ remotes.
 ### FR-WF-005 — Workflow Run state machine conformance
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Beta
 - Source: Design
@@ -318,7 +318,7 @@ PRD-010, PRD-012; INV-WFR-01..04; FR-WF-003; ADR-050; SM-12.
 ### FR-WF-006 — Workflow interruption, recovery, and resume
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Beta
 - Source: Derived
@@ -442,7 +442,7 @@ PRD-010; UC-11; FR-ARCH-009; ADR-050, ADR-051; NFR-WF-002; RISK-ARCH-004.
 ### FR-WF-007 — Workflow cancellation and rollback
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: Beta
 - Source: Design

@@ -718,7 +718,7 @@ failure MUST never fail the operation being observed.
 ### FR-ARCH-003 — Port name and signature freeze
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Core
 - Source: Design
@@ -835,7 +835,7 @@ PRD-007; SM-20; ADR-015; FR-ARCH-002; RISK-ARCH-002.
 ### FR-ARCH-004 — Context propagation and cancellation on all ports
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Core
 - Source: Design

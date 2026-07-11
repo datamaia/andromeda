@@ -23,6 +23,19 @@ every release of the document set; the mechanical subset is enforced by `scripts
 10. The MVP defined in Volume 1/15 is functional, viable, and does not require implementing the
     entire product.
 
+## Completeness statement
+
+Version 1.0.0 of this document set satisfies the definition of completeness above,
+verified on 2026-07-11 by: `scripts/spec_lint.py` (0 errors, 0 warnings across the corpus —
+identifier uniqueness and ownership, template completeness, phases, acceptance criteria,
+verification methods, cross-reference resolution, register round-trips, embedded-example
+validity) and a six-dimension consistency audit (coverage/traceability, terminology,
+cross-volume contradictions, security/legality, verifiability/ambiguity, MVP viability),
+whose confirmed findings were fixed and re-linted. Open questions and PENDING VALIDATION
+items are consolidated in [chapter 08](08-register-open-questions.md); none blocks
+implementation. The corpus holds 13 objectives, 482 requirements (266 FR, 102 NFR,
+114 RISK), 121 ADRs, 222 error codes, and 322 events across Volumes 0–15 and the annexes.
+
 ## Document versioning
 
 The document set is versioned as a whole using semantic versioning (`MAJOR.MINOR.PATCH`),

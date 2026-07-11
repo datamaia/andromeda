@@ -240,7 +240,7 @@ silent under any setting (ADR-021).
 ### FR-SEC-101 — Sandbox
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -397,7 +397,7 @@ consumed by FR-TOOL-001 (Volume 6), FR-PLUG-001 (Volume 6), FR-MCP-001 (Volume 6
 ### FR-SEC-106 — Sandbox tiers
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Design
@@ -514,7 +514,7 @@ ADR-122; FR-SEC-101; Volume 6 FR-TOOL-001, FR-PLUG-001, FR-MCP-001; Volume 4 FR-
 ### FR-SEC-107 — Environment and secret filtering
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -633,7 +633,7 @@ ADR-014, ADR-021; FR-SEC-101, FR-SEC-102, FR-SEC-109; SM-16.
 ### FR-SEC-108 — Filesystem policy, symlinks, temp directories, and cleanup
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided

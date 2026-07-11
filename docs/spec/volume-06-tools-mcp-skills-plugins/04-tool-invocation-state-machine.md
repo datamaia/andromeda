@@ -176,7 +176,7 @@ follow the Volume 0 grammar.
 ### FR-TOOL-008 — Tool Invocation machine conformance
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Derived

@@ -140,7 +140,7 @@ keep the diagram acyclic on mutation exits).
 ### FR-IDX-006 — Index state machine conformance and recovery
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Design

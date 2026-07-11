@@ -1,6 +1,6 @@
 # Volume 4 — Agent Runtime
 
-**Status:** Authored (draft) · **Owner:** Agent runtime (Volume 4)
+**Status:** Complete · **Owner:** Agent runtime (Volume 4)
 
 Volume 4 specifies the execution heart of Andromeda: the Agent Engine and its plan–act–observe
 loop, the Planner, the Execution Engine, the Prompt Engine, the full state machines for the
@@ -14,16 +14,16 @@ behavior. Volume 4 mints identifiers in the `AGT` and `WF` areas and ADRs 040–
 
 | Chapter | Contents | Status |
 |---|---|---|
-| [01 — Agent Engine](01-agent-engine.md) | The agent loop (keystone FR-AGT-001): plan–act–observe over ports, turn handling, interruption and resume, delegation, budgets, workspace and session intake | Authored (draft) |
-| [02 — Planner](02-planner.md) | Plan production and revision, direct-execution plans, plan approval interplay | Authored (draft) |
-| [03 — Execution Engine](03-execution-engine.md) | Task dispatch over the Tool Runtime and SchedulerPort, approvals, retries, cancellation, error propagation | Authored (draft) |
-| [04 — Prompt Engine](04-prompt-engine.md) | Versioned prompt templates, registry, deterministic rendering, profile parameters | Authored (draft) |
-| [05 — Core State Machines](05-core-state-machines.md) | Full machines for Session, Run, Agent, Plan, and Task under the frozen state names | Authored (draft) |
-| 06 — Workflow Engine and SDD (`06-workflow-engine-and-sdd.md`) | Keystone FR-WF-001: the workflow engine and the 14-stage specification-driven development workflow | Authored (draft) |
-| 07 — Workflow Run State Machine (`07-workflow-run-state-machine.md`) | Full machine for Workflow Run | Authored (draft) |
-| 08 — Skill Engine Runtime (`08-skill-engine-runtime.md`) | Execution semantics for skills (format is Volume 6's) | Authored (draft) |
-| 09 — Task Scheduler (`09-task-scheduler.md`) | SchedulerPort behavioral elaboration and supervision per ADR-023 | Authored (draft) |
-| 99 — Volume Register (`99-volume-register.md`) | Everything Volume 4 minted; merged from the per-agent authoring fragments at the Phase B gate | Authored (draft) |
+| [01 — Agent Engine](01-agent-engine.md) | The agent loop (keystone FR-AGT-001): plan–act–observe over ports, turn handling, interruption and resume, delegation, budgets, workspace and session intake | Complete |
+| [02 — Planner](02-planner.md) | Plan production and revision, direct-execution plans, plan approval interplay | Complete |
+| [03 — Execution Engine](03-execution-engine.md) | Task dispatch over the Tool Runtime and SchedulerPort, approvals, retries, cancellation, error propagation | Complete |
+| [04 — Prompt Engine](04-prompt-engine.md) | Versioned prompt templates, registry, deterministic rendering, profile parameters | Complete |
+| [05 — Core State Machines](05-core-state-machines.md) | Full machines for Session, Run, Agent, Plan, and Task under the frozen state names | Complete |
+| 06 — Workflow Engine and SDD (`06-workflow-engine-and-sdd.md`) | Keystone FR-WF-001: the workflow engine and the 14-stage specification-driven development workflow | Complete |
+| 07 — Workflow Run State Machine (`07-workflow-run-state-machine.md`) | Full machine for Workflow Run | Complete |
+| 08 — Skill Engine Runtime (`08-skill-engine-runtime.md`) | Execution semantics for skills (format is Volume 6's) | Complete |
+| 09 — Task Scheduler (`09-task-scheduler.md`) | SchedulerPort behavioral elaboration and supervision per ADR-023 | Complete |
+| 99 — Volume Register (`99-volume-register.md`) | Everything Volume 4 minted; merged from the per-agent authoring fragments at the Phase B gate | Complete |
 
 ## Reading order and dependencies
 

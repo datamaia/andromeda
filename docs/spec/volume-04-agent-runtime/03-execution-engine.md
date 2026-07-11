@@ -96,7 +96,7 @@ face).
 ### FR-AGT-010 — Task scheduling and dispatch
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -227,7 +227,7 @@ INV-TASK-05.
 ### FR-AGT-011 — Task retry policy
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Design
@@ -357,7 +357,7 @@ PRD-005, PRD-010; ADR-042, ADR-016; FR-AGT-010, FR-AGT-008; RISK-ARCH-004.
 ### FR-AGT-012 — Cancellation, skip, and error propagation
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Derived

@@ -294,7 +294,7 @@ winning tier.
 ### FR-SEC-100 — Permission model
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Core
 - Source: Provided
@@ -448,7 +448,7 @@ FR-GIT-001 (Volume 11).
 ### FR-SEC-103 — Evaluation precedence and inheritance
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Core
 - Source: Design
@@ -571,7 +571,7 @@ FR-SEC-100; ADR-121; Volume 10 FR-CFG-001 (rule sourcing); SM-16.
 ### FR-SEC-104 — Grant persistence, expiry, and revocation
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -691,7 +691,7 @@ PRD-005, PRD-006; INV-PERM-02/03; ADR-028, ADR-029; FR-SEC-100.
 ### FR-SEC-105 — Non-interactive and policy-only enforcement
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided

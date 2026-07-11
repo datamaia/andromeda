@@ -172,7 +172,7 @@ official provider accounting. This chapter owns what makes them useful and bound
 ### FR-OBS-007 — Trace model and OpenTelemetry mapping
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -307,7 +307,7 @@ NFR-OBS-003, NFR-OBS-004.
 ### FR-OBS-008 — Metric registry and core catalog
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Provided
@@ -436,7 +436,7 @@ NFR-OBS-005.
 ### FR-OBS-009 — Cost observability: rollups, honesty, retention
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Provided

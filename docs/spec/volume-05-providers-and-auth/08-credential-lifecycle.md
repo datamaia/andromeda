@@ -38,7 +38,7 @@ expiry. **Deletion** removes the Secret Store slot first and then tombstones the
 ### FR-AUTH-009 — Credential storage and resolution through the Secret Store
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -163,7 +163,7 @@ PRD-005, PRD-006; ADR-014, ADR-028; Volume 2 INV-CRED-01..04; Volume 9 FR-SEC-10
 ### FR-AUTH-010 — Token refresh
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: Beta
 - Source: Provided
@@ -288,7 +288,7 @@ PRD-010; ADR-064; FR-AUTH-003; chapter 11 machine.
 ### FR-AUTH-011 — Credential rotation and revocation
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Provided

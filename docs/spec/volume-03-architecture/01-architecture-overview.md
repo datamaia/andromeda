@@ -276,7 +276,7 @@ by [ADR-033](../annexes/adr/ADR-033.md) and bound by NFR-ARCH-001 below.
 ### FR-ARCH-001 — Layered dependency rule
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Core
 - Source: Design
@@ -403,7 +403,7 @@ PRD-002, PRD-007, PRD-011; ADR-030, ADR-031, ADR-033; NFR-ARCH-001; RISK-ARCH-00
 ### FR-ARCH-002 — Ports-and-adapters composition
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Core
 - Source: Design

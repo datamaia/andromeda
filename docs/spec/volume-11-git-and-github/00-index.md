@@ -1,6 +1,6 @@
 # Volume 11 — Git, GitHub, and Development Platforms
 
-**Status:** Authored (draft) · **Owner:** Git and development platform (Volume 11)
+**Status:** Complete · **Owner:** Git and development platform (Volume 11)
 
 Volume 11 covers both roles Git and GitHub play for Andromeda. Chapters 01–02 specify the
 **product**: the Git Engine (GitPort elaboration per ADR-025, the full operation catalog
@@ -18,14 +18,14 @@ used).
 
 | Chapter | Contents | Status |
 |---|---|---|
-| [01 — Git Engine](01-git-engine.md) | Keystone FR-GIT-001: system-git adapter behavior, repository discovery, operation catalog (status, diff, staging, commits, branches, tags, remotes, rebase, merge, cherry-pick, revert, reset, blame, log, worktrees, hooks, conflicts, submodules, sparse checkout, LFS, ignore rules, signing, protected branches), destructive-operation gate, E-GIT errors, `[git]` configuration | Authored (draft) |
-| [02 — GitHub and GitLab as Product Integrations](02-github-gitlab-product-integrations.md) | Change-request vocabulary; `github`/`gitlab` built-in tools over official APIs; PR/MR preparation flows; hosting errors and configuration | Authored (draft) |
-| [03 — Repository Structure and Branching](03-repository-structure-and-branching.md) | The `andromeda` monorepo tree per ADR-003/031, CODEOWNERS, community and security files, trunk-based branching rules and branch grammar | Authored (draft) |
-| [04 — Pull Requests](04-pull-requests.md) | PR template, size limits, mandatory human review, no self-approval, squash-only merge, AI provenance labels, commit-message enforcement | Authored (draft) |
-| [05 — Issues, Projects, and Roadmap](05-issues-projects-roadmap.md) | 15 issue types with forms, namespaced label taxonomy as synchronized data, the Andromeda Roadmap project (fields, views, automations), milestones | Authored (draft) |
-| [06 — GitHub Actions Pipelines](06-github-actions.md) | Workflow inventory (quality, security, release, docs, audit), platform matrix, quality gates, YAML patterns, least-privilege/pinning/fork-isolation posture | Authored (draft) |
-| [07 — Traceability Automation](07-traceability-automation.md) | Keystone FR-GH-001: the objective→artifact chain, validator suite, nightly audit, per-release chain report | Authored (draft) |
-| [99 — Volume Register](99-volume-register.md) | Everything Volume 11 minted | Authored (draft) |
+| [01 — Git Engine](01-git-engine.md) | Keystone FR-GIT-001: system-git adapter behavior, repository discovery, operation catalog (status, diff, staging, commits, branches, tags, remotes, rebase, merge, cherry-pick, revert, reset, blame, log, worktrees, hooks, conflicts, submodules, sparse checkout, LFS, ignore rules, signing, protected branches), destructive-operation gate, E-GIT errors, `[git]` configuration | Complete |
+| [02 — GitHub and GitLab as Product Integrations](02-github-gitlab-product-integrations.md) | Change-request vocabulary; `github`/`gitlab` built-in tools over official APIs; PR/MR preparation flows; hosting errors and configuration | Complete |
+| [03 — Repository Structure and Branching](03-repository-structure-and-branching.md) | The `andromeda` monorepo tree per ADR-003/031, CODEOWNERS, community and security files, trunk-based branching rules and branch grammar | Complete |
+| [04 — Pull Requests](04-pull-requests.md) | PR template, size limits, mandatory human review, no self-approval, squash-only merge, AI provenance labels, commit-message enforcement | Complete |
+| [05 — Issues, Projects, and Roadmap](05-issues-projects-roadmap.md) | 15 issue types with forms, namespaced label taxonomy as synchronized data, the Andromeda Roadmap project (fields, views, automations), milestones | Complete |
+| [06 — GitHub Actions Pipelines](06-github-actions.md) | Workflow inventory (quality, security, release, docs, audit), platform matrix, quality gates, YAML patterns, least-privilege/pinning/fork-isolation posture | Complete |
+| [07 — Traceability Automation](07-traceability-automation.md) | Keystone FR-GH-001: the objective→artifact chain, validator suite, nightly audit, per-release chain report | Complete |
+| [99 — Volume Register](99-volume-register.md) | Everything Volume 11 minted | Complete |
 
 ## Reading order and dependencies
 

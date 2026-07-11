@@ -135,7 +135,7 @@ locked = false             # system-layer lock: pins telemetry disabled (enterpr
 ### FR-OBS-010 — Strict local/remote separation
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -267,7 +267,7 @@ NFR-OBS-006; RISK-OBS-003.
 ### FR-OBS-011 — Telemetry consent lifecycle
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -399,7 +399,7 @@ posture.
 ### FR-OBS-012 — Collected-data catalog and prohibited data
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -530,7 +530,7 @@ classification rules; RISK-OBS-003.
 ### FR-OBS-013 — Telemetry queue, export, and deletion
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Provided

@@ -53,7 +53,7 @@ enforces a hard byte ceiling per render as a defense in depth (`agent.prompts.ma
 ### FR-AGT-013 — Versioned prompt templates and registry
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -178,7 +178,7 @@ PRD-006, PRD-007; ADR-044; FR-AGT-014; SM-12, SM-20.
 ### FR-AGT-014 — Deterministic rendering with provenance
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Derived

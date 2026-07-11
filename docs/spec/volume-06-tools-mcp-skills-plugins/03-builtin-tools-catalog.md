@@ -325,7 +325,7 @@ Permissions: `external_service_access`, `network`.
 ### FR-TOOL-007 — Built-in tool catalog and phasing
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided

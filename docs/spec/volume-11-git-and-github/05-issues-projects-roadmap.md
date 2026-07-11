@@ -111,7 +111,7 @@ there is no second roadmap document to drift.
 ### FR-GH-006 — Issue taxonomy and intake forms
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: Core
 - Source: Provided
@@ -219,7 +219,7 @@ ADR-148; FR-GH-001; Volume 9 chapter 08 (security intake).
 ### FR-GH-007 — Label taxonomy as synchronized data
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: Core
 - Source: Provided
@@ -325,7 +325,7 @@ FR-GH-006, FR-GH-001; ADR-149.
 ### FR-GH-008 — Projects, milestones, and roadmap operation
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Provided

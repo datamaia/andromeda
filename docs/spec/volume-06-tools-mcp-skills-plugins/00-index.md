@@ -1,6 +1,6 @@
 # Volume 6 — Tools, MCP, Skills, and Plugins
 
-**Status:** Authored (draft) · **Owner:** Tool Runtime / extension surfaces (Volume 6)
+**Status:** Complete · **Owner:** Tool Runtime / extension surfaces (Volume 6)
 
 Volume 6 specifies Andromeda's action and extension surfaces: the tool contract and Tool SDK,
 the tool lifecycle with permissions and trust, the built-in tool catalog, the Tool Invocation

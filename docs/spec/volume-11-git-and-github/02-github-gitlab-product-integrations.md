@@ -87,7 +87,7 @@ notes, never papered over.
 ### FR-GIT-009 — Hosting integration layer
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: Beta
 - Source: Provided
@@ -216,7 +216,7 @@ PRD-004, PRD-005, PRD-006; ADR-147; FR-TOOL-001; chapter 04 human-review mandate
 ### FR-GIT-010 — Change-request preparation flow
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: Beta
 - Source: Derived

@@ -366,7 +366,7 @@ error[E-CLI-006]: flags --command and --url cannot be combined
 ### FR-CLI-014 — Platform command family behavior
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Provided

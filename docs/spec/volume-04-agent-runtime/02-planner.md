@@ -106,7 +106,7 @@ never mutates a proposed plan in place.
 ### FR-AGT-007 — Plan production
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -235,7 +235,7 @@ UC-01.
 ### FR-AGT-008 — Plan revision
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -361,7 +361,7 @@ PRD-005, PRD-006, PRD-010; ADR-041; FR-AGT-007, FR-AGT-012; INV-PLAN-01, INV-PLA
 ### FR-AGT-009 — Plan inspection and approval interplay
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided

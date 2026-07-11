@@ -37,7 +37,7 @@ returning.
 ### FR-TUI-060 — Platform screen catalog and management frame
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Provided
@@ -476,7 +476,7 @@ illustrative; concrete codes come from each area's catalog.
 ### FR-TUI-063 — Help overlay and keybinding reference
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Provided
@@ -604,7 +604,7 @@ PRD-003, PRD-006, PRD-008; ADR-110; NFR-TUI-069; FR-UX-076.
 ### FR-TUI-061 — Command palette
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -741,7 +741,7 @@ PRD-008; ADR-110, ADR-104; NFR-TUI-069, NFR-UX-077; FR-UX-072, FR-UX-076.
 ### FR-TUI-062 — Quick actions
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P2
 - Phase: Beta
 - Source: Provided
@@ -908,7 +908,7 @@ progress continues in the status bar.
 ### FR-TUI-064 — Error center and recovery screens
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Provided

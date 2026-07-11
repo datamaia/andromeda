@@ -206,7 +206,7 @@ IPC bridge.
 ### FR-OBS-001 — Event envelope
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Core
 - Source: Provided
@@ -347,7 +347,7 @@ every area volume's minted events.
 ### FR-OBS-005 — Event delivery and subscription semantics
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Core
 - Source: Design
@@ -486,7 +486,7 @@ NFR-OBS-002; SM-07 (TUI must not lag).
 ### FR-OBS-006 — Event persistence, retention, and export
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Design

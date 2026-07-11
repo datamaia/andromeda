@@ -1,6 +1,6 @@
 # Volume 12 — Performance and Reliability
 
-**Status:** Authored (draft) · **Owner:** Performance and Reliability (Volume 12)
+**Status:** Complete · **Owner:** Performance and Reliability (Volume 12)
 
 Volume 12 turns the product-level performance and reliability commitments of Volume 1 into
 verifiable engineering budgets. It formalizes the success metrics assigned to this volume

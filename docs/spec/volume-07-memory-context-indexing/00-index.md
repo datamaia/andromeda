@@ -1,6 +1,6 @@
 # Volume 7 — Memory, Context, and Indexing
 
-**Status:** Authored (draft) · **Owner:** Memory Manager / Context Manager / Indexing Engine (Volume 7)
+**Status:** Complete · **Owner:** Memory Manager / Context Manager / Indexing Engine (Volume 7)
 
 Volume 7 specifies Andromeda's knowledge subsystem: the memory model and its full lifecycle
 (Memory Manager behind MemoryStorePort), the Context Manager that selects, budgets, and

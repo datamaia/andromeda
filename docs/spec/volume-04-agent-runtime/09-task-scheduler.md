@@ -112,7 +112,7 @@ applied), `workflow.timer.restored` (recovery re-arm, with counts).
 ### FR-WF-009 — Workflow scheduling and supervision
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Beta
 - Source: Design
@@ -235,7 +235,7 @@ PRD-008, PRD-010; ADR-023, ADR-053; FR-ARCH-004, FR-ARCH-006; NFR-WF-003.
 ### FR-WF-010 — Durable timers and timeout enforcement
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Beta
 - Source: Design

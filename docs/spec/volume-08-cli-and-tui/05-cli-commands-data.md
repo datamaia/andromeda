@@ -327,7 +327,7 @@ error[E-CLI-001]: unknown command or flag: "workspace"
 ### FR-CLI-015 — Data command family behavior
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Provided

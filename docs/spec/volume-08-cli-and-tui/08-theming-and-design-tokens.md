@@ -186,7 +186,7 @@ deliberate conservatism over invented capability probing.
 ### FR-UX-040 — Closed design-token vocabulary with fixed Danger
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -306,7 +306,7 @@ PRD-008; ADR-026, ADR-105; NFR-UX-040; single-home matrix (design tokens → Vol
 ### FR-UX-041 — Token-to-ANSI degradation tiers
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -417,7 +417,7 @@ PRD-008; ADR-026, ADR-103, ADR-106; chapter 12 compatibility matrix.
 ### FR-UX-042 — Light-terminal fallback theme
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Provided
@@ -528,7 +528,7 @@ PRD-008; ADR-026 (light fallback mandate), ADR-105, ADR-106; NFR-UX-040.
 ### FR-TUI-008 — Theme configuration and resolution
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Design

@@ -104,7 +104,7 @@ In both paths, first connection is gated by the trust decisions of chapter 06.
 ### FR-MCP-001 — MCP client support
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Beta
 - Source: Provided
@@ -248,7 +248,7 @@ PRD-002, PRD-004, PRD-007; ADR-010, ADR-021; SM-15; FR-TOOL-001; chapter 06; cha
 ### FR-MCP-002 — MCP transports and connection establishment
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Beta
 - Source: Derived
@@ -381,7 +381,7 @@ FR-MCP-001; ADR-010, ADR-021; Volume 2 INV-MCPS-02; chapter 06 isolation rules.
 ### FR-MCP-004 — MCP server authorization
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: Beta
 - Source: Provided
@@ -510,7 +510,7 @@ FR-AUTH-001, FR-SEC-102; ADR-010 rule 4, ADR-014; Volume 9 audit semantics.
 ### FR-MCP-003 — Discovery and bridging of tools, resources, and prompts
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Beta
 - Source: Provided
@@ -654,7 +654,7 @@ chapter 06 trust rules.
 ### FR-MCP-005 — Connection health, server logs, and maintenance operations
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: Beta
 - Source: Provided

@@ -141,7 +141,7 @@ validator (chapter 07) enforces the grammar on every PR.
 ### FR-GH-002 — Repository structure
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Core
 - Source: Provided
@@ -255,7 +255,7 @@ chapter 07 (validators).
 ### FR-GH-003 — Branching rules and branch hygiene
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Core
 - Source: Provided

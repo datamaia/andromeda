@@ -56,7 +56,7 @@ V5B-OQ-4, register fragment).
 ### FR-AUTH-001 — Official-mechanisms-only authentication
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Core
 - Source: Provided
@@ -187,7 +187,7 @@ PRD-002; Volume 1 chapter 05 (Out of scope item 5); Volume 2 INV-AUTHS-04; ADR-0
 ### FR-AUTH-002 — API key authentication
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -324,7 +324,7 @@ PRD-002, PRD-005; FR-AUTH-001, FR-AUTH-009; ADR-014; SM-16.
 ### FR-AUTH-003 — OAuth 2.0 authorization code flow with PKCE
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: Beta
 - Source: Provided
@@ -456,7 +456,7 @@ PRD-002; FR-AUTH-001, FR-AUTH-010; ADR-063; Volume 2 INV-AUTHS-02.
 ### FR-AUTH-004 — OAuth 2.0 device authorization grant
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: Beta
 - Source: Provided
@@ -573,7 +573,7 @@ PRD-002, PRD-009; FR-AUTH-003; ADR-063.
 ### FR-AUTH-005 — Service accounts and managed identity
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P2
 - Phase: v1
 - Source: Provided
@@ -694,7 +694,7 @@ PRD-002; FR-AUTH-001, FR-AUTH-009, FR-AUTH-010.
 ### FR-AUTH-006 — Enterprise proxies and trust anchors
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: Beta
 - Source: Provided
@@ -815,7 +815,7 @@ PRD-002; ADR-019, ADR-067; FR-AUTH-009.
 ### FR-AUTH-007 — Temporary credentials
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P2
 - Phase: Beta
 - Source: Provided
@@ -927,7 +927,7 @@ FR-AUTH-009, FR-AUTH-011; Volume 2 Credential attributes.
 ### FR-AUTH-008 — Multiple authentication profiles
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Provided

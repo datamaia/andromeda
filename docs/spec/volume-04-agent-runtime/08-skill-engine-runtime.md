@@ -80,7 +80,7 @@ error family, not a skill-gating event.
 ### FR-WF-008 — Skill application in runs and workflows
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: Beta
 - Source: Design

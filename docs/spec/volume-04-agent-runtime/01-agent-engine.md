@@ -138,7 +138,7 @@ and session identity before any engine sees it; sessions follow the chapter 05 m
 ### FR-AGT-001 — Agent loop
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -299,7 +299,7 @@ FR-AGT-005, FR-AGT-015; UC-01, UC-14.
 ### FR-AGT-002 — Turn handling and the message part vocabulary
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Derived
@@ -423,7 +423,7 @@ PRD-006, PRD-008; FR-AGT-001; INV-TRN-02, INV-MSG-03, INV-MSG-04, INV-MSG-05; SM
 ### FR-AGT-003 — Run interruption, pause, and resume
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -555,7 +555,7 @@ PRD-010; UC-11; ADR-043; FR-ARCH-009; FR-AGT-012, FR-AGT-015; RISK-AGT-003.
 ### FR-AGT-004 — Sub-agent delegation
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: Beta
 - Source: Design
@@ -678,7 +678,7 @@ PRD-005, PRD-006; ADR-045; FR-AGT-001, FR-AGT-005; INV-AG-01, INV-AG-02.
 ### FR-AGT-005 — Run budget enforcement
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -801,7 +801,7 @@ PRD-005; UC-07; FR-AGT-001, FR-AGT-004; INV-TRN-04; RISK-AGT-001.
 ### FR-AGT-006 — Workspace lifecycle over WorkspacePort
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided

@@ -59,7 +59,7 @@ signing viability note).
 ### FR-REL-001 — Release pipeline and distribution channels
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -187,7 +187,7 @@ Release machine.
 ### FR-REL-002 — Integrity metadata: checksums, signatures, SBOM, provenance
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -309,7 +309,7 @@ INV-REL-02; ADR-013, ADR-190; FR-REL-006; E-REL-004; SM-16 supply-chain posture.
 ### FR-REL-003 — Installation channels: Homebrew tap, shell installer, Linux packages
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Provided
@@ -439,7 +439,7 @@ MVP item 22; PRD-011; ADR-013, ADR-190; FR-REL-002, FR-REL-009.
 ### FR-REL-004 — Air-gapped installation and offline update sources
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Provided

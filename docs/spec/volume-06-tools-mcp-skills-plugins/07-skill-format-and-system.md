@@ -105,7 +105,7 @@ Field rules:
 ### FR-SKILL-001 — Skill format and manifest
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Beta
 - Source: Provided
@@ -237,7 +237,7 @@ SM-02-adjacent authoring economics (register cross-reference).
 ### FR-SKILL-002 — Skill loading, requirement resolution, and activation
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Beta
 - Source: Provided
@@ -383,7 +383,7 @@ Model (full rationale in [ADR-082](../annexes/adr/ADR-082.md)):
 ### FR-SKILL-003 — Skill inheritance, composition, and overrides
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: Beta
 - Source: Provided
@@ -503,7 +503,7 @@ ADR-082; FR-SKILL-002; Volume 4 prompt assembly (Prompt Engine slots).
 ### FR-SKILL-004 — Skill testing and fixtures
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P2
 - Phase: Beta
 - Source: Provided
@@ -640,7 +640,7 @@ paths (`skills.paths`) without packaging.
 ### FR-SKILL-005 — Skill distribution and deprecation
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: Beta
 - Source: Provided

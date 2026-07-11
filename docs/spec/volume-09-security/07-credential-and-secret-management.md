@@ -134,7 +134,7 @@ redaction_patterns = []       # extra regex patterns scrubbed at every sink, add
 ### FR-SEC-102 — Secret storage
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -284,7 +284,7 @@ FR-AUTH-001 (keystone) and its credential-lifecycle requirements; SM-16.
 ### FR-SEC-109 — Secret redaction at every sink
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -413,7 +413,7 @@ Volume 10 logging redaction; SM-16.
 ### FR-SEC-110 — Fallback store consent and lifecycle
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided

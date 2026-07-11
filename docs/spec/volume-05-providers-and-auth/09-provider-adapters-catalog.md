@@ -56,7 +56,7 @@ Future providers beyond this list integrate through the Extension SDK adapter su
 ### FR-PROV-080 — Adapter catalog and phase classification
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Provided
@@ -171,7 +171,7 @@ PRD-002; Volume 1 chapter 05 (MVP provider seed); ADR-065; FR-PROV-001.
 ### FR-PROV-081 — Generic OpenAI-compatible adapter
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -297,7 +297,7 @@ PRD-002, PRD-003; Volume 1 MVP provider seed; ADR-019, ADR-065; FR-PROV-001.
 ### FR-PROV-082 — Anthropic adapter
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -414,7 +414,7 @@ PRD-002; Volume 1 MVP provider seed; ADR-019; FR-PROV-001.
 ### FR-PROV-083 — Ollama adapter
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided

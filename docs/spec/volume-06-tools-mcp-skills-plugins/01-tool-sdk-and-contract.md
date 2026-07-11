@@ -190,7 +190,7 @@ a deliberate decision, revisited only if the SDK ever gains a runtime-resident s
 ### FR-TOOL-001 — Tool contract
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Core
 - Source: Provided
@@ -322,7 +322,7 @@ PRD-004, PRD-005, PRD-007; Principle 4; ADR-070..074; Volume 2 chapter 04 invari
 ### FR-TOOL-002 — Declaration and payload schema validation
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Core
 - Source: Derived
@@ -442,7 +442,7 @@ PRD-004; ADR-024; INV-TINV-04, INV-TRES-04 (Volume 2); FR-TOOL-001.
 ### FR-TOOL-003 — Tool naming, namespaces, and resolution
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Core
 - Source: Design
@@ -560,7 +560,7 @@ ADR-070; PRD-006, PRD-007; INV-TOOL-01 (Volume 2).
 ### FR-SDK-001 — Extension SDK
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: Beta
 - Source: Provided

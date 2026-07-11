@@ -178,7 +178,7 @@ NFR-SEC-001 (SM-16 a).
 ### FR-SEC-111 — Audit Log semantics
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -313,7 +313,7 @@ INV-AUD-01..05; FR-SEC-100, FR-SEC-101, FR-SEC-102.
 ### FR-SEC-112 — Incident response and disclosure hooks
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Provided

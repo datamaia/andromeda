@@ -278,7 +278,7 @@ volume owns *how* verification is organized, gated, and phased.
 ### FR-TEST-003 — Closed test-type catalog and classification
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Provided
@@ -383,7 +383,7 @@ FR-TEST-001; chapter 04 gate composition; Volume 11 pipeline definitions (by nam
 ### FR-TEST-004 — Port contract test kits
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Core
 - Source: Design
@@ -501,7 +501,7 @@ new adapters); SM-02.
 ### FR-TEST-005 — Offline test suite and network sentinel
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided

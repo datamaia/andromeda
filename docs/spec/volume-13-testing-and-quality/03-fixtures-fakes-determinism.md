@@ -138,7 +138,7 @@ NFR-TEST-004.
 ### FR-TEST-006 — Test doubles and test providers
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Design
@@ -250,7 +250,7 @@ ADR-176; FR-TEST-004; RISK-TEST-004; SM-04, SM-10.
 ### FR-TEST-007 — Determinism controls and flaky-test quarantine
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Design
@@ -363,7 +363,7 @@ ADR-177; NFR-TEST-002, NFR-TEST-005; RISK-TEST-002.
 ### FR-TEST-008 — Test data and secret handling
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Design

@@ -189,7 +189,7 @@ classes).
 ### FR-PROV-040 — Timeouts, rate limits, and retries
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -310,7 +310,7 @@ matrix.
 ### FR-PROV-041 — Circuit breaker and health verification
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Provided
@@ -427,7 +427,7 @@ PRD-005; ADR-059; FR-PROV-040; chapter 11 Provider connection machine; E-PROV-01
 ### FR-PROV-042 — Routing and selection
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -538,7 +538,7 @@ PRD-002, PRD-006; SM-12; ADR-060; FR-PROV-011, FR-PROV-013, FR-PROV-043.
 ### FR-PROV-043 — Fallback and its guard rules
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided

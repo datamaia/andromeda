@@ -1,6 +1,6 @@
 # Volume 9 — Security
 
-**Status:** Authored (draft) · **Owner:** Security (Volume 9)
+**Status:** Complete · **Owner:** Security (Volume 9)
 
 Volume 9 specifies Andromeda's security posture end to end: the threat model over the
 product's assets, trust boundaries, actors, and attack vectors; the permission model
@@ -17,15 +17,15 @@ the sandbox model, and credential storage (provider auth flows are Volume 5's).
 
 | Chapter | Contents | Status |
 |---|---|---|
-| 01 — Threat Model Overview (`01-threat-model-overview.md`) | Assets, trust boundaries, actors, attack vectors, risk matrix | Authored (draft) |
-| 02 — Injection Threats (`02-threats-injection.md`) | Prompt injection, indirect prompt injection, tool/command injection, path traversal, symlink attacks, malicious model output, and related threats | Authored (draft) |
-| 03 — Extension and Supply-Chain Threats (`03-threats-extensions-supply-chain.md`) | Tool poisoning, MCP poisoning, malicious plugins/skills/repositories/files, dependency and supply-chain attacks, CI/release/update compromise | Authored (draft) |
-| 04 — System Threats (`04-threats-system.md`) | Secret exfiltration, credential theft, sandbox escape, privilege escalation, compromised providers and local models, log leakage, memory and index poisoning, social engineering | Authored (draft) |
-| [05 — Permission Model](05-permission-model.md) | Keystone FR-SEC-100: permission/scope/decision enums, evaluation precedence and inheritance, revocation, persistence, audit binding | Authored (draft) |
-| [06 — Sandbox Specification](06-sandbox-specification.md) | Keystone FR-SEC-101: policy model, five sandbox tiers, layered enforcement per ADR-021, filesystem/env/secret filtering, limits, symlinks, temp dirs, cleanup | Authored (draft) |
-| [07 — Credential and Secret Management](07-credential-and-secret-management.md) | Keystone FR-SEC-102: Secret Store backends per ADR-014, encrypted-file fallback consent, fingerprints, orphan sweep, redaction at every sink | Authored (draft) |
-| [08 — Audit and Incident Response](08-audit-and-incident-response.md) | Audited-action catalog, chain verification and tamper response, retention and export, security events, incident procedure, disclosure hooks (governance in Volume 15) | Authored (draft) |
-| [09 — Approval State Machine](09-approval-state-machine.md) | Full machine for Approval under the frozen state names, with all twelve mandatory elements | Authored (draft) |
+| 01 — Threat Model Overview (`01-threat-model-overview.md`) | Assets, trust boundaries, actors, attack vectors, risk matrix | Complete |
+| 02 — Injection Threats (`02-threats-injection.md`) | Prompt injection, indirect prompt injection, tool/command injection, path traversal, symlink attacks, malicious model output, and related threats | Complete |
+| 03 — Extension and Supply-Chain Threats (`03-threats-extensions-supply-chain.md`) | Tool poisoning, MCP poisoning, malicious plugins/skills/repositories/files, dependency and supply-chain attacks, CI/release/update compromise | Complete |
+| 04 — System Threats (`04-threats-system.md`) | Secret exfiltration, credential theft, sandbox escape, privilege escalation, compromised providers and local models, log leakage, memory and index poisoning, social engineering | Complete |
+| [05 — Permission Model](05-permission-model.md) | Keystone FR-SEC-100: permission/scope/decision enums, evaluation precedence and inheritance, revocation, persistence, audit binding | Complete |
+| [06 — Sandbox Specification](06-sandbox-specification.md) | Keystone FR-SEC-101: policy model, five sandbox tiers, layered enforcement per ADR-021, filesystem/env/secret filtering, limits, symlinks, temp dirs, cleanup | Complete |
+| [07 — Credential and Secret Management](07-credential-and-secret-management.md) | Keystone FR-SEC-102: Secret Store backends per ADR-014, encrypted-file fallback consent, fingerprints, orphan sweep, redaction at every sink | Complete |
+| [08 — Audit and Incident Response](08-audit-and-incident-response.md) | Audited-action catalog, chain verification and tamper response, retention and export, security events, incident procedure, disclosure hooks (governance in Volume 15) | Complete |
+| [09 — Approval State Machine](09-approval-state-machine.md) | Full machine for Approval under the frozen state names, with all twelve mandatory elements | Complete |
 | 99 — Volume Register (`99-volume-register.md`) | Everything Volume 9 minted; assembled from the per-agent register fragments at consolidation | Pending merge |
 
 ## Reading order and dependencies

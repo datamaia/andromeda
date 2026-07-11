@@ -33,7 +33,7 @@ MUST state the version of every row.
 ### FR-REL-012 — Semantic versioning of the product and public contracts
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Core
 - Source: Provided
@@ -154,7 +154,7 @@ ADR-015; SM-20; NFR-ARCH-002, NFR-REL-003; Volume 1 phase discipline; FR-REL-013
 ### FR-REL-013 — Deprecation policy
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: Beta
 - Source: Provided
@@ -272,7 +272,7 @@ SM-20; ADR-015; FR-REL-012; NFR-REL-003; Volume 10 config deprecation mechanics
 ### FR-REL-014 — Support windows, release branches, and backports
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Provided
@@ -391,7 +391,7 @@ branch automation.
 ### FR-REL-015 — Changelog and release notes
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Provided

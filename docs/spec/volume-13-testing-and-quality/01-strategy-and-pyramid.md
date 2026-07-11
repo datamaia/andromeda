@@ -72,7 +72,7 @@ lower-level reproduction where expressible (FR-TEST-001).
 ### FR-TEST-001 — Test pyramid and suite organization
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -184,7 +184,7 @@ Volume 1 MVP minimum item 24; SM-14; RISK-TEST-001; NFR-TEST-001.
 ### FR-TEST-002 — Test-to-requirement traceability annotations
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided

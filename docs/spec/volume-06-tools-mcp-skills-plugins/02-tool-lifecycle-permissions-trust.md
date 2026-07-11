@@ -150,7 +150,7 @@ allowed_origins = ["builtin", "plugin", "mcp"]
 ### FR-TOOL-004 — Tool registration, availability, and enablement
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Derived
@@ -272,7 +272,7 @@ PRD-006, PRD-007; INV-TOOL-01..04, INV-EXT-03 (Volume 2); FR-TOOL-001.
 ### FR-TOOL-005 — Permission mediation for every invocation
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -404,7 +404,7 @@ PRD-004, PRD-005, PRD-009; FR-SEC-100; INV-TINV-03/05, INV-APR-03/05 (Volume 2).
 ### FR-TOOL-006 — Execution limits, sandbox placement, and teardown
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Derived

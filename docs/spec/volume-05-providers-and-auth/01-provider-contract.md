@@ -74,7 +74,7 @@ for any documented Andromeda behavior (Principle 1).
 ### FR-PROV-001 — Provider contract
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Core
 - Source: Provided
@@ -284,7 +284,7 @@ catalog (chapter 09).
 ### FR-PROV-002 — Adapter declaration and registration
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Core
 - Source: Provided

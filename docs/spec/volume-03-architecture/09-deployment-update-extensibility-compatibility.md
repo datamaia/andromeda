@@ -121,7 +121,7 @@ release audit (Volume 14) verify the regime mechanically; deviations are release
 ### FR-ARCH-011 — Extension through versioned public contracts
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Core
 - Source: Provided

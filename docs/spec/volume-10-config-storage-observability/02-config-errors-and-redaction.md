@@ -13,7 +13,7 @@ exit code 3.
 ### FR-CFG-010 — Configuration error reporting
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -324,7 +324,7 @@ behind the same redaction step; no sink bypasses it.
 ### FR-CFG-011 — Secret detection and redaction in configuration surfaces
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided

@@ -118,7 +118,7 @@ command exposes them. The addition is recorded in this volume's register.
 ### FR-CLI-001 — CLI command grammar
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Core
 - Source: Provided
@@ -282,7 +282,7 @@ PRD-008, PRD-009; ADR-005, ADR-100, ADR-104; SM-20; UC-07; brief command-list ma
 ### FR-CLI-002 — Runtime mediation and driver parity
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Core
 - Source: Design
@@ -405,7 +405,7 @@ ADR-033.
 ### FR-CLI-003 — Root command and TUI hand-off
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Provided
@@ -534,7 +534,7 @@ PRD-008; UC-01 (entry), UC-11 (resume entry); ADR-006, ADR-102; FR-TUI-001.
 ### FR-CLI-004 — Extension-contributed commands
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P2
 - Phase: Beta
 - Source: Design

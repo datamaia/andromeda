@@ -1,6 +1,6 @@
 # Volume 8 — CLI and TUI
 
-**Status:** Authored (draft) · **Owner:** CLI / TUI (Volume 8)
+**Status:** Complete · **Owner:** CLI / TUI (Volume 8)
 
 Volume 8 specifies Andromeda's product surface: the `andromeda` command-line interface —
 architecture, grammar, conventions, and every command — and the interactive terminal user

@@ -40,7 +40,7 @@ database and emits exactly one `memory.*` event.
 ### FR-MEM-004 — Ingestion and normalization
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -170,7 +170,7 @@ PRD-005, PRD-006, PRD-009; FR-MEM-001..003, FR-MEM-005; ADR-028.
 ### FR-MEM-005 — Deduplication, conflict resolution, and supersession versioning
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Provided
@@ -298,7 +298,7 @@ PRD-006; INV-MEM-05; FR-MEM-002; RISK-MEM-001.
 ### FR-MEM-006 — Compression and summarization (consolidation)
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P2
 - Phase: Beta
 - Source: Provided
@@ -426,7 +426,7 @@ PRD-003, PRD-006; FR-MEM-003, FR-MEM-005, FR-MEM-007, FR-MEM-010; RISK-MEM-002.
 ### FR-MEM-007 — Retention and expiration
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Provided
@@ -556,7 +556,7 @@ PRD-003 (data minimization posture), PRD-010; ADR-023, ADR-028; NFR-MEM-002; RIS
 ### FR-MEM-008 — Deletion and purge cascade
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -680,7 +680,7 @@ PRD-005, PRD-006; INV-MEM-04, INV-EMB-03, INV-CTXI-04; NFR-MEM-002.
 ### FR-MEM-009 — Export and portability
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P2
 - Phase: MVP
 - Source: Provided
@@ -802,7 +802,7 @@ PRD-006, PRD-007; ADR-014; Volume 2 chapter 10; FR-MEM-002, FR-MEM-003.
 ### FR-MEM-010 — Offline memory operation
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided

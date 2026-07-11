@@ -90,7 +90,7 @@ mints outside `[storage]`:
 ### FR-CFG-001 — Configuration precedence
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -633,7 +633,7 @@ check_interval_hours = 24           # illustrative
 ### FR-CFG-002 — Configuration documents, locations, and loading
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -759,7 +759,7 @@ PRD-003, PRD-011; ADR-008, ADR-022; FR-CFG-001.
 ### FR-CFG-003 — Configuration Profiles as scope-bound layers
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Provided
@@ -887,7 +887,7 @@ Volume 2 chapter 02 (entity, invariants); ADR-130; FR-CFG-001; SM-12.
 ### FR-CFG-004 — Environment variable mapping algorithm
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -1033,7 +1033,7 @@ Volume 0 chapter 03 (environment namespace); ADR-131; FR-CFG-001; FR-CLI-001.
 ### FR-CFG-005 — Invocation and runtime overrides
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Provided
@@ -1177,7 +1177,7 @@ PRD-006, PRD-008, PRD-009; ADR-012, ADR-032; FR-CFG-001; FR-CLI-001.
 ### FR-CFG-006 — Include mechanism
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P2
 - Phase: Beta
 - Source: Provided
@@ -1301,7 +1301,7 @@ ADR-132; FR-CFG-001, FR-CFG-002; RISK-CFG-002.
 ### FR-CFG-007 — Typed validation with complete findings
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -1440,7 +1440,7 @@ ADR-008, ADR-016, ADR-024; FR-CFG-001; NFR-CFG-003; RISK-CFG-001.
 ### FR-CFG-008 — Configuration schema versioning, migration, and deprecation
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Provided
@@ -1604,7 +1604,7 @@ cross-database transaction or ATTACH path (ADR-028 rule 6).
 ### FR-CFG-009 — Database backups, retention, and workspace locking
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided

@@ -1,6 +1,6 @@
 # Andromeda Engineering Product Specification
 
-**Version:** 0.1.0-draft · **Date:** 2026-07-11 · **Status:** Authored — final audit in progress
+**Version:** 1.0.0 · **Date:** 2026-07-11 · **Status:** Complete — audited (A1–A6) and lint-clean
 
 This document set is the primary source of truth for **Andromeda**, an open-source, local-first,
 vendor-agnostic AI agent engineering platform (CLI + TUI). It combines the roles of a PRD, SRS,
@@ -17,23 +17,23 @@ Normative conventions, identifier taxonomy, templates, and the change procedure 
 
 | Volume | Title | Status |
 |---|---|---|
-| [0](volume-00-conventions/00-index.md) | Conventions and Document Control | Authored (draft) |
-| [1](volume-01-vision-and-product/00-index.md) | Vision, Problem, Scope, and Product | Authored (draft) |
-| [2](volume-02-domain-model/00-index.md) | Domain Model | Authored (draft) |
-| [3](volume-03-architecture/00-index.md) | System Architecture | Authored (draft) |
-| [4](volume-04-agent-runtime/00-index.md) | Agent Runtime | Authored (draft) |
-| [5](volume-05-providers-and-auth/00-index.md) | Providers, Models, and Authentication | Authored (draft) |
-| [6](volume-06-tools-mcp-skills-plugins/00-index.md) | Tools, MCP, Skills, and Plugins | Authored (draft) |
-| [7](volume-07-memory-context-indexing/00-index.md) | Memory, Context, and Indexing | Authored (draft) |
-| [8](volume-08-cli-and-tui/00-index.md) | CLI and TUI | Authored (draft) |
-| [9](volume-09-security/00-index.md) | Security | Authored (draft) |
-| [10](volume-10-config-storage-observability/00-index.md) | Configuration, Storage, and Observability | Authored (draft) |
-| [11](volume-11-git-and-github/00-index.md) | Git, GitHub, and Development Platforms | Authored (draft) |
-| [12](volume-12-performance-and-reliability/00-index.md) | Performance and Reliability | Authored (draft) |
-| [13](volume-13-testing-and-quality/00-index.md) | Testing and Quality | Authored (draft) |
-| [14](volume-14-distribution/00-index.md) | Distribution, Installation, and Updates | Authored (draft) |
-| [15](volume-15-roadmap-and-execution/00-index.md) | Roadmap and Execution | Authored (draft) |
-| [Annexes](annexes/00-index.md) | Glossary, ADRs, Catalogs, Matrices, Checklists | Authored (draft) |
+| [0](volume-00-conventions/00-index.md) | Conventions and Document Control | Complete |
+| [1](volume-01-vision-and-product/00-index.md) | Vision, Problem, Scope, and Product | Complete |
+| [2](volume-02-domain-model/00-index.md) | Domain Model | Complete |
+| [3](volume-03-architecture/00-index.md) | System Architecture | Complete |
+| [4](volume-04-agent-runtime/00-index.md) | Agent Runtime | Complete |
+| [5](volume-05-providers-and-auth/00-index.md) | Providers, Models, and Authentication | Complete |
+| [6](volume-06-tools-mcp-skills-plugins/00-index.md) | Tools, MCP, Skills, and Plugins | Complete |
+| [7](volume-07-memory-context-indexing/00-index.md) | Memory, Context, and Indexing | Complete |
+| [8](volume-08-cli-and-tui/00-index.md) | CLI and TUI | Complete |
+| [9](volume-09-security/00-index.md) | Security | Complete |
+| [10](volume-10-config-storage-observability/00-index.md) | Configuration, Storage, and Observability | Complete |
+| [11](volume-11-git-and-github/00-index.md) | Git, GitHub, and Development Platforms | Complete |
+| [12](volume-12-performance-and-reliability/00-index.md) | Performance and Reliability | Complete |
+| [13](volume-13-testing-and-quality/00-index.md) | Testing and Quality | Complete |
+| [14](volume-14-distribution/00-index.md) | Distribution, Installation, and Updates | Complete |
+| [15](volume-15-roadmap-and-execution/00-index.md) | Roadmap and Execution | Complete |
+| [Annexes](annexes/00-index.md) | Glossary, ADRs, Catalogs, Matrices, Checklists | Complete |
 
 ## Reading order
 

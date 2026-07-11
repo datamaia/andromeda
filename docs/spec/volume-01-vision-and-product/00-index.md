@@ -1,6 +1,6 @@
 # Volume 1 — Vision, Problem, Scope, and Product
 
-**Status:** Authored (draft) · **Owner:** Product (PRD area, per Volume 0 chapter 03)
+**Status:** Complete · **Owner:** Product (PRD area, per Volume 0 chapter 03)
 
 Volume 1 defines what Andromeda is and why: the vision and the problems it answers, who it is
 for, the concrete use cases, the product objectives (`PRD-NNN`, minted here), the nine product

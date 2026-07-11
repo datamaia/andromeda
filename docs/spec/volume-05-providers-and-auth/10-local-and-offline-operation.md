@@ -46,7 +46,7 @@ element of the session is local.
 ### FR-PROV-084 — Local provider operation
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -169,7 +169,7 @@ PRD-003; Volume 1 offline guarantee list; ADR-066; FR-PROV-083.
 ### FR-PROV-085 — Offline behavior of the provider layer
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided

@@ -389,7 +389,7 @@ denial) exit 5.
 ### FR-CLI-013 — Core command family behavior
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided

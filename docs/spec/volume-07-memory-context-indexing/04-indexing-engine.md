@@ -45,7 +45,7 @@ extension) — binary files are never chunked or embedded.
 ### FR-IDX-001 — Indexing engine
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -196,7 +196,7 @@ PRD-003, PRD-006; ADR-020, ADR-028, ADR-089; INV-IDX-01..04; FR-CTX-001; FR-IDX-
 ### FR-IDX-002 — Chunking
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -317,7 +317,7 @@ ADR-087, ADR-088; FR-IDX-001, FR-IDX-003, FR-IDX-004; INV-EMB-02.
 ### FR-IDX-003 — Embeddings and semantic index construction
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -452,7 +452,7 @@ RISK-IDX-002.
 ### FR-IDX-004 — Incremental updates and invalidation
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -583,7 +583,7 @@ PRD-010 (durable, honest state); INV-IDX-02; FR-IDX-001, FR-IDX-003, FR-IDX-006.
 ### FR-IDX-005 — Operation without embeddings and without Internet
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided

@@ -85,7 +85,7 @@ is the mitigation for RISK-TUI-001.
 ### FR-TUI-001 — TUI shell
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -242,7 +242,7 @@ PRD-008, PRD-009; MVP item 2; SM-06, SM-07; ADR-006, ADR-107; FR-CLI-003.
 ### FR-TUI-002 — Panel system and layout manager
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Design
@@ -366,7 +366,7 @@ PRD-008; MVP item 2; ADR-107; NFR-TUI-001; chapter 09 wireframes.
 ### FR-TUI-003 — Navigation and focus model
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Design
@@ -492,7 +492,7 @@ PRD-005, PRD-008; ADR-107, ADR-108; chapter 09 permission wireframe.
 ### FR-TUI-004 — Keyboard command map
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Design
@@ -630,7 +630,7 @@ PRD-008; ADR-108; FR-TUI-003; chapter 11 (search, paste), chapter 12 (terminal m
 ### FR-TUI-005 — Mouse input
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P2
 - Phase: MVP
 - Source: Design
@@ -750,7 +750,7 @@ PRD-008; ADR-109; FR-TUI-003.
 ### FR-TUI-006 — Resize and small-terminal behavior
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -867,7 +867,7 @@ PRD-008; MVP item 2; NFR-TUI-001; FR-TUI-002; chapter 12 (SSH and CI environment
 ### FR-TUI-007 — Runtime event rendering and streaming pipeline
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided

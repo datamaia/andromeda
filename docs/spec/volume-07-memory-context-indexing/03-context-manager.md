@@ -56,7 +56,7 @@ the model's declared capabilities — never from model-name special-casing (Prin
 ### FR-CTX-001 — Context assembly
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -198,7 +198,7 @@ FR-CTX-004..007.
 ### FR-CTX-002 — Token budgeting and model window enforcement
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -328,7 +328,7 @@ capability declaration set (by name).
 ### FR-CTX-003 — Deduplication and compression of context
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Provided
@@ -449,7 +449,7 @@ PRD-006; FR-CTX-001, FR-CTX-002, FR-CTX-006; FR-MEM-006.
 ### FR-CTX-004 — Freshness, trust, provenance, and conflict detection
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Provided
@@ -576,7 +576,7 @@ and Volume 9 injection threats (by name).
 ### FR-CTX-005 — User pinning and exclusion
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Provided
@@ -706,7 +706,7 @@ PRD-005, PRD-006, PRD-010; FR-CTX-001, FR-CTX-002; RISK-CTX-001.
 ### FR-CTX-006 — Tool-result, large-file, and binary-content handling
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Provided
@@ -831,7 +831,7 @@ PRD-006, PRD-008; FR-CTX-002, FR-CTX-003; FR-IDX-002 (shared detection).
 ### FR-CTX-007 — Context snapshots and reproducibility
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided

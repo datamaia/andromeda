@@ -38,7 +38,7 @@ channel that placed the binary is the channel that removes it.
 ### FR-REL-009 — Installation layout and ownership detection
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Derived
@@ -158,7 +158,7 @@ MVP item 22; PRD-011; ADR-022; FR-PORT-003; Volume 3 chapter 09 state footprint;
 ### FR-REL-010 — Uninstallation with data preservation by default
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Provided
@@ -277,7 +277,7 @@ FR-REL-011.
 ### FR-REL-011 — Explicit data removal
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P2
 - Phase: MVP
 - Source: Provided

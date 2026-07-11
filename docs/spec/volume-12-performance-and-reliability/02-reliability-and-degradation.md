@@ -31,7 +31,7 @@ this chapter consumes those states as degradation triggers.
 ### FR-PERF-001 — Deadline and timeout baseline
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Design
@@ -165,7 +165,7 @@ PRD-005, PRD-010; FR-ARCH-004; ADR-016, ADR-023; NFR-PERF-025.
 ### FR-PERF-002 — Backpressure and overload shedding
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Design
@@ -284,7 +284,7 @@ PRD-008; ADR-012, ADR-023; FR-ARCH-006; NFR-PERF-005, NFR-PERF-017, NFR-PERF-020
 ### FR-PERF-003 — Degraded operation modes
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Design
@@ -415,7 +415,7 @@ PRD-003, PRD-006; ADR-014, ADR-020, ADR-021, ADR-162; NFR-PERF-024, NFR-PERF-028
 ### FR-PERF-004 — Resource watchdog and recovery objectives
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Design

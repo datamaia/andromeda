@@ -60,7 +60,7 @@ semantics; the `--channel` flag overrides for one invocation only (Volume 8).
 ### FR-REL-005 — Update check, channel subscription, and notification
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -185,7 +185,7 @@ chapter 05 T1–T3.
 ### FR-REL-006 — Download, verification, and consent-gated apply
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -321,7 +321,7 @@ chapter 05 T4–T11.
 ### FR-REL-007 — Update automation policy
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P2
 - Phase: Beta
 - Source: Provided
@@ -439,7 +439,7 @@ ADR-191; PRD-005, PRD-009; Volume 9 permission decisions vocabulary; FR-REL-005/
 ### FR-REL-008 — Rollback of the installed version
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided

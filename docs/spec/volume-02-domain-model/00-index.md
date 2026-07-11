@@ -1,6 +1,6 @@
 # Volume 2 — Domain Model
 
-**Status:** Authored (draft) · **Owner:** Domain model author (Volume 2)
+**Status:** Complete · **Owner:** Domain model author (Volume 2)
 
 Volume 2 defines Andromeda's domain model: every domain entity, its attributes, identifiers,
 relations, integrity invariants, lifecycle, persistence, versioning, and serialization. It is

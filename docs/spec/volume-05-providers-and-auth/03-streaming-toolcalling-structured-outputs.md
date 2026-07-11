@@ -61,7 +61,7 @@ Constraints: the router adds no buffering stage; translation is per-chunk; the c
 ### FR-PROV-020 — Streaming contract
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -205,7 +205,7 @@ whose retry/repair policy is Volume 4's — the Provider Layer never re-prompts 
 ### FR-PROV-021 — Tool-calling normalization
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -359,7 +359,7 @@ against official documentation (register entry in `99-volume-register.md`).
 ### FR-PROV-022 — Structured outputs
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Provided

@@ -38,7 +38,7 @@ runs discovery commands explicitly; their surfaces are never agent-visible.
 ### FR-MCP-006 — MCP trust gating and isolation
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Beta
 - Source: Design
@@ -224,7 +224,7 @@ rather than silent misbehavior.
 ### FR-MCP-007 — MCP conformance test program
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: Beta
 - Source: Provided

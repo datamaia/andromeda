@@ -387,7 +387,7 @@ Key content of the `[workflows]` table (schema, precedence, and validation are V
 ### FR-WF-001 — Specification-driven development workflow
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Beta
 - Source: Provided
@@ -518,7 +518,7 @@ PRD-012, PRD-005, PRD-006; FR-AGT-001; FR-WF-002/003/004; ADR-049, ADR-054; SM-1
 ### FR-WF-002 — Workflow definition format and validation
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Beta
 - Source: Design
@@ -642,7 +642,7 @@ PRD-012, PRD-007; ADR-008, ADR-024, ADR-048; INV-WFD-02, INV-WFD-03; NFR-WF-001.
 ### FR-WF-003 — Workflow execution semantics
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Beta
 - Source: Design
@@ -764,7 +764,7 @@ PRD-006, PRD-009, PRD-012; FR-AGT-001; FR-WF-005, FR-WF-006; ADR-050, ADR-053; I
 ### FR-WF-004 — Workflow approval gates
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Beta
 - Source: Provided

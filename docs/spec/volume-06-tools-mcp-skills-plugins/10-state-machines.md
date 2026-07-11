@@ -130,7 +130,7 @@ E-PLUG-001's cause chain.
 ### FR-PLUG-008 — Plugin lifecycle machine conformance
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Beta
 - Source: Design
@@ -371,7 +371,7 @@ feeding 6 when framing is corrupted), E-MCP-007 (guard of 1, no transition), E-M
 ### FR-MCP-008 — MCP Client Connection machine conformance
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Beta
 - Source: Design
@@ -615,7 +615,7 @@ E-PLUG-006) as causes inside 11/12. E-SEC denials at transition 1 prevent machin
 ### FR-PLUG-009 — Package installation machine conformance
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Beta
 - Source: Design

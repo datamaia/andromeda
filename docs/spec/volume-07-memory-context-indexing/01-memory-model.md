@@ -86,7 +86,7 @@ promotion is an explicit lifecycle operation (chapter 02), never an implicit cop
 ### FR-MEM-001 — Memory model
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -244,7 +244,7 @@ INV-MEM-01..05; chapter 02 lifecycle requirements.
 ### FR-MEM-002 — Provenance, trust, and source attribution
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -376,7 +376,7 @@ PRD-006; INV-MEM-02; FR-MEM-005 (conflict guard); RISK-MEM-001; Volume 9 threat 
 ### FR-MEM-003 — Secret and sensitive-content exclusion
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided

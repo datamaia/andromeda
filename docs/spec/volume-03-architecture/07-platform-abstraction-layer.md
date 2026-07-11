@@ -182,7 +182,7 @@ The v2-candidate Windows phase (Volume 1) is prepared for now, structurally:
 ### FR-PORT-001 — Platform encapsulation
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Core
 - Source: Provided
@@ -296,7 +296,7 @@ PRD-011; ADR-022, ADR-033; FR-ARCH-001; NFR-PORT-004; RISK-PORT-003.
 ### FR-PORT-002 — PAL surface completeness and portability of signatures
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Core
 - Source: Provided
@@ -412,7 +412,7 @@ PRD-011; ADR-012, ADR-014, ADR-021, ADR-022, ADR-025; FR-PORT-001; NFR-PORT-002.
 ### FR-PORT-003 — Directory resolution through the PAL with XDG semantics
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Core
 - Source: Derived
@@ -528,7 +528,7 @@ PRD-011; ADR-022, ADR-028; FR-PORT-001; chapter 09 deployment footprint.
 ### FR-PORT-004 — Platform support matrix conformance
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided

@@ -19,7 +19,7 @@ output mode, chapter 12) works from the same data.
 ### FR-UX-070 — Streaming output rendering
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -147,7 +147,7 @@ PRD-008, PRD-005; ADR-006, ADR-012; SM-08 (Volume 12 formalization); FR-ARCH-004
 ### FR-UX-071 — Spinners and progress bars
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Provided
@@ -268,7 +268,7 @@ PRD-008; FR-UX-070, FR-TUI-067, NFR-UX-077; FR-UX-003 (CLI counterpart).
 ### FR-UX-072 — Modal overlays and confirmation tiers
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -397,7 +397,7 @@ semantics.
 ### FR-UX-073 — Toasts
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Provided
@@ -542,7 +542,7 @@ as such, and every state except `content` names its cause and next step.
 ### FR-UX-074 — Canonical view states: empty, loading, offline, degraded, error
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -666,7 +666,7 @@ observable-degradation rule.
 ### FR-UX-075 — Copy and paste
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Provided
@@ -792,7 +792,7 @@ PRD-006, PRD-008; ADR-113; RISK-UX-079; chapter 12 compatibility matrix.
 ### FR-UX-076 — Data navigation: search, filtering, pagination, virtualization
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Provided

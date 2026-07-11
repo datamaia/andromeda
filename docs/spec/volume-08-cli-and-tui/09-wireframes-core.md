@@ -581,7 +581,7 @@ figures at every tier.
 ### FR-UX-043 — Splash and identity surfaces
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P2
 - Phase: MVP
 - Source: Provided
@@ -694,7 +694,7 @@ PRD-008; ADR-026; MVP item 2; SM-06.
 ### FR-TUI-009 — Core screen inventory and content contract
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided

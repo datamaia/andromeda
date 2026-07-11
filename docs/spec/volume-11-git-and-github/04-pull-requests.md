@@ -87,7 +87,7 @@ Docs/spec updates in this PR, or why none are needed.
 ### FR-GH-004 — Pull request process
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Core
 - Source: Provided
@@ -214,7 +214,7 @@ PRD-013; ADR-004, ADR-015, ADR-148; FR-GH-001; Volume 0 chapter 10 change proced
 ### FR-GH-005 — AI provenance labeling and commit-message enforcement
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Core
 - Source: Provided

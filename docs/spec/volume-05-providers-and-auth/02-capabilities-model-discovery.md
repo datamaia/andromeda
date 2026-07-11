@@ -118,7 +118,7 @@ capability; substitutes are defined per capability below and nowhere else.
 ### FR-PROV-010 — Capability declaration and the capability matrix
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Core
 - Source: Provided
@@ -237,7 +237,7 @@ PRD-002; SM-04; ADR-056; INV-CAP-01..03, INV-MDL-02..03; FR-PROV-011, FR-PROV-01
 ### FR-PROV-011 — Capability negotiation, verification, and degradation
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -364,7 +364,7 @@ PRD-002, PRD-006; SM-04; ADR-056; FR-PROV-010, FR-PROV-013; RISK-PRD-006.
 ### FR-PROV-012 — Model discovery and the model registry
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Provided
@@ -491,7 +491,7 @@ PRD-002, PRD-003; INV-MDL-01..04; FR-PROV-010; SM-04, SM-05.
 ### FR-PROV-013 — Provider and model change notification
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided

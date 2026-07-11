@@ -164,7 +164,7 @@ The twelve elements:
 ### FR-REL-016 — Machine conformance and update history
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Design

@@ -273,7 +273,7 @@ fast before the network round-trip.
 ### FR-GIT-001 — Git Engine
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -414,7 +414,7 @@ PRD-004, PRD-005, PRD-006; MVP minimum item 12; ADR-025, ADR-145, ADR-146; SM-13
 ### FR-GIT-002 — Repository discovery and version gating
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -528,7 +528,7 @@ FR-GIT-001; ADR-025; Volume 4 workspace lifecycle (WorkspacePort `Discover`).
 ### FR-GIT-003 — Read-query fidelity: status, diff, log, show, blame
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -643,7 +643,7 @@ FR-GIT-001; NFR-GIT-001; PRD-008 (TUI diff review); SM-07 indirectly.
 ### FR-GIT-004 — Staging and commit creation
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -761,7 +761,7 @@ FR-GIT-001; ADR-015, ADR-146; Volume 2 Patch vocabulary; MVP minimum item 12.
 ### FR-GIT-005 — Branches, tags, and worktrees
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Provided
@@ -873,7 +873,7 @@ FR-GIT-001; ADR-145, ADR-146; Volume 4 workflow rollback (git restore points).
 ### FR-GIT-006 — Remote operations: fetch, pull, push
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: Beta
 - Source: Provided
@@ -987,7 +987,7 @@ FR-GIT-001; ADR-145, ADR-146; chapter 02 change-request flows; FR-SEC-100.
 ### FR-GIT-007 — History modification, conflicts, and recovery
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: Beta
 - Source: Provided
@@ -1106,7 +1106,7 @@ item 3.
 ### FR-GIT-008 — Repository feature passthrough: hooks, ignore, signing, submodules, sparse checkout, LFS
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Provided

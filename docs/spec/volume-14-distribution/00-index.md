@@ -1,6 +1,6 @@
 # Volume 14 — Distribution, Installation, and Updates
 
-**Status:** Authored (draft) · **Owner:** Updater / Package Manager / release engineering (Volume 14)
+**Status:** Complete · **Owner:** Updater / Package Manager / release engineering (Volume 14)
 
 Volume 14 specifies how Andromeda reaches and leaves machines and how installations move
 between versions: the release pipeline and distribution channels (keystone FR-REL-001), the

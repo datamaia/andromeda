@@ -137,7 +137,7 @@ secrets; jobs that need secrets (benchmark baseline upload, docs publish) run on
 ### FR-GH-009 — Quality pipelines and required checks
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Core
 - Source: Provided
@@ -253,7 +253,7 @@ MVP minimum items 24–26; ADR-004, ADR-018, ADR-033; SM-14; NFR-GH-002.
 ### FR-GH-010 — Security scanning pipelines
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -368,7 +368,7 @@ SM-16; ADR-002, ADR-013, ADR-149; Volume 9 chapter 08 (advisory handling).
 ### FR-GH-011 — Release, upgrade, and documentation pipelines
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -496,7 +496,7 @@ MVP minimum items 26–27.
 ### FR-GH-012 — Workflow security posture enforcement
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Core
 - Source: Provided

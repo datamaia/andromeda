@@ -36,7 +36,7 @@ NFR-TUI-069 and the golden-test dimensions of the Volume 13 TUI suite.
 ### FR-TUI-065 — Accessible output mode
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: Beta
 - Source: Provided
@@ -170,7 +170,7 @@ PRD-008, PRD-009; ADR-111, ADR-110; FR-UX-070, FR-UX-001; RISK-TUI-071.
 ### FR-TUI-066 — No-color and monochrome operation
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Provided
@@ -325,7 +325,7 @@ process, applied to all chrome.
 ### FR-TUI-067 — Glyph tiers and Unicode fallback
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Provided
@@ -441,7 +441,7 @@ PRD-011, PRD-008; ADR-112; FR-UX-002; RISK-TUI-072.
 ### FR-TUI-068 — SSH, multiplexer, and non-TTY operation
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Provided

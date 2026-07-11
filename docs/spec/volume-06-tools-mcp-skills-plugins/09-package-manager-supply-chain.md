@@ -136,7 +136,7 @@ volume's register); no default `registry` source ships enabled until it resolves
 ### FR-PLUG-006 — Package sources, discovery, and dependency resolution
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: Beta
 - Source: Provided
@@ -304,7 +304,7 @@ installation fails and nothing stays partially active.
 ### FR-PLUG-005 — Extension package operations
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Beta
 - Source: Provided
@@ -464,7 +464,7 @@ Volume 14 (product updates excluded).
 ### FR-PLUG-007 — Package verification and integrity
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Beta
 - Source: Provided

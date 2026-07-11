@@ -368,7 +368,7 @@ requested it.
 ### FR-AGT-015 — Canonical machine enforcement
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Core
 - Source: Derived

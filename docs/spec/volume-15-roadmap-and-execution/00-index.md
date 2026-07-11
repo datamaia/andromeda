@@ -1,6 +1,6 @@
 # Volume 15 — Roadmap, Execution, and Governance
 
-**Status:** Authored (draft) · **Owner:** Project governance / roadmap (Volume 15)
+**Status:** Complete · **Owner:** Project governance / roadmap (Volume 15)
 
 Volume 15 is the consolidation volume for execution: it sequences the specified product
 inside the phases Volume 1 chapter 05 defines, decomposes the committed phases into epics

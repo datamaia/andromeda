@@ -1,6 +1,6 @@
 # Volume 3 — System Architecture
 
-**Status:** Authored (draft) · **Owner:** Architecture (Volume 3)
+**Status:** Complete · **Owner:** Architecture (Volume 3)
 
 Volume 3 defines Andromeda's system architecture: the layered, ports-and-adapters structure of
 the codebase, the frozen port interfaces that every later volume elaborates, the full component

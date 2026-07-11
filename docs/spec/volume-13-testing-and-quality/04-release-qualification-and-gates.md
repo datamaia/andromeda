@@ -81,7 +81,7 @@ binary.
 ### FR-TEST-009 — Release qualification pipeline and evidence bundle
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided

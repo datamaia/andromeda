@@ -84,7 +84,7 @@ written justification; every use is nightly-audit-reported and phase-gate-review
 ### FR-GH-001 — Traceability automation
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided

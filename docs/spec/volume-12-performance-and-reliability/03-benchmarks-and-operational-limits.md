@@ -74,7 +74,7 @@ artifacts.
 ### FR-PERF-005 — Benchmark suite and regression gating
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Design
@@ -201,7 +201,7 @@ PRD-013; ADR-160, ADR-161; Volume 1 metric governance; NFR-PERF-001 through NFR-
 ### FR-PERF-006 — Operational limits enforcement
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Design

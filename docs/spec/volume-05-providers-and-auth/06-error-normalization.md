@@ -67,7 +67,7 @@ Generic origin mapping (adapters specialize per documented error schemas; catalo
 ### FR-PROV-050 — Provider error normalization
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Core
 - Source: Provided

@@ -182,7 +182,7 @@ configuration chapters' validation; the Logging component never guesses a level.
 ### FR-OBS-002 — Structured logging pipeline
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -318,7 +318,7 @@ PRD-006; Principle 9; ADR-011; MVP minimum item 18; SM-13; FR-OBS-004; NFR-OBS-0
 ### FR-OBS-003 — Log rotation and retention
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Design
@@ -440,7 +440,7 @@ RISK-OBS-001; ADR-138; ADR-022; FR-OBS-002.
 ### FR-OBS-004 — Log redaction enforcement
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided

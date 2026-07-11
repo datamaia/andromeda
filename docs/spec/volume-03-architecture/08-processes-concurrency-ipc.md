@@ -174,7 +174,7 @@ designed as one contract.
 ### FR-ARCH-005 — Bounded process model
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Core
 - Source: Design
@@ -287,7 +287,7 @@ PRD-005, PRD-011; ADR-009, ADR-010, ADR-012, ADR-021, ADR-025; FR-ARCH-009.
 ### FR-ARCH-006 — Supervised concurrency
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Core
 - Source: Design
@@ -399,7 +399,7 @@ PRD-008, PRD-010; ADR-023; FR-ARCH-004; NFR-ARCH-004; RISK-ARCH-003.
 ### FR-ARCH-007 — External IPC control surface
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Design
@@ -518,7 +518,7 @@ PRD-006, PRD-009; ADR-012, ADR-016; FR-ARCH-008; Volume 8/10 method vocabularies
 ### FR-ARCH-008 — Headless operating mode
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: Beta
 - Source: Design
@@ -633,7 +633,7 @@ PRD-009; ADR-012, ADR-032; FR-ARCH-007; UC-07, UC-11.
 ### FR-ARCH-009 — Crash recovery and resumable state
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Derived
@@ -752,7 +752,7 @@ PRD-010; SM-11; ADR-007, ADR-028, ADR-029; UC-11; FR-ARCH-010.
 ### FR-ARCH-010 — Graceful shutdown ordering
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Design

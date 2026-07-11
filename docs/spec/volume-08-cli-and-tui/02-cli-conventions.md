@@ -51,7 +51,7 @@ The closed exit-code scheme is Volume 0's (chapter 03; ADR-016). CLI application
 ### FR-CLI-005 — Global flags and invocation modes
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Core
 - Source: Design
@@ -162,7 +162,7 @@ PRD-008, PRD-009; ADR-005, ADR-102, ADR-103; FR-CFG-001; SM-06.
 ### FR-CLI-006 — Structured JSON output for every command
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Core
 - Source: Provided
@@ -320,7 +320,7 @@ PRD-006, PRD-009; ADR-101, ADR-016, ADR-024; SM-12, SM-13, SM-20; UC-07, UC-08.
 ### FR-CLI-007 — Stream discipline: stdout, stderr, exit code
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Core
 - Source: Design
@@ -438,7 +438,7 @@ PRD-008, PRD-009; ADR-101; UC-07, UC-08.
 ### FR-CLI-008 — Verbosity modes: quiet, verbose, debug
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Provided
@@ -555,7 +555,7 @@ PRD-006, PRD-008; Volume 1 tension rule 1; ADR-011.
 ### FR-CLI-009 — Non-interactive and CI modes
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -697,7 +697,7 @@ PRD-005, PRD-009; UC-07, UC-08; ADR-102; FR-SEC-100; Volume 1 tension rule 2.
 ### FR-CLI-010 — Confirmation behavior
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -828,7 +828,7 @@ PRD-005; Principle 8; ADR-102; UC-14.
 ### FR-CLI-011 — Environment variables
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Provided
@@ -953,7 +953,7 @@ PRD-009; FR-CFG-001; ADR-102, ADR-103; UC-07.
 ### FR-CLI-012 — Shell completion
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P2
 - Phase: MVP
 - Source: Provided
@@ -1073,7 +1073,7 @@ PRD-008; ADR-005; SM-07 (spirit); FR-CLI-001.
 ### FR-UX-001 — Error presentation standard
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Design
@@ -1193,7 +1193,7 @@ PRD-006; Principle 9; ADR-016; SM-13.
 ### FR-UX-002 — Terminal capability adaptation and paging
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Design
@@ -1304,7 +1304,7 @@ PRD-008; ADR-103, ADR-026; UC-03 (diff review readability).
 ### FR-UX-003 — Progress reporting outside the TUI
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Design

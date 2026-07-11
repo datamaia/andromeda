@@ -1,6 +1,6 @@
 # Volume 13 — Testing and Quality
 
-**Status:** Authored (draft) · **Owner:** Testing and quality (Volume 13)
+**Status:** Complete · **Owner:** Testing and quality (Volume 13)
 
 Volume 13 defines how Andromeda is verified: the test strategy and pyramid, the closed
 catalog of test types with tooling, gates, and phases, the test infrastructure (doubles,

@@ -67,7 +67,7 @@ placeholders, not shipped facts.
 ### FR-PROV-030 — Token usage accounting
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Provided
@@ -191,7 +191,7 @@ PRD-006; SM-12, SM-13; ADR-058; INV-COST-01..05; FR-PROV-031.
 ### FR-PROV-031 — Cost accounting and pricing tables
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Provided

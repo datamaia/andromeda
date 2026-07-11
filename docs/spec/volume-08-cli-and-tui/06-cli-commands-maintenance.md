@@ -288,7 +288,7 @@ The post-command update notice referenced by the `cli.update_notice` configurati
 ### FR-CLI-016 — Maintenance command family behavior
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: MVP
 - Source: Provided

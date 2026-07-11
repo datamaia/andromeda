@@ -1,6 +1,6 @@
 # Volume 10 — Configuration, Storage, and Observability
 
-**Status:** Authored (draft) · **Owner:** Configuration Manager / Persistence Layer /
+**Status:** Complete · **Owner:** Configuration Manager / Persistence Layer /
 Observability (Volume 10)
 
 Volume 10 specifies the surfaces every other volume defers to by reference: the

@@ -164,7 +164,7 @@ semantics.
 ### FR-PLUG-001 — Plugin runtime over the Andromeda Runtime Protocol
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Beta
 - Source: Provided
@@ -303,7 +303,7 @@ INV-PLG-01..04; chapter 10.
 ### FR-PLUG-002 — ARP handshake, version negotiation, and method conformance
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Beta
 - Source: Derived
@@ -422,7 +422,7 @@ ADR-009 risks; ADR-079; INV-PLG-02; SM-20 (protocol in the public contract set).
 ### FR-PLUG-003 — Plugin permission mediation and sandbox containment
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: Beta
 - Source: Provided
@@ -580,7 +580,7 @@ Operational policy (full machine in chapter 10):
 ### FR-PLUG-004 — Plugin supervision, health, and restart
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P1
 - Phase: Beta
 - Source: Design

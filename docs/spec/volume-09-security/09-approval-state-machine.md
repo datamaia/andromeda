@@ -112,7 +112,7 @@ Transition rules:
 ### FR-SEC-113 — Approval lifecycle enforcement
 
 - Type: Functional
-- Status: Draft
+- Status: Approved
 - Priority: P0
 - Phase: MVP
 - Source: Design
