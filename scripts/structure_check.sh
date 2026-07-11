@@ -23,6 +23,11 @@ required_paths=(
   .golangci.yml
   cmd/andromeda
   internal
+  internal/core
+  internal/ports
+  internal/pal
+  sdk
+  sdk/go.mod
   docs/spec
   scripts
   .github/CODEOWNERS

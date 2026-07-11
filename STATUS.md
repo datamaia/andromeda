@@ -4,7 +4,7 @@ Living tracker of the build. The **specification** (`docs/spec/`, v1.0.0) is com
 file tracks the **implementation** against Volume 15's epics and milestones. Updated and
 pushed on every advance.
 
-**Last updated:** 2026-07-11 · **Current milestone:** MS-1 (Foundations) · **Phase:** Core
+**Last updated:** 2026-07-12 · **Current milestone:** MS-1 (Foundations) · **Phase:** Core
 
 ## How work is organized
 
@@ -23,7 +23,7 @@ The authoritative quality gate is **`make ci`** (runs locally, no CI-minute depe
 
 | Milestone | Epics | Status |
 |---|---|---|
-| MS-1 Foundations | EP-01, EP-02, EP-03, EP-04 | 🔄 |
+| MS-1 Foundations | EP-01 ✅, EP-02 ✅, EP-03, EP-04 | 🔄 |
 | MS-2 Runtime core | EP-05, EP-06, EP-07, … | ⬜ |
 | MS-3+ | per Volume 15 ch 02 | ⬜ |
 
@@ -52,9 +52,31 @@ Realizes FR-GH-002 (repository structure) and FR-GH-003 (branching rules).
 **Gate status:** `make ci` passes — build OK, tests green with `-race`, coverage 80.8%
 (≥ 70% SM-14 floor), spec lint 0/0, structure-check OK.
 
-### EP-02 — Architecture skeleton and PAL · ⬜
-L0–L5 layer packages, the 18 port interfaces in `internal/ports`, the Platform Abstraction
-Layer, depguard/import-graph dependency enforcement (ADR-033), and the `sdk/` mirror module.
+### EP-02 — Architecture skeleton and PAL · ✅
+
+Realizes FR-ARCH-003 (port freeze), FR-ARCH-001/004 (layering, context propagation),
+FR-PORT-001 (platform encapsulation).
+
+- ✅ L0 core (`internal/core`): ULID, `Phase`, and the closed capability (15), permission
+  (13), scope (10), and decision (7) enumerations with wire-value guard tests
+- ✅ L1 ports (`internal/ports`): **all 18 frozen port interfaces** with faithful signatures
+  (`Provider`, `Auth`, `Tool`, `Terminal`, `MemoryStore`, `Indexer`, `EventBus`, `Permission`,
+  `SecretStore`, `Sandbox`, `Config`, `SessionStore`, `Git`, `Workspace`, `Scheduler`,
+  `Updater`, `Package`, `Telemetry`), shared `Stream[T]`/`PortError`/error-family primitives,
+  and minimal contract types (grow additively per owning volume)
+- ✅ Platform Abstraction Layer (`internal/pal`): the 19 surface interfaces; Unix reference
+  implementations for Paths, ConfigDirs (XDG-honoring), TempFiles, and FileLocking (flock)
+  with tests
+- ✅ Dependency-rule enforcement (`internal/arch`): layer manifest + an import-graph test
+  (ADR-033) that runs in `make test` with no external tooling; depguard seed in
+  `.golangci.yml`
+- ✅ `sdk/` mirror module (second Go module per ADR-031; builds independently, does not import
+  `internal/`)
+- ⬜ Concrete Unix implementations of the remaining PAL surfaces (Processes, Signals, PTY,
+  Shell, CredentialStore, …) — delivered by their owning epics
+- ⬜ SDK mirror content (port contract mirror) — Extension SDK epics
+
+**Gate status:** `make ci` passes — coverage 85.5%; 18/18 ports; import-graph rule enforced.
 
 ### EP-03 — Persistence and configuration · ⬜
 SQLite (modernc, WAL) with the workspace + global database split (ADR-028), forward-only
