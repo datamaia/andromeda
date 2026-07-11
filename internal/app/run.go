@@ -9,6 +9,7 @@ import (
 	"github.com/datamaia/andromeda/internal/permission"
 	"github.com/datamaia/andromeda/internal/ports"
 	"github.com/datamaia/andromeda/internal/storage"
+	"github.com/datamaia/andromeda/internal/terminal"
 	"github.com/datamaia/andromeda/internal/tool"
 	"github.com/datamaia/andromeda/internal/tool/builtin"
 )
@@ -21,6 +22,7 @@ type RunAgentOptions struct {
 	Model         string
 	Provider      ports.ProviderPort
 	AllowWrite    bool // grant write within the workspace (safe-by-default is read-only)
+	AllowExec     bool // grant command execution (terminal_run)
 	MaxIterations int
 }
 
@@ -61,6 +63,13 @@ func RunAgent(ctx context.Context, opts RunAgentOptions) (agent.RunResult, error
 	if opts.AllowWrite {
 		tools = append(tools, builtin.FSWrite{})
 		toolNames = append(toolNames, "fs_write")
+	}
+	if opts.AllowExec {
+		_, _ = pm.GrantPermission(ctx, permission.Grant{
+			Permission: core.PermExecute, Scope: core.ScopeCommand, Selector: "*", Effect: permission.EffectAllow,
+		})
+		tools = append(tools, builtin.NewTerminalRun(terminal.New()))
+		toolNames = append(toolNames, "terminal_run")
 	}
 	for _, tl := range tools {
 		if err := rt.Register(ctx, tl); err != nil {

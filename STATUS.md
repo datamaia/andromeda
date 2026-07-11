@@ -4,7 +4,7 @@ Living tracker of the build. The **specification** (`docs/spec/`, v1.0.0) is com
 file tracks the **implementation** against Volume 15's epics and milestones. Updated and
 pushed on every advance.
 
-**Last updated:** 2026-07-12 · **Current milestone:** MS-3 (Memory/context/index → runtime) · **Phase:** Core/MVP · **Ports:** 17/18
+**Last updated:** 2026-07-12 · **Current milestone:** MS-3 (Memory/context/index → runtime) · **Phase:** Core/MVP · **Ports:** 15/18 (recount)
 
 ## How work is organized
 
@@ -267,6 +267,22 @@ Ollama, or `--provider anthropic --api-key-env ANDROMEDA_ANTHROPIC_KEY`, for a l
 
 **Gate status:** `make ci` passes. Ports implemented: **17 / 18** (Terminal, Auth, Updater,
 Package remain).
+
+### EP — Terminal Engine and command execution · ✅
+
+- ✅ Terminal Engine (`internal/terminal`) implementing `TerminalPort`: pipe-based streaming
+  execution with tagged stdout/stderr chunks, bounded capture with explicit truncation, stdin
+  `Write`, portable `Signal` (interrupt/terminate/kill → Unix signals), and `Wait` returning the
+  command outcome. Verified: stdout capture, non-zero exit, stdin piping, and kill-stops-sleep.
+- ✅ `terminal_run` built-in tool routing through the Tool Runtime (requires `execute`
+  permission; command-scoped resource query), wired into `andromeda run` behind `--allow-exec`.
+  Verified end-to-end: the agent runs a real command and observes its output.
+- ⬜ PTY mode, sandbox-policy integration for terminal executions — later increments.
+
+**Port recount (corrected):** implemented **15 / 18** — Provider, Auth⬜, Tool, **Terminal✅**,
+MemoryStore, Indexer, EventBus, Permission, SecretStore, Sandbox, Config, SessionStore, Git,
+Workspace, Scheduler⬜, Updater⬜, Package⬜, Telemetry. Remaining: **Auth, Scheduler, Updater,
+Package**.
 
 ## Deliberate deviations from the specification (free-tier accommodations)
 

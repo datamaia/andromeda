@@ -93,6 +93,25 @@ func TestRunAgentWriteDeniedWithoutAllowWrite(t *testing.T) {
 	}
 }
 
+func TestRunAgentExecutesCommandWithAllowExec(t *testing.T) {
+	ctx := context.Background()
+	ws := t.TempDir()
+	input, _ := json.Marshal(map[string]string{"command": "printf marker-99"})
+	prov := &scriptedProvider{responses: []ports.ChatResponse{
+		assistantMsg("running", ports.ToolCall{ID: "1", Name: "terminal_run", Input: input}),
+		assistantMsg("the command printed marker-99"),
+	}}
+	res, err := RunAgent(ctx, RunAgentOptions{
+		WorkspaceRoot: ws, Goal: "run a command", Model: "m", Provider: prov, AllowExec: true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.State != "completed" || res.ToolCalls != 1 {
+		t.Fatalf("res = %+v", res)
+	}
+}
+
 func TestBuildProviderErrors(t *testing.T) {
 	if _, err := BuildProvider(ProviderSpec{Name: "anthropic"}); err == nil {
 		t.Error("anthropic without key should error")
