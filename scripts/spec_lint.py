@@ -399,7 +399,19 @@ def lint(root: Path) -> list[Finding]:
         if not doc.rel.endswith("99-volume-register.md"):
             continue
         vol = volume_of(doc.rel)
-        listed = {m.group(1) for _, l in doc.prose for m in ID_REF_RE.finditer(l)
+        # Only the "## Requirements index" section lists this volume's own IDs;
+        # other sections (e.g. cross-volume references) legitimately mention
+        # foreign identifiers.
+        in_index = False
+        index_lines: list[str] = []
+        for _, l in doc.prose:
+            m = re.match(r"^##\s+(.+?)\s*$", l)
+            if m:
+                in_index = m.group(1).strip() == "Requirements index"
+                continue
+            if in_index:
+                index_lines.append(l)
+        listed = {m.group(1) for l in index_lines for m in ID_REF_RE.finditer(l)
                   if m.group(1).startswith(("FR-", "NFR-", "RISK-"))}
         defined = by_volume.get(vol, set())
         for ident in sorted(defined - listed):
