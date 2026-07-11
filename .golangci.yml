@@ -1,0 +1,42 @@
+# golangci-lint configuration (ADR-018). Pinned linter set; version is pinned in CI.
+# Reference: https://golangci-lint.run
+version: "2"
+
+run:
+  timeout: 5m
+  tests: true
+
+linters:
+  default: none
+  enable:
+    - errcheck        # unchecked errors
+    - govet           # suspicious constructs
+    - ineffassign     # ineffectual assignments
+    - staticcheck     # broad static analysis
+    - unused          # unused code
+    - misspell        # common misspellings
+    - revive          # style/lint rules
+    - depguard        # dependency-rule enforcement (ADR-033; rules grow with the layer map)
+    - bodyclose       # HTTP response bodies closed
+    - gosec           # security issues
+
+  settings:
+    depguard:
+      rules:
+        core-domain:
+          # L0 core domain must not import runtime, adapters, or the CLI/TUI drivers.
+          files:
+            - "**/internal/core/**"
+          deny:
+            - pkg: github.com/datamaia/andromeda/internal/cli
+              desc: "core domain (L0) must not depend on interface drivers"
+            - pkg: github.com/datamaia/andromeda/internal/tui
+              desc: "core domain (L0) must not depend on interface drivers"
+
+formatters:
+  enable:
+    - gofmt
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0

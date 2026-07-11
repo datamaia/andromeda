@@ -1,0 +1,38 @@
+name: Security
+description: Security hardening (NON-vulnerability; report vulnerabilities privately)
+title: "[Security] "
+labels: ["type:security", "status:needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for contributing. Fill in the fields below. Requirement IDs (`FR-*`, `NFR-*`)
+        and affected components help maintain the traceability chain (Volume 11 chapter 07).
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: A clear, concise description.
+    validations:
+      required: true
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation
+      description: The problem this solves and who benefits.
+    validations:
+      required: true
+  - type: input
+    id: requirements
+    attributes:
+      label: Requirements / components
+      description: Related requirement IDs and affected components, if known.
+    validations:
+      required: false
+  - type: dropdown
+    id: phase
+    attributes:
+      label: Target phase
+      options: [Unknown, Core, MVP, Beta, v1, v2, Future]
+    validations:
+      required: false

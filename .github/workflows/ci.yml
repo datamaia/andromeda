@@ -1,0 +1,42 @@
+# Quality-gate mirror of `make ci` (Volume 11 chapter 06).
+#
+# Deliberately lean for a private free-tier repository: a single Linux job, because macOS
+# hosted runners consume 10x Actions minutes on private repos. The authoritative gate is
+# `make ci`, run locally on macOS and Linux. The full Tier-1 platform matrix and the
+# separate policy/traceability/security/e2e workflows the spec mandates activate when the
+# repository is public or on a paid plan (tracked in STATUS.md). Actions are pinned to major
+# tags here; full commit-SHA pinning (ADR-149) is a hardening step tracked in STATUS.md.
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main, "release/**"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Set up Python for spec lint
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install golangci-lint
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh \
+            | sh -s -- -b "$(go env GOPATH)/bin" v2.1.6
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+      - name: Run the full local gate
+        run: make ci

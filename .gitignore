@@ -59,3 +59,10 @@ logs/
 Thumbs.db
 
 prompt.md
+
+# === Andromeda ===
+/andromeda            # dev binary if built into the repo root
+coverage.out
+coverage.html
+.andromeda/           # project-local state of Andromeda-developing-Andromeda
+dist/                 # goreleaser output

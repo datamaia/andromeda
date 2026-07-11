@@ -1,0 +1,32 @@
+# Review ownership by path (Volume 11 chapter 03). CODEOWNERS gates review, not write
+# access (ADR-003). Mandatory rules cover contract, security, process, and release paths.
+#
+# Solo-maintainer realization: @datamaia owns all mandatory paths. Maintainer teams replace
+# these entries once the GitHub organization exists (namespace is PENDING VALIDATION,
+# Volume 0 open-questions register). See MAINTAINERS.md.
+
+# Default owner
+*                       @datamaia
+
+# Contract surfaces (public API stability, ADR-015 / NFR-ARCH-002 / SM-20)
+/internal/ports/        @datamaia
+/sdk/                   @datamaia
+/schemas/               @datamaia
+
+# Specification (spec and code evolve together; gated by spec_lint)
+/docs/spec/             @datamaia
+
+# Process integrity
+/.github/workflows/     @datamaia
+/scripts/traceability/  @datamaia
+/.githooks/             @datamaia
+/scripts/hooks/         @datamaia
+
+# Security-relevant subtrees (Permission Manager, Sandbox Engine, Secret Store)
+/internal/permission/   @datamaia
+/internal/sandbox/      @datamaia
+/internal/secret/       @datamaia
+
+# Release integrity
+/.goreleaser.yaml       @datamaia
+/packaging/             @datamaia
