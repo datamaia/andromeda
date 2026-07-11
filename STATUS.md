@@ -231,6 +231,21 @@ Auth, Tool/Terminal, Updater, Package remain).
 **Gate status:** `make ci` passes. Ports implemented: **17 / 18** (Tool; Terminal, Auth,
 Updater, Package remain).
 
+### EP — Agent Engine (Volume 4) · 🔄
+
+- ✅ Agent Engine (`internal/agent`) implementing the plan–act–observe loop (**FR-AGT-001**):
+  one mode-invariant loop that sends the conversation plus tool declarations to the provider,
+  executes returned tool calls through the mediated Tool Runtime (permissions, denial-as-data),
+  feeds results back, and iterates to a tool-free answer or the iteration budget (E-AGT-001 on
+  exhaustion); accumulates token usage, honors context cancellation (→ `cancelled`), and
+  persists run records through `SessionStorePort`. Verified with a scripted provider and fake
+  tools (tool round-trip, immediate finish, budget exhaustion, cancellation).
+- ⬜ Planner as a separate component, sub-agent delegation, prompt engine, full Run/Task state
+  machines — later increments.
+- ⬜ `andromeda run` CLI wiring (compose agent + real provider from config + fs tools) — next.
+
+**Gate status:** `make ci` passes. The keystone agent loop is implemented and tested.
+
 ## Deliberate deviations from the specification (free-tier accommodations)
 
 Recorded honestly so they can be reverted when the constraint lifts.

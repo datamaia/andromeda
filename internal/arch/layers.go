@@ -43,6 +43,7 @@ var PackageLayer = map[string]Layer{
 	"memory":     L3Engine,
 	"indexer":    L3Engine,
 	"tool":       L3Engine,
+	"agent":      L3Engine,
 	"app":        L4Application,
 }
 
