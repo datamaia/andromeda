@@ -36,3 +36,7 @@ unless noted.
 | [ADR-027](../annexes/adr/ADR-027.md) | ULID Primary Keys | Accepted | 26-char Crockford base32 ULIDs, monotonic per process; explicit sequence_no as ordering authority |
 | [ADR-028](../annexes/adr/ADR-028.md) | Database Split: Workspace + Global | Accepted | `.andromeda/state.db` per workspace + global.db per machine (credentials global-only); index.db is a rebuildable cache |
 | [ADR-029](../annexes/adr/ADR-029.md) | Forward-Only Migrations | Accepted | Pre-migration backup + integrity checks; clean refusal of future schemas; exit code 9; recovery via backup restore |
+| [ADR-030](../annexes/adr/ADR-030.md) | Layered Hexagonal Architecture | Accepted | Ports-and-adapters over layers L0-L5 with a normative allowed/prohibited dependency matrix |
+| [ADR-031](../annexes/adr/ADR-031.md) | Go Module and Package Layout | Accepted | Two modules; 18 ports in internal/ports; sdk/ mirrors contracts and never imports internal/ |
+| [ADR-032](../annexes/adr/ADR-032.md) | Headless Server Mode | Accepted | Same binary over the ADR-012 IPC socket, policy-only permissions, invoker-owned; Beta phase |
+| [ADR-033](../annexes/adr/ADR-033.md) | Dependency-Rule Enforcement | Accepted | Layer manifest generating depguard rules + import-graph test + prohibited-construct scanner as required CI checks |
