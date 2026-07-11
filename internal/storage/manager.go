@@ -115,6 +115,22 @@ CREATE TABLE permission_audit (
 );
 CREATE INDEX idx_permission_audit_ts ON permission_audit(ts);`,
 	},
+	{
+		Version: 4,
+		Name:    "add_memory",
+		SQL: `
+CREATE TABLE memory_records (
+  id         TEXT PRIMARY KEY,
+  layer      TEXT NOT NULL,
+  content    TEXT NOT NULL,
+  provenance TEXT,
+  source     TEXT,
+  status     TEXT NOT NULL DEFAULT 'active',
+  created_at TEXT NOT NULL
+);
+CREATE INDEX idx_memory_layer ON memory_records(layer);
+CREATE INDEX idx_memory_status ON memory_records(status);`,
+	},
 }
 
 // OpenWorkspaceDB opens (creating on first use) the workspace database under

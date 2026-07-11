@@ -25,7 +25,8 @@ The authoritative quality gate is **`make ci`** (runs locally, no CI-minute depe
 |---|---|---|
 | MS-1 Foundations | EP-01 ✅, EP-02 ✅, EP-03 ✅, EP-04 ✅ | ✅ |
 | MS-2 Runtime core | EP-05 ✅, EP-06 ✅, EP-07 ✅ | ✅ |
-| MS-3+ | per Volume 15 ch 02 | 🔄 |
+| MS-3 Memory/context/index | Vol 7 ports 🔄 | 🔄 |
+| MS-3+ | agent runtime, tools, CLI, TUI, dist | ⬜ |
 
 ## Epics
 
@@ -198,6 +199,22 @@ Realizes the provider contract (**FR-PROV-001**) and the MVP provider seed.
 
 **Milestone MS-2 (Runtime core) complete.** Ports implemented: **14 / 18** (adds Provider;
 Auth/Tool/Terminal/Memory/Indexer/Updater/Package remain).
+
+### EP — Memory and Indexing (Volume 7) · 🔄
+
+- ✅ Memory Store (`internal/memory`) implementing `MemoryStorePort` (**FR-MEM-001**):
+  transactional ingest with provenance, layer- and text-filtered retrieval, term-overlap
+  ranking, retention expiry, hard delete, and streamed export — over workspace-DB migration v4.
+- ✅ Indexing Engine (`internal/indexer`) implementing `IndexerPort` (**FR-IDX-001**): an
+  in-memory lexical inverted index over workspace files with the frozen Index lifecycle
+  (created→building→ready→updating→stale), incremental `Update`, `Query` with generation-tagged
+  hits, `Invalidate`, and `Status`; excludes `.git`/`.andromeda`/configured paths and skips
+  binary and oversized files. Indexes are rebuildable caches (INV-IDX-02).
+- ⬜ Context Manager (`CTX`), semantic embeddings retrieval (ADR-020), and memory
+  encryption/redaction hooks — later increments.
+
+**Gate status:** `make ci` passes. Ports implemented: **16 / 18** (adds MemoryStore, Indexer;
+Auth, Tool/Terminal, Updater, Package remain).
 
 ## Deliberate deviations from the specification (free-tier accommodations)
 

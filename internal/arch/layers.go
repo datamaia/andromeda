@@ -40,6 +40,8 @@ var PackageLayer = map[string]Layer{
 	"git":        L3Engine,
 	"workspace":  L3Engine,
 	"provider":   L3Engine,
+	"memory":     L3Engine,
+	"indexer":    L3Engine,
 	"app":        L4Application,
 }
 
