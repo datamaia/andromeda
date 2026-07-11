@@ -139,7 +139,7 @@ configuration with source attribution, opens both the workspace and global datab
 migrations and backups, and emits enveloped events to persisted storage — all demonstrated by
 `andromeda doctor` and covered by tests.
 
-### EP-05 — Security kernel · 🔄 (permission model done)
+### EP-05 — Security kernel · ✅
 
 - ✅ Permission Manager (`internal/permission`) implementing `PermissionPort` (**FR-SEC-100**):
   the closed 13/10/7 enums, the deny > ask > allow > else-ask evaluation algorithm (ADR-121),
@@ -152,10 +152,15 @@ migrations and backups, and emits enveloped events to persisted storage — all 
   opt-in age-encrypted file fallback (passphrase/scrypt, 0600, verified encrypted-at-rest and
   wrong-passphrase-rejected); a per-namespace reference index so `List` works on keychains
   that cannot enumerate; secrets never surface in errors (E-SEC PortErrors carry no material)
-- ⬜ Sandbox Engine (`SandboxPort`, FR-SEC-101): process-level MVP controls (ADR-021) — next
+- ✅ Sandbox Engine (`internal/sandbox`) implementing `SandboxPort` (**FR-SEC-101**, ADR-021):
+  process-level MVP controls — deny-by-default env filtering (with sensitive-name stripping),
+  command allow/deny lists, working-directory path policy, wall-clock time limit, and
+  process-group teardown that kills the whole tree; effective containment level (`process`) is
+  observable and never silently weakened. OS-level isolation (Seatbelt/Landlock) is the
+  Beta/v1 layer (PENDING VALIDATION).
 - ⬜ Approval state machine wiring to a real driver (CLI/TUI) — with EP-13
 
-**Gate status:** `make ci` passes.
+**Gate status:** `make ci` passes — coverage ~74%.
 
 ## Deliberate deviations from the specification (free-tier accommodations)
 

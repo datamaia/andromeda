@@ -36,6 +36,7 @@ var PackageLayer = map[string]Layer{
 	"telemetry":  L2Infrastructure,
 	"permission": L3Engine,
 	"secret":     L3Engine,
+	"sandbox":    L3Engine,
 	"app":        L4Application,
 }
 
