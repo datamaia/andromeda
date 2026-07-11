@@ -37,6 +37,8 @@ var PackageLayer = map[string]Layer{
 	"permission": L3Engine,
 	"secret":     L3Engine,
 	"sandbox":    L3Engine,
+	"git":        L3Engine,
+	"workspace":  L3Engine,
 	"app":        L4Application,
 }
 

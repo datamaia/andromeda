@@ -24,7 +24,7 @@ The authoritative quality gate is **`make ci`** (runs locally, no CI-minute depe
 | Milestone | Epics | Status |
 |---|---|---|
 | MS-1 Foundations | EP-01 ✅, EP-02 ✅, EP-03 ✅, EP-04 ✅ | ✅ |
-| MS-2 Runtime core | EP-05 🔄, EP-06, EP-07 | 🔄 |
+| MS-2 Runtime core | EP-05 ✅, EP-06 ✅, EP-07 | 🔄 |
 | MS-3+ | per Volume 15 ch 02 | ⬜ |
 
 ## Epics
@@ -161,6 +161,20 @@ migrations and backups, and emits enveloped events to persisted storage — all 
 - ⬜ Approval state machine wiring to a real driver (CLI/TUI) — with EP-13
 
 **Gate status:** `make ci` passes — coverage ~74%.
+
+### EP-06 — Workspace and Git engines · ✅
+
+- ✅ Git Engine (`internal/git`) implementing `GitPort` (**FR-GIT-001**, ADR-025): shells out
+  to system git (≥ 2.40, gated at `Version`); `Status` (porcelain), `Diff`/`Log` (streamed),
+  `Show`, `Stage`/`Unstage`, `Commit`, `ListBranches`/`CreateBranch`/`SwitchBranch`,
+  `ApplyPatch` (check-then-apply, atomic), and worktree add/list/remove; failures map to E-GIT
+  with git's stderr as safe detail. Verified against real temporary repositories.
+- ✅ Workspace Engine (`internal/workspace`) implementing `WorkspacePort`: upward `Discover`
+  (`.andromeda/` marker or `.git`), `Open` (creates the marker, opens the workspace database,
+  registers in the global registry with a stable ID across reopens), `Snapshot` (root,
+  projects, VCS summary via the Git Engine, timestamp), and clean `Close`.
+
+**Gate status:** `make ci` passes. Ports implemented: 10 / 18.
 
 ## Deliberate deviations from the specification (free-tier accommodations)
 
