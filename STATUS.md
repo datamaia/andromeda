@@ -26,7 +26,7 @@ The authoritative quality gate is **`make ci`** (runs locally, no CI-minute depe
 | MS-1 Foundations | EP-01 ✅, EP-02 ✅, EP-03 ✅, EP-04 ✅ | ✅ |
 | MS-2 Runtime core | EP-05 ✅, EP-06 ✅, EP-07 ✅ | ✅ |
 | MS-3 Memory/index/tools/agent | memory, indexer, tool, agent ✅ | ✅ |
-| MS-4 Usable CLI agent | `andromeda run` end-to-end ✅ | 🔄 |
+| MS-4 Usable CLI | run + config/git/memory/tool/index/auth ✅ | 🔄 |
 | MS-4+ | TUI, auth, MCP/skills/plugins, dist | ⬜ |
 
 ## Epics
@@ -307,6 +307,23 @@ Provider, Auth, Tool, Terminal, MemoryStore, Indexer, EventBus, Permission, Secr
 Sandbox, Config, SessionStore, Git, Workspace, Scheduler, Updater, Package, Telemetry — every
 frozen Volume 3 port is implemented and exercised by tests, and the layer dependency rule is
 enforced on every commit.
+
+### EP — CLI command surface (Volume 8) · 🔄
+
+- ✅ Real, working commands wired to the engines, each tested by driving the command:
+  `run` (agent), `doctor`, `version`, `config show [--json]` (resolved config with source
+  attribution), `git status|log` (Git Engine), `memory add|list|search` (Memory Store over
+  SQLite), `tool list`, `index query` (lexical Indexer), `auth add|list|remove` (credentials
+  via the keychain/age Secret Store — keys read from an env var, never the command line).
+- ✅ Verified live: `andromeda git status` shows the real repository state; `memory add`/
+  `search` round-trips through the workspace database; `index query` searches real files.
+- ⬜ Remaining commands (provider, model, plugin, skill, workflow, mcp, context, logs, trace,
+  export, update, completion) and the full flag grammar / exit-code table — later.
+- ⬜ TUI (Volume 8), MCP/skills/plugins (Volume 6), Workflow Engine/SDD (Volume 4), and
+  distribution/release (Volume 14) — remaining milestones.
+
+**Gate status:** `make ci` passes. **All 18 ports implemented;** a usable multi-command CLI with
+a working agent.
 
 ## Deliberate deviations from the specification (free-tier accommodations)
 

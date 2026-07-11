@@ -49,9 +49,17 @@ func newRootCommand() *cobra.Command {
 		},
 	}
 	root.CompletionOptions.HiddenDefaultCmd = true
-	root.AddCommand(newVersionCommand())
-	root.AddCommand(newDoctorCommand())
-	root.AddCommand(newRunCommand())
+	root.AddCommand(
+		newVersionCommand(),
+		newDoctorCommand(),
+		newRunCommand(),
+		newConfigCommand(),
+		newGitCommand(),
+		newMemoryCommand(),
+		newToolCommand(),
+		newIndexCommand(),
+		newAuthCommand(),
+	)
 	return root
 }
 
