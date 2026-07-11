@@ -23,7 +23,7 @@ The authoritative quality gate is **`make ci`** (runs locally, no CI-minute depe
 
 | Milestone | Epics | Status |
 |---|---|---|
-| MS-1 Foundations | EP-01 ✅, EP-02 ✅, EP-03, EP-04 | 🔄 |
+| MS-1 Foundations | EP-01 ✅, EP-02 ✅, EP-03 ✅, EP-04 | 🔄 |
 | MS-2 Runtime core | EP-05, EP-06, EP-07, … | ⬜ |
 | MS-3+ | per Volume 15 ch 02 | ⬜ |
 
@@ -78,10 +78,34 @@ FR-PORT-001 (platform encapsulation).
 
 **Gate status:** `make ci` passes — coverage 85.5%; 18/18 ports; import-graph rule enforced.
 
-### EP-03 — Persistence and configuration · ⬜
-SQLite (modernc, WAL) with the workspace + global database split (ADR-028), forward-only
-migrations with backups (ADR-029), and `andromeda.toml` loading with precedence, validation,
-and env mapping (FR-CFG-001).
+### EP-03 — Persistence and configuration · ✅
+
+Realizes FR-CFG-001 (configuration precedence) and the ADR-007/028/029 persistence decisions.
+
+- ✅ ULID generator (`internal/core`, ADR-027): monotonic, Crockford base32, with uniqueness
+  and sort-order tests
+- ✅ SQLite persistence (`internal/storage`, ADR-007): pure-Go modernc driver, WAL mode,
+  `libc` pinned; workspace `state.db` + machine `global.db` split (ADR-028)
+- ✅ Forward-only migrations (ADR-029): `user_version` tracking, pre-migration file backup,
+  `integrity_check` + `foreign_key_check`, and clean refusal of future schemas
+- ✅ `SessionStore` implementing `SessionStorePort`: sessions with optimistic-concurrency
+  revisions, run records with per-run sequencing, and crash-recovery `MarkInterrupted`
+- ✅ Reusable `Stream[T]` implementations (`internal/streams`): slice- and channel-backed
+- ✅ Configuration Manager (`internal/config`) implementing `ConfigPort`: layered precedence
+  (defaults → global → profile → workspace → project → runtime → env → cli), `ANDROMEDA_*`
+  env mapping, TOML parsing (go-toml/v2), validation with E-CFG findings, per-value source
+  attribution, and a file loader assembling layers from disk via the PAL
+- ⬜ Live config file watching (`Watch` currently returns an empty stream) — later epic
+- ⬜ Typed schema validation (ADR-024) beyond TOML syntax — later epic
+
+**Gate status:** `make ci` passes — coverage 82.0%.
+
+**Decision recorded (to reconcile with Volume 10 FR-CFG-004):** the `ANDROMEDA_*` env-var
+mapping uses `__` to separate config-table levels and treats a single `_` as literal within a
+key segment (so `ANDROMEDA_AGENT__MAX_ITERATIONS` → `agent.max_iterations`), with a
+single-underscore fallback when no `__` is present (so the spec's `ANDROMEDA_TUI_THEME_MODE →
+tui.theme.mode` example still works). This resolves the underscore ambiguity the spec itself
+flags; Volume 10's text should adopt the same rule.
 
 ### EP-04 — Observability foundation · ⬜
 Event bus, event envelope (FR-OBS-001), `slog` JSON logging, OpenTelemetry traces/metrics,

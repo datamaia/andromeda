@@ -39,6 +39,7 @@ type ValidationReport struct {
 type ConfigFinding struct {
 	Key      string
 	Message  string
+	Detail   string // technical, safe-to-log
 	Code     string // E-CFG-NNN
 	Severity string
 }

@@ -1,0 +1,94 @@
+package storage
+
+import (
+	"context"
+	"os"
+	"path/filepath"
+)
+
+// WorkspaceDBName and GlobalDBName are the fixed database filenames (ADR-028).
+const (
+	WorkspaceDBName = "state.db"
+	GlobalDBName    = "global.db"
+	MarkerDir       = ".andromeda"
+)
+
+// globalMigrations is the append-only migration set for the machine-global database.
+var globalMigrations = []Migration{
+	{
+		Version: 1,
+		Name:    "init_global",
+		SQL: `
+CREATE TABLE meta (
+  key        TEXT PRIMARY KEY,
+  value      TEXT NOT NULL
+);
+CREATE TABLE workspaces (
+  id             TEXT PRIMARY KEY,
+  root           TEXT NOT NULL UNIQUE,
+  created_at     TEXT NOT NULL,
+  last_opened_at TEXT NOT NULL
+);`,
+	},
+}
+
+// workspaceMigrations is the append-only migration set for a workspace database. Session and
+// run tables live here (durability behind PRD-010); later epics add their own migrations.
+var workspaceMigrations = []Migration{
+	{
+		Version: 1,
+		Name:    "init_workspace",
+		SQL: `
+CREATE TABLE meta (
+  key   TEXT PRIMARY KEY,
+  value TEXT NOT NULL
+);
+CREATE TABLE sessions (
+  id         TEXT PRIMARY KEY,
+  state      TEXT NOT NULL,
+  revision   INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL,
+  data       BLOB
+);
+CREATE TABLE runs (
+  id         TEXT PRIMARY KEY,
+  session_id TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+  state      TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX idx_runs_session ON runs(session_id);
+CREATE TABLE run_records (
+  id         TEXT PRIMARY KEY,
+  run_id     TEXT NOT NULL REFERENCES runs(id) ON DELETE CASCADE,
+  seq        INTEGER NOT NULL,
+  kind       TEXT NOT NULL,
+  payload    BLOB,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX idx_run_records_run ON run_records(run_id, seq);`,
+	},
+}
+
+// OpenWorkspaceDB opens (creating on first use) the workspace database under
+// <root>/.andromeda/state.db, applying the workspace migration set.
+func OpenWorkspaceDB(ctx context.Context, root string) (*DB, error) {
+	dir := filepath.Join(root, MarkerDir)
+	if err := os.MkdirAll(dir, 0o700); err != nil {
+		return nil, err
+	}
+	return open(ctx, filepath.Join(dir, WorkspaceDBName), "workspace", workspaceMigrations)
+}
+
+// OpenGlobalDB opens (creating on first use) the machine-global database under
+// <dataDir>/global.db, applying the global migration set.
+func OpenGlobalDB(ctx context.Context, dataDir string) (*DB, error) {
+	if err := os.MkdirAll(dataDir, 0o700); err != nil {
+		return nil, err
+	}
+	return open(ctx, filepath.Join(dataDir, GlobalDBName), "global", globalMigrations)
+}
+
+// openMemory opens an in-memory database with the given migrations, for tests.
+func openMemory(ctx context.Context, migs []Migration) (*DB, error) {
+	return open(ctx, ":memory:", "memory", migs)
+}

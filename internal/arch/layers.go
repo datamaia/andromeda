@@ -28,6 +28,9 @@ var PackageLayer = map[string]Layer{
 	"ports":     L1Contract,
 	"pal":       L1Contract,
 	"arch":      L1Contract, // the manifest itself is a contract artifact
+	"storage":   L2Infrastructure,
+	"config":    L2Infrastructure,
+	"streams":   L2Infrastructure,
 }
 
 // ModulePath is the module's import path prefix.
