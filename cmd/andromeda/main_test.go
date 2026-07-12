@@ -25,8 +25,11 @@ func TestRunUnknownCommandIsUsageError(t *testing.T) {
 	}
 }
 
-func TestRootRunHelpSucceeds(t *testing.T) {
-	if code := run([]string{}); code != exitOK {
-		t.Fatalf("expected exit %d for bare invocation, got %d", exitOK, code)
+// FR-CLI-003: a bare invocation in a non-interactive context (go test never has a TTY;
+// TERM=dumb makes that explicit) is a usage error (exit 2), not a TUI launch or help/exit 0.
+func TestBareNonInteractiveExitsUsage(t *testing.T) {
+	t.Setenv("TERM", "dumb")
+	if code := run([]string{}); code != exitUsage {
+		t.Fatalf("expected exit %d for bare non-interactive invocation, got %d", exitUsage, code)
 	}
 }

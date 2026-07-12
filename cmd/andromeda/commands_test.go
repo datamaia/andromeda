@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -208,5 +209,54 @@ func TestVersionCommandOutput(t *testing.T) {
 	}
 	if !strings.HasPrefix(out, "andromeda ") {
 		t.Errorf("version output = %q", out)
+	}
+}
+
+// FR-CLI-003: `--version` is the sanctioned alias for the `version` command; identical output.
+func TestVersionFlagMatchesCommand(t *testing.T) {
+	cmdOut, err := runCmd(t, "version")
+	if err != nil {
+		t.Fatal(err)
+	}
+	flagOut, err := runCmd(t, "--version")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if flagOut != cmdOut {
+		t.Errorf("--version %q != version %q", flagOut, cmdOut)
+	}
+}
+
+// FR-CLI-003 branch 2: a bare invocation in a non-interactive context (forced here with
+// TERM=dumb) prints short usage to stderr and is a usage error (exit 2), never a TUI launch.
+func TestBareNonInteractiveShowsUsage(t *testing.T) {
+	t.Setenv("TERM", "dumb")
+	out, err := runCmd(t)
+	var ue *usageError
+	if !errors.As(err, &ue) {
+		t.Fatalf("bare invocation error = %v, want *usageError", err)
+	}
+	if !strings.Contains(out, "no interactive terminal") {
+		t.Errorf("short usage missing rationale: %q", out)
+	}
+	for _, want := range []string{"run", "doctor", "tui"} {
+		if !strings.Contains(out, want) {
+			t.Errorf("short usage missing command %q: %q", want, out)
+		}
+	}
+	if code := run([]string{}); code != exitUsage {
+		t.Errorf("run() exit = %d, want %d", code, exitUsage)
+	}
+}
+
+// An unknown command is a usage error carrying an actionable message.
+func TestUnknownCommandIsUsageError(t *testing.T) {
+	_, err := runCmd(t, "definitely-not-a-command")
+	var ue *usageError
+	if !errors.As(err, &ue) {
+		t.Fatalf("unknown command error = %v, want *usageError", err)
+	}
+	if !strings.Contains(ue.msg, "unknown command") {
+		t.Errorf("message = %q", ue.msg)
 	}
 }
