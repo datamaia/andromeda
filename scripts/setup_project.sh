@@ -53,6 +53,24 @@ add_field() { # name, options
 add_field "Priority" "P0,P1,P2,P3"
 add_field "Phase" "Core,MVP,Beta,v1,v2,Future"
 add_field "Area" "runtime,provider,tool,memory,cli,tui,security,config,git,release,docs,perf"
+add_field "Size" "XS,S,M,L,XL"
+add_field "Risk" "low,medium,high,critical"
+echo "==> adding text fields (best-effort)"
+add_text_field() { # name
+  gh project field-create "$number" --owner "$owner" --name "$1" --data-type TEXT \
+    >/dev/null 2>&1 && echo "    + $1" || echo "    WARN: could not add field '$1' (add it in the UI)"
+}
+add_text_field "Target release"
+add_text_field "Requirements"
+echo "==> adding the Iteration field (GraphQL; not supported by gh field-create)"
+project_id=$(gh project view "$number" --owner "$owner" --format json \
+  | python3 -c 'import sys,json;print(json.load(sys.stdin)["id"])')
+gh api graphql -f projectId="$project_id" -f query='
+  mutation($projectId: ID!) {
+    createProjectV2Field(input: { projectId: $projectId, dataType: ITERATION, name: "Iteration" }) {
+      projectV2Field { ... on ProjectV2IterationField { __typename } }
+    }
+  }' >/dev/null 2>&1 && echo "    + Iteration" || echo "    WARN: could not add 'Iteration' (add it in the UI)"
 
 cat <<EOF
 
@@ -69,7 +87,9 @@ Next, wire project.yml to it (run these):
     --repo $repo --from-env /Users/maia/Documents/lyra/andromeda/.env
   #    (the .env PAT must have the 'project' scope; if not, create/refresh one that does)
 
-Still to configure in the UI (not scriptable / richer FR-GH-008 items): the Iteration and
-Target-release fields, the Board/Roadmap/Table + filtered views, and the PR-linked status
-transitions and release stamping. Tracked in STATUS.md.
+The 8 statuses, 9 fields, and all five automations (intake / In Review / Validation / Released /
+drop) are provisioned — the automations live in .github/workflows/project.yml, driven by
+scripts/project_sync.py. The ONLY remaining manual step is the five board views, which GitHub's
+API cannot create (no createProjectV2View mutation). Add them in the UI per the exact per-view
+configuration in docs/maintainers/roadmap-board.md.
 EOF

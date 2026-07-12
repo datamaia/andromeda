@@ -531,12 +531,22 @@ Recorded honestly so they can be reverted when the constraint lifts.
    exist**. macOS Intel (macos-13) is omitted — those hosted runners are being retired.
    `benchmarks.yml` runs the **micro-benchmark tier** (`make bench`, Volume 12 ch03): Go
    `Benchmark*` functions for ULID, event-bus publish, scheduler submit, tool dispatch, streaming,
-   memory retrieval, and semantic search. `project.yml` (FR-GH-008) is the roadmap intake
-   automation, guarded on the `ROADMAP_PROJECT_URL` variable so it no-ops until the board is
-   provisioned via `scripts/setup_project.sh` (needs a token with the `project` scope). Remaining
-   future work: the benchmark operation/scenario tiers + rolling-baseline regression gating; and
-   the roadmap's Iteration/Target-release fields, views, PR-linked status transitions, and release
-   stamping (UI/GraphQL config beyond intake).
+   memory retrieval, and semantic search. `project.yml` (FR-GH-008) is now the **full** roadmap
+   automation — every job guarded on the `ROADMAP_PROJECT_URL` variable so it no-ops until the
+   board is provisioned via `scripts/setup_project.sh` (needs a token with the `project` scope).
+   Board #1 (<https://github.com/users/datamaia/projects/1>) has all 8 statuses and 9 fields
+   (Status, Area, Phase, Priority, Size, Iteration, Target release, Risk, Requirements), and all
+   **five automations** are live and validated end-to-end against the board:
+   intake→`Backlog`, linked-PR-opened→`In Review`, PR-merged→`Validation`,
+   release-published→`Released`+stamp Target release, and issue-closed-not-planned→archived
+   (leaves the board). The transitions are driven by `scripts/project_sync.py` (resolves linked
+   issues via `closingIssuesReferences`, forward-only so `Released` is never dragged back) and run
+   on `pull_request_target` without ever checking out PR code (untrusted values passed via `env`;
+   passes `policy_check.py`). The **only** remaining FR-GH-008 item is the five board **views**
+   (Board/Roadmap/Triage/Incidents/MVP/Security) — GitHub exposes no `createProjectV2View`
+   mutation, so they are a one-time UI step, documented with exact per-view config in
+   `docs/maintainers/roadmap-board.md`. Remaining benchmark future work: the operation/scenario
+   tiers + rolling-baseline regression gating.
 2. **Action pinning — RESOLVED.** Every workflow action is pinned to a full commit SHA (ADR-149)
    with its version in a trailing comment; Dependabot's `github-actions` updater bumps them, and
    `policy.yml` fails any unpinned action.

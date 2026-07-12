@@ -8,6 +8,17 @@ Commit history by the release automation (ADR-013) and committed at release time
 
 ## [Unreleased]
 
+### Added
+
+- **Roadmap board automation (FR-GH-008).** `project.yml` now drives the full status lifecycle of
+  the Andromeda Roadmap board, not just intake: a linked PR opening moves its issues to
+  `In Review`, merging moves them to `Validation`, a published release moves every `Validation`
+  item to `Released` and stamps the Target release field, and an issue closed as *not planned* is
+  archived off the board. Linked issues are resolved via the PR's `closingIssuesReferences`, and
+  transitions are forward-only (a merged PR never regresses a shipped item). The logic lives in
+  `scripts/project_sync.py`; a maintainer runbook (`docs/maintainers/roadmap-board.md`) documents
+  the board's statuses, fields, automations, and the five UI-only views.
+
 ## [0.1.3] - 2026-07-12
 
 Hardening and distribution release. Binaries are rebuilt with a patched standard library and
