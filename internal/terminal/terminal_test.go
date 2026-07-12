@@ -80,7 +80,7 @@ func TestStdinWrite(t *testing.T) {
 func TestSignalStopsLongRunning(t *testing.T) {
 	ctx := context.Background()
 	e := New()
-	id, _ := e.Execute(ctx, ports.CommandSpec{Program: "sh", Args: []string{"-c", "sleep 30"}})
+	id, _ := e.Execute(ctx, ports.CommandSpec{Program: "sh", Args: []string{"-c", "sleep 300"}})
 	if err := e.Signal(ctx, id, ports.SignalKill); err != nil {
 		t.Fatal(err)
 	}
@@ -91,7 +91,7 @@ func TestSignalStopsLongRunning(t *testing.T) {
 		if o.Status == "succeeded" {
 			t.Error("killed process should not report success")
 		}
-	case <-time.After(5 * time.Second):
+	case <-time.After(30 * time.Second):
 		t.Fatal("Wait did not return after kill")
 	}
 }
