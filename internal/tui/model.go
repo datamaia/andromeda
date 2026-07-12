@@ -37,6 +37,13 @@ type Model struct {
 	height     int
 	respond    Responder
 	quitting   bool
+
+	// provider picker (ctrl+p), configured via WithProviderMenu
+	providers        []ProviderChoice
+	onSelectProvider ProviderSelectFunc
+	menuOpen         bool
+	menuCursor       int
+	menuErr          string
 }
 
 // New builds a session Model.
@@ -88,10 +95,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) handleKey(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
+	// The provider picker captures all keys while open (esc there means "back", not "quit").
+	if m.menuOpen {
+		return m.handleMenuKey(msg)
+	}
 	switch {
 	case msg.Mod&tea.ModCtrl != 0 && msg.Code == 'c':
 		m.quitting = true
 		return m, tea.Quit
+	case msg.Mod&tea.ModCtrl != 0 && msg.Code == 'p' && len(m.providers) > 0:
+		return m.openMenu()
 	case msg.Code == tea.KeyEscape:
 		m.quitting = true
 		return m, tea.Quit
@@ -138,6 +151,9 @@ func (m Model) render() string {
 	if m.quitting {
 		return ""
 	}
+	if m.menuOpen {
+		return m.renderMenu() + m.statusBar()
+	}
 	var b strings.Builder
 	if m.atStart() {
 		b.WriteString(m.Splash(m.width))
@@ -180,7 +196,11 @@ func (m Model) statusBar() string {
 	}
 	parts = append(parts, m.uptime(), m.state)
 	left := " " + strings.Join(parts, " · ") + " "
-	help := m.styles.Muted.Render("  enter: send · esc: quit")
+	hint := "  enter: send · esc: quit"
+	if len(m.providers) > 0 {
+		hint = "  enter: send · ctrl+p: provider · esc: quit"
+	}
+	help := m.styles.Muted.Render(hint)
 	bar := m.styles.StatusBar.Render(left)
 	return lipgloss.JoinHorizontal(lipgloss.Left, bar, help)
 }

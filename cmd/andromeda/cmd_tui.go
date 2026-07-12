@@ -2,9 +2,11 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"github.com/datamaia/andromeda/internal/app"
+	"github.com/datamaia/andromeda/internal/ports"
 	"github.com/datamaia/andromeda/internal/tui"
 	"github.com/spf13/cobra"
 )
@@ -21,32 +23,86 @@ func defaultTUIConfig() tuiConfig {
 	return tuiConfig{provider: "ollama", model: "llama3"}
 }
 
-// launchTUI builds the provider and hands control to the TUI shell. The responder drives
-// the real agent for each submitted goal.
+// tuiSession owns the live provider for a TUI session so the in-app provider menu can rebuild it
+// mid-session. The agent responder and the menu's select callback both read/mutate it.
+type tuiSession struct {
+	wd   string
+	cfg  tuiConfig
+	prov ports.ProviderPort
+}
+
+func (s *tuiSession) build() error {
+	apiKey := ""
+	if s.cfg.apiKeyEnv != "" {
+		apiKey = os.Getenv(s.cfg.apiKeyEnv)
+	}
+	prov, err := app.BuildProvider(app.ProviderSpec{Name: s.cfg.provider, BaseURL: s.cfg.baseURL, APIKey: apiKey})
+	if err != nil {
+		return err
+	}
+	s.prov = prov
+	return nil
+}
+
+// respond drives the real agent for each submitted goal, using whatever provider is current.
+func (s *tuiSession) respond(goal string) string {
+	res, err := app.RunAgent(context.Background(), app.RunAgentOptions{
+		WorkspaceRoot: s.wd, Goal: goal, Model: s.cfg.model, Provider: s.prov,
+		AllowWrite: s.cfg.allowWrite, AllowExec: s.cfg.allowExec,
+	})
+	if err != nil {
+		return "error: " + err.Error()
+	}
+	return res.FinalText
+}
+
+// selectProvider rebuilds the live provider from a catalog ID (menu selection), adopting the
+// catalog's default model, and returns the model now in use. It reads the key from the catalog's
+// environment variable; an unset required key surfaces as an error the menu shows.
+func (s *tuiSession) selectProvider(id string) (string, error) {
+	info, ok := app.LookupProvider(id)
+	if !ok {
+		return "", fmt.Errorf("unknown provider %q", id)
+	}
+	prov, err := app.BuildProvider(app.ProviderSpec{Name: id})
+	if err != nil {
+		return "", err
+	}
+	s.prov = prov
+	s.cfg.provider = id
+	if info.DefaultModel != "" {
+		s.cfg.model = info.DefaultModel
+	}
+	return s.cfg.model, nil
+}
+
+// providerChoices adapts the app catalog into the TUI's menu entries.
+func providerChoices() []tui.ProviderChoice {
+	infos := app.Providers()
+	choices := make([]tui.ProviderChoice, 0, len(infos))
+	for _, p := range infos {
+		auth := "no key"
+		if p.KeyEnv != "" {
+			auth = p.KeyEnv
+		}
+		choices = append(choices, tui.ProviderChoice{ID: p.ID, Display: p.Display, Auth: auth, Note: p.Note})
+	}
+	return choices
+}
+
+// launchTUI builds the session and hands control to the TUI shell with the provider menu wired.
 func launchTUI(ctx context.Context, cfg tuiConfig) error {
 	wd, err := os.Getwd()
 	if err != nil {
 		return err
 	}
-	apiKey := ""
-	if cfg.apiKeyEnv != "" {
-		apiKey = os.Getenv(cfg.apiKeyEnv)
-	}
-	prov, err := app.BuildProvider(app.ProviderSpec{Name: cfg.provider, BaseURL: cfg.baseURL, APIKey: apiKey})
-	if err != nil {
+	sess := &tuiSession{wd: wd, cfg: cfg}
+	if err := sess.build(); err != nil {
 		return err
 	}
-	respond := func(goal string) string {
-		res, err := app.RunAgent(ctx, app.RunAgentOptions{
-			WorkspaceRoot: wd, Goal: goal, Model: cfg.model, Provider: prov,
-			AllowWrite: cfg.allowWrite, AllowExec: cfg.allowExec,
-		})
-		if err != nil {
-			return "error: " + err.Error()
-		}
-		return res.FinalText
-	}
-	return tui.Run(ctx, cfg.provider, cfg.model, respond)
+	m := tui.New(sess.cfg.provider, sess.cfg.model, sess.respond).
+		WithProviderMenu(providerChoices(), sess.selectProvider)
+	return tui.RunModel(ctx, m)
 }
 
 func newTUICommand() *cobra.Command {
