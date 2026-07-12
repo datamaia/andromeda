@@ -79,7 +79,7 @@ homebrew_casks:
     # secret with write access to datamaia/homebrew-tap is provisioned; until then goreleaser
     # still generates the cask locally but skips the cross-repo push, so the release succeeds
     # without a tap. (ADR-013, Volume 14; tracked in STATUS.md.)
-    skip_upload: '{{ if isEnvSet "HOMEBREW_TAP_TOKEN" }}false{{ else }}true{{ end }}'
+    skip_upload: '{{ if (envOrDefault "HOMEBREW_TAP_TOKEN" "") }}false{{ else }}true{{ end }}'
     description: "Your terminal companion for shipping great software."
     homepage: "https://github.com/datamaia/andromeda"
     # Binaries are not yet Developer ID signed/notarized (the notarize block above activates

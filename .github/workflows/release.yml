@@ -34,3 +34,7 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Cross-repo token so goreleaser can push the cask to datamaia/homebrew-tap (the
+          # default GITHUB_TOKEN cannot). When unset the value is empty and the cask upload is
+          # skipped (see .goreleaser.yaml skip_upload), so the release still succeeds.
+          HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
