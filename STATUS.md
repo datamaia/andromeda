@@ -46,7 +46,10 @@ Per the specification's own phasing and PENDING VALIDATION items — not part of
 - ✅ **OAuth device authorization grant** implemented (`auth`, ADR-063, RFC 8628):
   start-device-flow + poll-token (honoring authorization_pending, slow_down, and deadlines) +
   store, verified with an httptest OAuth server. (MCP client-OAuth binding awaits the upstream
-  SDK graduating it; WASM plugins remain a v2 candidate.)
+  SDK graduating it.)
+- ✅ **WASM plugin runtime** implemented (`plugin`, ADR-009 v2, wazero): in-process WebAssembly
+  plugins with no host capabilities, bridged to permission-mediated ToolPorts; verified with an
+  embedded wasm module. (Was previously a v2 candidate; wazero is pure-Go so it is testable here.)
 - ✅ **macOS notarization wiring** added to goreleaser, credential-gated (activates when
   MACOS_SIGN_P12 is set); it needs an Apple Developer identity to run (OQ-003) but is ready.
 - ✅ **Semantic embeddings retrieval** now implemented (`indexer.SemanticEngine`): embeds files
@@ -438,9 +441,16 @@ shell both runnable from the command line.
   skill directory (`skill.toml` manifest + prompt), and `Resolve` that checks required tools
   and capabilities against the environment, composing the system prompt only when satisfied and
   reporting missing requirements precisely (no silent degradation).
+- ✅ WASM plugin runtime (`internal/plugin/wasm.go`, **ADR-009 v2**): in-process WebAssembly
+  plugins on wazero (pure-Go, no CGO — builds and tests on every Tier-1 platform). Guests run
+  with no host capabilities (no filesystem, clock, or network). `Runtime.LoadWASM` instantiates
+  a module and tracks it for shutdown; `Runtime.Close` releases the runtime and all modules. A
+  module's `run(ptr,len)->i64` ABI bridges to a permission-mediated ToolPort (untrusted origin);
+  compute-only guests use `CallI32`. Verified end to end with an embedded minimal wasm module.
 
 **Extensibility axis complete:** MCP client + tool bridging, plugin subprocess runtime over ARP,
-and the skill format/loader — all permission-mediated through the Tool Runtime.
+the in-process WASM plugin runtime (wazero), and the skill format/loader — all permission-mediated
+through the Tool Runtime.
 
 **Gate status:** `make ci` passes.
 

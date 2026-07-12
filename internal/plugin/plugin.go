@@ -42,14 +42,56 @@ func (in *Instance) State() string {
 	return in.state
 }
 
-// Runtime manages plugin instances.
+// Runtime manages plugin instances across both mechanisms: out-of-process subprocess plugins
+// (ADR-009, JSON-RPC over stdio) and in-process WebAssembly plugins (ADR-009 v2, wazero).
 type Runtime struct {
 	mu        sync.Mutex
 	instances map[core.ULID]*Instance
+
+	wasm     *WASMRuntime  // lazily created on first LoadWASM
+	wasmMods []*WASMModule // tracked for shutdown
 }
 
 // NewRuntime returns a Plugin Runtime.
 func NewRuntime() *Runtime { return &Runtime{instances: map[core.ULID]*Instance{}} }
+
+// LoadWASM instantiates an in-process WebAssembly plugin from its module bytes and tracks it for
+// shutdown. The wazero runtime is created on first use and exposes no host capabilities to guests.
+func (r *Runtime) LoadWASM(ctx context.Context, name string, wasm []byte) (*WASMModule, error) {
+	r.mu.Lock()
+	if r.wasm == nil {
+		r.wasm = NewWASMRuntime(ctx)
+	}
+	rt := r.wasm
+	r.mu.Unlock()
+
+	mod, err := rt.Instantiate(ctx, name, wasm)
+	if err != nil {
+		return nil, err
+	}
+	r.mu.Lock()
+	r.wasmMods = append(r.wasmMods, mod)
+	r.mu.Unlock()
+	return mod, nil
+}
+
+// Close stops every instance and releases the WebAssembly runtime and its modules.
+func (r *Runtime) Close(ctx context.Context) error {
+	for _, in := range r.List() {
+		_ = in.Stop()
+	}
+	r.mu.Lock()
+	mods, wasm := r.wasmMods, r.wasm
+	r.wasmMods, r.wasm = nil, nil
+	r.mu.Unlock()
+	for _, m := range mods {
+		_ = m.Close(ctx)
+	}
+	if wasm != nil {
+		return wasm.Close(ctx)
+	}
+	return nil
+}
 
 // Connect attaches to a plugin over an already-established transport (used for tests and for
 // out-of-process transports the caller owns). It initializes the protocol handshake.
