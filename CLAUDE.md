@@ -17,5 +17,7 @@
 
 - The spec corpus lives in `docs/spec/` and is governed by `docs/spec/volume-00-conventions/`
   (normative language, templates, identifier ownership). Run `python3 scripts/spec_lint.py`
-  before committing spec changes; errors must be zero.
+  before committing spec changes; errors must be zero. Note: `docs/spec/` is **private and
+  gitignored** — it is present in the owner's local checkout but is not published in this
+  public repository (like `prompt.md`), so `make ci` skips the spec linter when it is absent.
 - `prompt.md` is an untracked local brief; never commit it. Never read or commit `.env`.

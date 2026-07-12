@@ -1,7 +1,7 @@
 # Governance
 
-This is a summary. The full governance model is specified in
-[Volume 15, chapter 04](docs/spec/volume-15-roadmap-and-execution/04-open-source-governance.md).
+This is a summary. The full governance model is specified in **Volume 15, chapter 04** of the
+Andromeda specification (a private companion document not published in this repository).
 
 ## Roles
 
@@ -14,8 +14,7 @@ This is a summary. The full governance model is specified in
 ## Decisions
 
 - Routine changes: lazy consensus through pull requests with mandatory human review.
-- Architectural or contract-affecting changes: an **ADR** (see
-  [Volume 0, chapter 10](docs/spec/volume-00-conventions/10-completeness-and-change-procedure.md))
+- Architectural or contract-affecting changes: an **ADR** (see **Volume 0, chapter 10**)
   and, where broad, an **RFC** in Discussions.
 - Disagreements escalate to the maintainers; unresolved ties are decided by the release
   authority. Conflict resolution and RFC process details live in Volume 15.

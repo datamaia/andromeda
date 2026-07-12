@@ -27,7 +27,6 @@ use of them is affected.
 
 ## Handling and response
 
-Incident response, forensic preservation, and recovery are specified in
-[Volume 9, chapter 08](docs/spec/volume-09-security/08-audit-and-incident-response.md).
-Coordinated-disclosure governance is defined in
-[Volume 15](docs/spec/volume-15-roadmap-and-execution/04-open-source-governance.md).
+Incident response, forensic preservation, and recovery are specified in **Volume 9, chapter
+08** of the Andromeda specification (a private companion document). Coordinated-disclosure
+governance is defined in **Volume 15**.

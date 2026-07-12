@@ -1,6 +1,6 @@
 # Andromeda — Implementation Status
 
-Living tracker of the build. The **specification** (`docs/spec/`, v1.0.0) is complete; this
+Living tracker of the build. The **specification** (a private companion document, v1.0.0) is complete; this
 file tracks the **implementation** against Volume 15's epics and milestones. Updated and
 pushed on every advance.
 

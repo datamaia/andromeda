@@ -16,4 +16,4 @@ human-readable roster.
   GitHub organization exists (the organization/namespace is PENDING VALIDATION — Volume 0
   open-questions register, OQ-001).
 - To propose yourself as a committer or maintainer, open a Discussion; the criteria and path
-  are defined in [Volume 15, chapter 04](docs/spec/volume-15-roadmap-and-execution/04-open-source-governance.md).
+  are defined in **Volume 15, chapter 04** of the specification.

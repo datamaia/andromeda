@@ -3,7 +3,7 @@
 All notable changes to Andromeda are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html) per
-[ADR-015](docs/spec/annexes/adr/ADR-015.md). Release entries are derived from Conventional
+ADR-015. Release entries are derived from Conventional
 Commit history by the release automation (ADR-013) and committed at release time.
 
 ## [Unreleased]
