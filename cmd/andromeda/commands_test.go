@@ -182,6 +182,25 @@ func TestLogsAndExportCommands(t *testing.T) {
 	}
 }
 
+func TestContextAndTraceCommands(t *testing.T) {
+	dir := t.TempDir()
+	gitInit(t, dir)
+	t.Chdir(dir)
+	out, err := runCmd(t, "context")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{"workspace:", "vcs:", "memory:", "index:"} {
+		if !strings.Contains(out, want) {
+			t.Errorf("context output missing %q: %q", want, out)
+		}
+	}
+	// trace for an unknown run reports no events cleanly (exit 0).
+	if _, err := runCmd(t, "trace", "01UNKNOWNRUNIDXXXXXXXXXXXXX"); err != nil {
+		t.Fatalf("trace: %v", err)
+	}
+}
+
 func TestVersionCommandOutput(t *testing.T) {
 	out, err := runCmd(t, "version")
 	if err != nil {

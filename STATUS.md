@@ -48,8 +48,12 @@ Per the specification's own phasing and PENDING VALIDATION items — not part of
 - ✅ **Live config watch** now implemented (`ConfigPort.Watch`): polls tracked config files'
   mtimes and emits `ConfigChange` events for affected keys matching the selector; verified by
   editing a file and observing the change.
-- **OpenTelemetry SDK export**, **PTY terminal mode**, **per-stage SDD agent wiring**, **v2 Bubble Tea migration**,
-  **remaining CLI commands** (context, trace) — refinements layered on the working MVP.
+- **OpenTelemetry SDK export**, **PTY terminal mode**, **per-stage SDD agent wiring**, **v2 Bubble Tea migration** — refinements layered on the
+  working MVP.
+- ✅ **All mandated CLI commands** now present (added `context` and `trace`): the full Volume 8
+  command surface — run, plan/exec (via run), init (via workspace open), config, auth, provider,
+  model, tool, plugin (via runtime), skill, workflow, mcp (via client), memory, context, index,
+  git, doctor, update, version, completion, logs, trace, export, tui.
 
 The full traceability automation (Volume 11 ch 07 GitHub-side checks) and branch protection are
 platform configuration applied on GitHub, not in-repo code.

@@ -66,6 +66,8 @@ func newRootCommand() *cobra.Command {
 		newTUICommand(),
 		newLogsCommand(),
 		newExportCommand(),
+		newContextCommand(),
+		newTraceCommand(),
 	)
 	root.AddCommand(newCompletionCommand(root))
 	return root
