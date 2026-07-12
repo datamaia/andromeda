@@ -8,6 +8,28 @@ Commit history by the release automation (ADR-013) and committed at release time
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-07-12
+
+Hardening and distribution release. Binaries are rebuilt with a patched standard library and
+Homebrew installation is now available.
+
+### Added
+
+- **Homebrew tap.** `brew install datamaia/tap/andromeda` (the release publishes a cask to the
+  `datamaia/homebrew-tap` repository, with a Gatekeeper-quarantine post-install step until
+  notarization lands).
+- **CI expansion.** The full Tier-1 platform matrix (Linux and macOS on amd64/arm64), an
+  enforced `golangci-lint` gate, and `e2e`, `security` (CodeQL + govulncheck), and
+  `traceability` workflows.
+
+### Fixed
+
+- **Terminal signal delivery.** `Signal` now targets the whole process group, so `Wait` can no
+  longer hang when a shell orphans a child holding the output pipes.
+- **Standard-library advisories.** The build toolchain is pinned to go1.25.12, clearing the
+  crypto/tls and crypto/x509 advisories that govulncheck flagged in the go1.25.0 stdlib.
+- Resolved all 374 `golangci-lint` findings across the codebase.
+
 ## [0.1.0] - 2026-07-12
 
 First tagged release. Cross-platform signed binaries (Linux and macOS, amd64 and arm64)
