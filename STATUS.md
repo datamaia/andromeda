@@ -50,8 +50,10 @@ Per the specification's own phasing and PENDING VALIDATION items — not part of
   editing a file and observing the change.
 - ✅ **PTY terminal mode** now implemented (`TerminalPort` PTY path via creack/pty): a real
   pseudoterminal with merged output, stdin write, and window `Resize`; verified end-to-end.
-- **OpenTelemetry SDK export**, **per-stage SDD agent wiring**, **v2 Bubble Tea migration** — refinements layered on the
-  working MVP.
+- **OpenTelemetry SDK export**, **v2 Bubble Tea migration** — a refinement layered on the working MVP.
+- ✅ **Per-stage SDD agent wiring** now implemented (`app.RunSDD`): each of the 14 SDD stages
+  runs an agent goal scoped to the stage and objective; `andromeda workflow run sdd --goal ...`
+  drives it, gates halt without `--auto-approve`. Verified with a scripted provider.
 - ✅ **All mandated CLI commands** now present (added `context` and `trace`): the full Volume 8
   command surface — run, plan/exec (via run), init (via workspace open), config, auth, provider,
   model, tool, plugin (via runtime), skill, workflow, mcp (via client), memory, context, index,
