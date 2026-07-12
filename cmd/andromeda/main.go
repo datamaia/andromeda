@@ -63,6 +63,9 @@ func newRootCommand() *cobra.Command {
 		newProviderCommand(),
 		newModelCommand(),
 		newUpdateCommand(),
+		newTUICommand(),
+		newLogsCommand(),
+		newExportCommand(),
 	)
 	root.AddCommand(newCompletionCommand(root))
 	return root

@@ -162,6 +162,26 @@ func TestProviderListCommand(t *testing.T) {
 	}
 }
 
+func TestLogsAndExportCommands(t *testing.T) {
+	dir := t.TempDir()
+	t.Chdir(dir)
+	// doctor emits and persists an event; logs should then show at least one row.
+	if _, err := runCmd(t, "doctor"); err != nil {
+		// doctor may fail on global-db in odd envs; tolerate and still exercise logs/export.
+		t.Logf("doctor: %v", err)
+	}
+	if _, err := runCmd(t, "logs", "-n", "5"); err != nil {
+		t.Fatalf("logs: %v", err)
+	}
+	out, err := runCmd(t, "export")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(out, "[") {
+		t.Errorf("export output = %q", out)
+	}
+}
+
 func TestVersionCommandOutput(t *testing.T) {
 	out, err := runCmd(t, "version")
 	if err != nil {

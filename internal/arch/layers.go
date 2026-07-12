@@ -51,6 +51,7 @@ var PackageLayer = map[string]Layer{
 	"mcp":        L3Engine,
 	"plugin":     L3Engine,
 	"skill":      L3Engine,
+	"tui":        L5Driver,
 	"auth":       L3Engine,
 	"updater":    L3Engine,
 	"pkgmgr":     L3Engine,

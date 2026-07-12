@@ -26,7 +26,7 @@ The authoritative quality gate is **`make ci`** (runs locally, no CI-minute depe
 | MS-1 Foundations | EP-01 ✅, EP-02 ✅, EP-03 ✅, EP-04 ✅ | ✅ |
 | MS-2 Runtime core | EP-05 ✅, EP-06 ✅, EP-07 ✅ | ✅ |
 | MS-3 Memory/index/tools/agent | memory, indexer, tool, agent ✅ | ✅ |
-| MS-4 Usable CLI | run + config/git/memory/tool/index/auth ✅ | 🔄 |
+| MS-4 Usable CLI + TUI | CLI (20 cmds) + interactive TUI ✅ | ✅ |
 | MS-4+ | TUI, auth, MCP/skills/plugins, dist | ⬜ |
 
 ## Epics
@@ -376,6 +376,25 @@ shell both runnable from the command line.
 and the skill format/loader — all permission-mediated through the Tool Runtime.
 
 **Gate status:** `make ci` passes.
+
+### EP — TUI and observability commands · ✅
+
+- ✅ Terminal UI (`internal/tui`, Volume 8): a Bubble Tea session model with a scrollable
+  transcript, a prompt input, and a brand-styled status bar (design tokens from ADR-026 —
+  violet primary, off-white, taupe, the fixed danger red). The start banner shows the tagline.
+  The **responder drives the real agent** for each submitted goal. Update logic is unit-tested
+  headlessly (submit, backspace, empty-submit no-op, esc-quit, banner/status render).
+- ✅ `andromeda tui` command wiring the model to a provider + agent (`--provider/--model/
+  --allow-write/--allow-exec`).
+- ✅ `logs` (recent persisted events from the workspace event store) and `export` (sessions as
+  JSON) commands, tested by driving them.
+
+**Gate status:** `make ci` passes. **20 CLI command entries**; an interactive TUI that runs the
+agent.
+
+**Deviation (ADR-006):** the TUI uses Bubble Tea **v1** (github.com/charmbracelet/bubbletea)
+for a stable working implementation; ADR-006 specifies the v2 charm.land stack. Migration to v2
+is a tracked follow-up (the Model/Update/View structure ports directly).
 
 ## Deliberate deviations from the specification (free-tier accommodations)
 
