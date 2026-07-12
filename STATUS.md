@@ -5,7 +5,7 @@ file tracks the **implementation** against Volume 15's epics and milestones. Upd
 pushed on every advance.
 
 **Last updated:** 2026-07-12 · **MVP phase functionally complete** · **Ports:** 18/18 ✅ ·
-**CLI:** 20 command groups · **TUI:** ✅ · ~14.7k LOC Go, 42 test files, `make ci` green
+**CLI:** 20 command groups · **TUI:** ✅ · ~18.4k LOC Go, 52 test files, `make ci` green
 
 ## MVP-minimum coverage (Volume 1 chapter 05, 27 items)
 
@@ -23,14 +23,17 @@ Every item of the change-controlled MVP minimum is implemented:
 | Permission manager | ✅ (FR-SEC-100) | Basic update | ✅ (UpdaterPort) |
 | Workspace engine | ✅ | Unit tests | ✅ (42 files) |
 | Terminal | ✅ (TerminalPort) | Integration tests | ✅ |
-| Filesystem tools | ✅ (read/write/search) | Main E2E | ✅ (doctor + run) |
-| Basic Git | ✅ (GitPort) | GitHub Actions | ✅ (ci + release) |
+| Filesystem tools | ✅ (full MVP catalog 8/8) | Main E2E | ✅ (doctor + run) |
+| Basic Git | ✅ (GitPort + git_exec) | GitHub Actions | ✅ (ci + release) |
 | Provider abstraction | ✅ (FR-PROV-001) | Signed releases (viable) | ✅ (goreleaser+cosign config) |
 | ≥1 cloud provider | ✅ (Anthropic, OpenAI-compat) | ≥1 local provider | ✅ (Ollama) |
 
 Beyond the minimum, also implemented: **SDD Workflow Engine**, **MCP client + tool bridging**,
-**plugin subprocess runtime (ARP)**, **skill system**, **scheduler**, **package manager**,
-**auth layer**, **secret store (keychain+age)**, **sandbox (process-level)**.
+**HTTP MCP transport with OAuth bearer**, **plugin subprocess runtime (ARP)**, **WASM plugin
+runtime (wazero)**, **skill system**, **scheduler**, **package manager**, **auth layer + OAuth
+device grant**, **secret store (keychain+age)**, **sandbox (process + macOS Seatbelt / Linux
+bubblewrap)**, **JSON Schema tool-payload validation**, and the **full MVP built-in tool catalog
+(fs read/write/search/replace/diff/patch, git_exec, terminal_run)**.
 
 ## Remaining work — all spec-designated later phases (Beta/v1/v2) or refinements
 
