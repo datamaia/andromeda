@@ -1,11 +1,13 @@
 # Quality-gate mirror of `make ci` (Volume 11 chapter 06).
 #
-# The repository is public, so Actions minutes are unlimited and the full Tier-1 platform
-# matrix runs on every push and pull request: Linux and macOS on both amd64 and arm64 — the
-# same platform set goreleaser ships (.goreleaser.yaml). The authoritative gate remains
-# `make ci`; each matrix leg runs it end to end. `fail-fast: false` keeps every platform's
-# result visible when one fails. Actions are pinned to major tags here; full commit-SHA
-# pinning (ADR-149) is a hardening step tracked in STATUS.md.
+# The repository is public, so Actions minutes are unlimited and the platform matrix runs on
+# every push and pull request: Linux on amd64 and arm64, and macOS on arm64 (macos-14). Apple
+# Intel (macos-13) is intentionally omitted — those hosted runners are being retired and queue
+# unreliably; darwin/amd64 binaries are still built and shipped by goreleaser (.goreleaser.yaml)
+# and are exercised indirectly by the macOS (darwin code) and ubuntu-amd64 (amd64) legs. The
+# authoritative gate remains `make ci`; each matrix leg runs it end to end. `fail-fast: false`
+# keeps every platform's result visible when one fails. Actions are pinned to major tags here;
+# full commit-SHA pinning (ADR-149) is a hardening step tracked in STATUS.md.
 name: ci
 
 on:
@@ -27,7 +29,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, ubuntu-24.04-arm, macos-14, macos-13]
+        os: [ubuntu-24.04, ubuntu-24.04-arm, macos-14]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
