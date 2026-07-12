@@ -527,12 +527,16 @@ Recorded honestly so they can be reverted when the constraint lifts.
 1. **CI platform matrix — RESOLVED (repo is public).** The Tier-1 matrix (Linux amd64/arm64,
    macOS arm64) runs on every push/PR, and the mandated `policy.yml`, `traceability.yml`,
    `security.yml`, `e2e.yml`, `labels.yml`, `audit.yml`, `upgrade.yml`, and `docs.yml` workflows
-   and `benchmarks.yml` are all active (11 workflows total). macOS Intel (macos-13) is omitted —
-   those hosted runners are being retired. `benchmarks.yml` runs the **micro-benchmark tier**
-   (`make bench`, Volume 12 ch03): Go `Benchmark*` functions for ULID, event-bus publish,
-   scheduler submit, tool dispatch, streaming, memory retrieval, and semantic search. The
-   operation/scenario tiers, calibrated reference machines, and rolling-baseline regression
-   gating remain future work. Still pending: `project.yml` (needs a GitHub Project board).
+   `benchmarks.yml`, and `project.yml` are all active — **all 12 Volume 11 ch06 workflows now
+   exist**. macOS Intel (macos-13) is omitted — those hosted runners are being retired.
+   `benchmarks.yml` runs the **micro-benchmark tier** (`make bench`, Volume 12 ch03): Go
+   `Benchmark*` functions for ULID, event-bus publish, scheduler submit, tool dispatch, streaming,
+   memory retrieval, and semantic search. `project.yml` (FR-GH-008) is the roadmap intake
+   automation, guarded on the `ROADMAP_PROJECT_URL` variable so it no-ops until the board is
+   provisioned via `scripts/setup_project.sh` (needs a token with the `project` scope). Remaining
+   future work: the benchmark operation/scenario tiers + rolling-baseline regression gating; and
+   the roadmap's Iteration/Target-release fields, views, PR-linked status transitions, and release
+   stamping (UI/GraphQL config beyond intake).
 2. **Action pinning — RESOLVED.** Every workflow action is pinned to a full commit SHA (ADR-149)
    with its version in a trailing comment; Dependabot's `github-actions` updater bumps them, and
    `policy.yml` fails any unpinned action.

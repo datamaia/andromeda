@@ -1,0 +1,33 @@
+# Projects automation (Volume 11 chapters 05/06, FR-GH-008). Intake: when an issue is opened or
+# gains a type:* label, add it to the Andromeda Roadmap project (it lands in the default Backlog
+# status). The job is guarded on the ROADMAP_PROJECT_URL repository variable, so it is a no-op
+# until the board and its token secret are provisioned (see scripts/setup_project.sh). Projects
+# v2 are outside the default GITHUB_TOKEN, so a PAT with the `project` scope is supplied as the
+# ROADMAP_PROJECT_TOKEN secret. Every action is pinned to a full commit SHA (ADR-149).
+#
+# PR-linked status transitions (In Review / Validation) and release stamping (Released) are
+# richer automations tracked as future work in STATUS.md; this workflow realizes the intake.
+name: project
+
+on:
+  issues:
+    types: [opened, labeled]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: project-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  add-to-roadmap:
+    runs-on: ubuntu-24.04
+    if: vars.ROADMAP_PROJECT_URL != ''
+    steps:
+      - uses: actions/add-to-project@5afcf98fcd03f1c2f92c3c83f58ae24323cc57fd # v2.0.0
+        with:
+          project-url: ${{ vars.ROADMAP_PROJECT_URL }}
+          github-token: ${{ secrets.ROADMAP_PROJECT_TOKEN }}
+          labeled: type:bug,type:feature,type:security,type:docs,type:performance,type:refactor,type:architecture,type:research,type:tech-debt,type:release,type:provider-integration,type:tool-integration,type:mcp,type:plugin,type:platform-compat
+          label-operator: OR
