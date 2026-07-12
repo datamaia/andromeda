@@ -144,7 +144,7 @@ func (e *Engine) Snapshot(ctx context.Context, ws ports.WorkspaceHandle) (ports.
 }
 
 // Close detaches a workspace: closes its database and forgets the handle.
-func (e *Engine) Close(ctx context.Context, ws ports.WorkspaceHandle) error {
+func (e *Engine) Close(_ context.Context, ws ports.WorkspaceHandle) error {
 	e.mu.Lock()
 	ow, ok := e.open[ws.ID]
 	if ok {

@@ -161,7 +161,7 @@ func (e *SemanticEngine) Update(ctx context.Context, indexID core.ULID, changes 
 }
 
 // Invalidate marks a semantic index stale.
-func (e *SemanticEngine) Invalidate(ctx context.Context, indexID core.ULID, scope ports.InvalidateScope) error {
+func (e *SemanticEngine) Invalidate(_ context.Context, indexID core.ULID, scope ports.InvalidateScope) error {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	idx, ok := e.indexes[indexID]
@@ -180,7 +180,7 @@ func (e *SemanticEngine) Invalidate(ctx context.Context, indexID core.ULID, scop
 }
 
 // Status returns the semantic index state.
-func (e *SemanticEngine) Status(ctx context.Context, indexID core.ULID) (ports.IndexStatus, error) {
+func (e *SemanticEngine) Status(_ context.Context, indexID core.ULID) (ports.IndexStatus, error) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	idx, ok := e.indexes[indexID]

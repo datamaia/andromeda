@@ -32,7 +32,7 @@ func RunSDD(ctx context.Context, opts SDDOptions) (*workflow.RunState, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	pm := permission.NewManager(permission.NewStore(db), permission.WithActor("sdd"))
 	_, _ = pm.GrantPermission(ctx, permission.Grant{Permission: core.PermRead, Scope: core.ScopePath, Selector: "*", Effect: permission.EffectAllow})

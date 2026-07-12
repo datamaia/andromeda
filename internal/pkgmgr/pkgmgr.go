@@ -55,7 +55,7 @@ func (m *Manager) Resolve(ctx context.Context, req ports.PackageRequest) (ports.
 
 // Install executes a plan through the frozen installation states, streaming progress. Failure
 // at any step leaves nothing partially active.
-func (m *Manager) Install(ctx context.Context, plan ports.ResolutionPlan) (ports.Stream[ports.InstallEvent], error) {
+func (m *Manager) Install(_ context.Context, plan ports.ResolutionPlan) (ports.Stream[ports.InstallEvent], error) {
 	var events []ports.InstallEvent
 	for _, pkg := range plan.Packages {
 		src := plan.Sources[pkg.Name]
@@ -84,7 +84,7 @@ func (m *Manager) Install(ctx context.Context, plan ports.ResolutionPlan) (ports
 }
 
 // Verify re-checks an installed package's integrity against a checksum sidecar.
-func (m *Manager) Verify(ctx context.Context, pkg ports.PackageRef) (ports.VerificationReport, error) {
+func (m *Manager) Verify(_ context.Context, pkg ports.PackageRef) (ports.VerificationReport, error) {
 	dst := m.pkgPath(pkg)
 	if _, err := os.Stat(dst); err != nil {
 		return ports.VerificationReport{OK: false, Findings: []string{"not installed"}}, nil
@@ -93,7 +93,7 @@ func (m *Manager) Verify(ctx context.Context, pkg ports.PackageRef) (ports.Verif
 }
 
 // Remove uninstalls a package.
-func (m *Manager) Remove(ctx context.Context, pkg ports.PackageRef, _ ports.RemoveOptions) (ports.RemoveReport, error) {
+func (m *Manager) Remove(_ context.Context, pkg ports.PackageRef, _ ports.RemoveOptions) (ports.RemoveReport, error) {
 	dst := m.pkgPath(pkg)
 	if err := os.Remove(dst); err != nil && !os.IsNotExist(err) {
 		return ports.RemoveReport{}, pkgErr("E-PLUG-003", "remove failed: "+err.Error())
@@ -110,7 +110,7 @@ func sha256File(path string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	h := sha256.New()
 	if _, err := io.Copy(h, f); err != nil {
 		return "", err
@@ -123,11 +123,11 @@ func copyFile(src, dst string) error {
 	if err != nil {
 		return err
 	}
-	defer in.Close()
-	if err := os.MkdirAll(filepath.Dir(dst), 0o755); err != nil {
+	defer func() { _ = in.Close() }()
+	if err := os.MkdirAll(filepath.Dir(dst), 0o750); err != nil {
 		return err
 	}
-	out, err := os.OpenFile(dst, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o644)
+	out, err := os.OpenFile(dst, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o644) //nolint:gosec // G304: dst is derived from the manager's install dir and package ref, not external input
 	if err != nil {
 		return err
 	}

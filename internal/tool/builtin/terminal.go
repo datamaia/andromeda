@@ -20,6 +20,7 @@ type TerminalRun struct {
 // NewTerminalRun builds the terminal.run tool over a Terminal Engine.
 func NewTerminalRun(e *terminal.Engine) TerminalRun { return TerminalRun{Engine: e} }
 
+// Describe returns the terminal_run tool descriptor.
 func (TerminalRun) Describe(context.Context) (ports.ToolDescriptor, error) {
 	return ports.ToolDescriptor{
 		Name: "terminal_run", Namespace: "terminal", Version: "1",
@@ -29,6 +30,7 @@ func (TerminalRun) Describe(context.Context) (ports.ToolDescriptor, error) {
 	}, nil
 }
 
+// Validate requires a non-empty command.
 func (TerminalRun) Validate(_ context.Context, input ports.JSON) (ports.ValidationResult, error) {
 	var in struct{ Command string }
 	if err := json.Unmarshal(input, &in); err != nil || in.Command == "" {
@@ -37,6 +39,7 @@ func (TerminalRun) Validate(_ context.Context, input ports.JSON) (ports.Validati
 	return ports.ValidationResult{Valid: true}, nil
 }
 
+// Resources requests execute permission scoped to the command's leading program.
 func (TerminalRun) Resources(input ports.JSON) ([]ports.PermissionQuery, error) {
 	var in struct{ Command string }
 	_ = json.Unmarshal(input, &in)
@@ -47,6 +50,7 @@ func (TerminalRun) Resources(input ports.JSON) ([]ports.PermissionQuery, error) 
 	return []ports.PermissionQuery{{Permission: core.PermExecute, Scope: core.ScopeCommand, Subject: prog}}, nil
 }
 
+// Execute runs the command through the Terminal Engine and returns its captured output and exit status.
 func (t TerminalRun) Execute(ctx context.Context, req ports.ToolExecuteRequest) (ports.Stream[ports.ToolEvent], error) {
 	var in struct {
 		Command string `json:"command"`
@@ -83,4 +87,5 @@ func (t TerminalRun) Execute(ctx context.Context, req ports.ToolExecuteRequest) 
 	return streams.Slice(events), nil
 }
 
+// Cancel is a no-op; the command is bounded by the Execute context.
 func (TerminalRun) Cancel(context.Context, core.ULID) error { return nil }

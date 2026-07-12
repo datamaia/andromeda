@@ -53,7 +53,7 @@ func scanRecords(rows *sql.Rows) ([]ports.MemoryRecord, error) {
 func tokenize(s string) map[string]struct{} {
 	set := map[string]struct{}{}
 	for _, f := range strings.FieldsFunc(strings.ToLower(s), func(r rune) bool {
-		return !(r == '_' || (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9'))
+		return r != '_' && (r < 'a' || r > 'z') && (r < '0' || r > '9')
 	}) {
 		if len(f) > 1 {
 			set[f] = struct{}{}

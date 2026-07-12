@@ -27,6 +27,7 @@ func NewDockerControl(bin string) DockerControl {
 	return DockerControl{bin: bin}
 }
 
+// Describe returns the docker_control tool descriptor.
 func (DockerControl) Describe(context.Context) (ports.ToolDescriptor, error) {
 	return ports.ToolDescriptor{
 		Name: "docker_control", Namespace: "docker", Version: "1",
@@ -43,6 +44,7 @@ var dockerOps = map[string]bool{
 	"ps": true, "images": true, "run": true, "stop": true, "rm": true, "logs": true, "build": true, "inspect": true,
 }
 
+// Validate requires an operation drawn from the supported Docker operation set.
 func (DockerControl) Validate(_ context.Context, input ports.JSON) (ports.ValidationResult, error) {
 	var in cliOpInput
 	if err := json.Unmarshal(input, &in); err != nil || in.Operation == "" {
@@ -54,10 +56,12 @@ func (DockerControl) Validate(_ context.Context, input ports.JSON) (ports.Valida
 	return ports.ValidationResult{Valid: true}, nil
 }
 
+// Resources requests host-scoped container access to the Docker Engine.
 func (DockerControl) Resources(ports.JSON) ([]ports.PermissionQuery, error) {
 	return []ports.PermissionQuery{{Permission: core.PermContainerAccess, Scope: core.ScopeHost, Subject: "docker"}}, nil
 }
 
+// Execute runs the docker CLI with the operation and its args as a fixed argv.
 func (t DockerControl) Execute(ctx context.Context, req ports.ToolExecuteRequest) (ports.Stream[ports.ToolEvent], error) {
 	var in cliOpInput
 	_ = json.Unmarshal(req.Input, &in)
@@ -65,6 +69,7 @@ func (t DockerControl) Execute(ctx context.Context, req ports.ToolExecuteRequest
 	return runCLI(ctx, t.bin, argv), nil
 }
 
+// Cancel is a no-op; the CLI invocation is bounded by the Execute context.
 func (DockerControl) Cancel(context.Context, core.ULID) error { return nil }
 
 // KubernetesControl operates Kubernetes clusters via kubectl. Phase: v1.
@@ -82,6 +87,7 @@ var kubeOps = map[string]bool{
 	"get": true, "list": true, "describe": true, "apply": true, "delete": true, "logs": true, "exec": true,
 }
 
+// Describe returns the kubernetes_control tool descriptor.
 func (KubernetesControl) Describe(context.Context) (ports.ToolDescriptor, error) {
 	// Pod exec is additionally gated as execute (catalog).
 	return ports.ToolDescriptor{
@@ -95,6 +101,7 @@ func (KubernetesControl) Describe(context.Context) (ports.ToolDescriptor, error)
 	}, nil
 }
 
+// Validate requires an operation drawn from the supported kubectl operation set.
 func (KubernetesControl) Validate(_ context.Context, input ports.JSON) (ports.ValidationResult, error) {
 	var in kubeInput
 	if err := json.Unmarshal(input, &in); err != nil || in.Operation == "" {
@@ -106,6 +113,7 @@ func (KubernetesControl) Validate(_ context.Context, input ports.JSON) (ports.Va
 	return ports.ValidationResult{Valid: true}, nil
 }
 
+// Resources requests host-scoped container access, plus execute for the exec operation.
 func (KubernetesControl) Resources(input ports.JSON) ([]ports.PermissionQuery, error) {
 	var in kubeInput
 	_ = json.Unmarshal(input, &in)
@@ -116,6 +124,7 @@ func (KubernetesControl) Resources(input ports.JSON) ([]ports.PermissionQuery, e
 	return qs, nil
 }
 
+// Execute runs kubectl with the operation, optional context/namespace flags, and args as a fixed argv.
 func (t KubernetesControl) Execute(ctx context.Context, req ports.ToolExecuteRequest) (ports.Stream[ports.ToolEvent], error) {
 	var in kubeInput
 	_ = json.Unmarshal(req.Input, &in)
@@ -130,6 +139,7 @@ func (t KubernetesControl) Execute(ctx context.Context, req ports.ToolExecuteReq
 	return runCLI(ctx, t.bin, argv), nil
 }
 
+// Cancel is a no-op; the CLI invocation is bounded by the Execute context.
 func (KubernetesControl) Cancel(context.Context, core.ULID) error { return nil }
 
 type cliOpInput struct {

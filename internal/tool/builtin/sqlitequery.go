@@ -22,6 +22,7 @@ const maxSQLiteRows = 1000
 // read_only is false) additionally require `write`. Phase: Beta.
 type SQLiteQuery struct{}
 
+// Describe returns the sqlite_query tool descriptor.
 func (SQLiteQuery) Describe(context.Context) (ports.ToolDescriptor, error) {
 	return ports.ToolDescriptor{
 		Name: "sqlite_query", Namespace: "sqlite", Version: "1",
@@ -43,6 +44,7 @@ type sqliteInput struct {
 
 func (in sqliteInput) readOnly() bool { return in.ReadOnly == nil || *in.ReadOnly }
 
+// Validate requires database and sql, and refuses Andromeda's own state databases.
 func (SQLiteQuery) Validate(_ context.Context, input ports.JSON) (ports.ValidationResult, error) {
 	var in sqliteInput
 	if err := json.Unmarshal(input, &in); err != nil || in.Database == "" || strings.TrimSpace(in.SQL) == "" {
@@ -54,6 +56,7 @@ func (SQLiteQuery) Validate(_ context.Context, input ports.JSON) (ports.Validati
 	return ports.ValidationResult{Valid: true}, nil
 }
 
+// Resources requests read access to the database, plus write for mutating statements.
 func (SQLiteQuery) Resources(input ports.JSON) ([]ports.PermissionQuery, error) {
 	var in sqliteInput
 	_ = json.Unmarshal(input, &in)
@@ -64,6 +67,7 @@ func (SQLiteQuery) Resources(input ports.JSON) ([]ports.PermissionQuery, error) 
 	return qs, nil
 }
 
+// Execute runs the SQL against the database and returns the affected count or the capped result rows.
 func (SQLiteQuery) Execute(ctx context.Context, req ports.ToolExecuteRequest) (ports.Stream[ports.ToolEvent], error) {
 	var in sqliteInput
 	_ = json.Unmarshal(req.Input, &in)
@@ -85,7 +89,7 @@ func (SQLiteQuery) Execute(ctx context.Context, req ports.ToolExecuteRequest) (p
 	if err != nil {
 		return errEvent("could not open database: " + err.Error()), nil
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	if mutation {
 		res, err := db.ExecContext(ctx, in.SQL, in.Params...)
@@ -130,6 +134,7 @@ func (SQLiteQuery) Execute(ctx context.Context, req ports.ToolExecuteRequest) (p
 	return okEvent(string(out)), nil
 }
 
+// Cancel is a no-op; the query is bounded by the Execute context.
 func (SQLiteQuery) Cancel(context.Context, core.ULID) error { return nil }
 
 // normalizeRow renders []byte cells (SQLite text/blobs) as strings so the JSON result is readable.

@@ -137,9 +137,7 @@ func TestSearchFindsMatches(t *testing.T) {
 
 // permissiveTool declares a strict input schema but a permissive Validate and no permissions, so
 // it isolates the Runtime's schema enforcement (ADR-024, FR-TOOL-002) from tool-level checks.
-type permissiveTool struct {
-	schema string
-}
+type permissiveTool struct{}
 
 func (permissiveTool) Describe(context.Context) (ports.ToolDescriptor, error) {
 	return ports.ToolDescriptor{

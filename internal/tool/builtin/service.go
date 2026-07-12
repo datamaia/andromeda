@@ -46,26 +46,37 @@ func NewServiceRequest(service string, perms []core.Permission, endpoint Service
 	return ServiceRequest{service: service, perms: perms, client: client, secrets: secrets, endpoint: endpoint}
 }
 
-// Per-service constructors fix the tool name and permission surface from the catalog.
+// NewGitHubRequest builds the github service-request tool; the per-service constructors fix the tool name and permission surface from the catalog.
 func NewGitHubRequest(e ServiceEndpoint, s ports.SecretStorePort, c *http.Client) ServiceRequest {
 	return NewServiceRequest("github", []core.Permission{core.PermExternalServiceAccess, core.PermNetwork}, e, s, c)
 }
+
+// NewGitLabRequest builds the gitlab service-request tool.
 func NewGitLabRequest(e ServiceEndpoint, s ports.SecretStorePort, c *http.Client) ServiceRequest {
 	return NewServiceRequest("gitlab", []core.Permission{core.PermExternalServiceAccess, core.PermNetwork}, e, s, c)
 }
+
+// NewJiraRequest builds the jira service-request tool.
 func NewJiraRequest(e ServiceEndpoint, s ports.SecretStorePort, c *http.Client) ServiceRequest {
 	return NewServiceRequest("jira", []core.Permission{core.PermExternalServiceAccess, core.PermNetwork}, e, s, c)
 }
+
+// NewNotionRequest builds the notion service-request tool.
 func NewNotionRequest(e ServiceEndpoint, s ports.SecretStorePort, c *http.Client) ServiceRequest {
 	return NewServiceRequest("notion", []core.Permission{core.PermExternalServiceAccess, core.PermNetwork}, e, s, c)
 }
+
+// NewLinearRequest builds the linear service-request tool.
 func NewLinearRequest(e ServiceEndpoint, s ports.SecretStorePort, c *http.Client) ServiceRequest {
 	return NewServiceRequest("linear", []core.Permission{core.PermExternalServiceAccess, core.PermNetwork}, e, s, c)
 }
+
+// NewSlackRequest builds the slack service-request tool.
 func NewSlackRequest(e ServiceEndpoint, s ports.SecretStorePort, c *http.Client) ServiceRequest {
 	return NewServiceRequest("slack", []core.Permission{core.PermExternalServiceAccess, core.PermNetwork, core.PermNotifications}, e, s, c)
 }
 
+// Describe returns the tool descriptor for the service's request tool.
 func (t ServiceRequest) Describe(context.Context) (ports.ToolDescriptor, error) {
 	return ports.ToolDescriptor{
 		Name: t.service + "_request", Namespace: t.service, Version: "1",
@@ -85,6 +96,7 @@ type serviceInput struct {
 	Body      string `json:"body"`
 }
 
+// Validate requires operation and path, and that the service has a configured base URL.
 func (t ServiceRequest) Validate(_ context.Context, input ports.JSON) (ports.ValidationResult, error) {
 	var in serviceInput
 	if err := json.Unmarshal(input, &in); err != nil || in.Operation == "" || in.Path == "" {
@@ -96,6 +108,7 @@ func (t ServiceRequest) Validate(_ context.Context, input ports.JSON) (ports.Val
 	return ports.ValidationResult{Valid: true}, nil
 }
 
+// Resources requests the service's declared permissions scoped to the provider.
 func (t ServiceRequest) Resources(ports.JSON) ([]ports.PermissionQuery, error) {
 	qs := make([]ports.PermissionQuery, 0, len(t.perms))
 	for _, p := range t.perms {
@@ -104,6 +117,7 @@ func (t ServiceRequest) Resources(ports.JSON) ([]ports.PermissionQuery, error) {
 	return qs, nil
 }
 
+// Execute composes the request against the configured base URL, injects credentials, and returns the response and rate-limit headers.
 func (t ServiceRequest) Execute(ctx context.Context, req ports.ToolExecuteRequest) (ports.Stream[ports.ToolEvent], error) {
 	var in serviceInput
 	_ = json.Unmarshal(req.Input, &in)
@@ -138,7 +152,7 @@ func (t ServiceRequest) Execute(ctx context.Context, req ports.ToolExecuteReques
 	if err != nil {
 		return errEvent("request failed: " + err.Error()), nil
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	limited := io.LimitReader(resp.Body, maxHTTPBody+1)
 	data, _ := io.ReadAll(limited)
 	truncated := int64(len(data)) > maxHTTPBody
@@ -181,6 +195,7 @@ func (t ServiceRequest) injectAuth(ctx context.Context, hreq *http.Request) erro
 	return nil
 }
 
+// Cancel is a no-op; the request is bounded by the Execute context.
 func (ServiceRequest) Cancel(context.Context, core.ULID) error { return nil }
 
 // rateLimit surfaces common rate-limit headers when the service reports them.

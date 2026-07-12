@@ -9,6 +9,7 @@ package arch
 // Layer is an architecture layer, lowest (L0) to highest.
 type Layer int
 
+// L0Core through L5Driver are the architecture layers, lowest to highest.
 const (
 	L0Core           Layer = iota // pure domain
 	L1Contract                    // ports, platform abstraction

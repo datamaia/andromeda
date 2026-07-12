@@ -70,7 +70,7 @@ func Doctor(ctx context.Context, workspaceRoot string) (DoctorReport, error) {
 		rep.Checks = append(rep.Checks, Check{"global-db", false, err.Error()})
 		return rep, nil
 	}
-	defer gdb.Close()
+	defer func() { _ = gdb.Close() }()
 	gv, _ := gdb.SchemaVersion(ctx)
 	rep.Checks = append(rep.Checks, Check{"global-db", true, fmt.Sprintf("%s (schema v%d)", gdb.Path(), gv)})
 
@@ -80,13 +80,13 @@ func Doctor(ctx context.Context, workspaceRoot string) (DoctorReport, error) {
 		rep.Checks = append(rep.Checks, Check{"workspace-db", false, err.Error()})
 		return rep, nil
 	}
-	defer wdb.Close()
+	defer func() { _ = wdb.Close() }()
 	wv, _ := wdb.SchemaVersion(ctx)
 	rep.Checks = append(rep.Checks, Check{"workspace-db", true, fmt.Sprintf("%s (schema v%d)", wdb.Path(), wv)})
 
 	// 4. Emit an enveloped event to persisted storage, via the bus and the event store.
 	bus := eventbus.New()
-	defer bus.Close()
+	defer func() { _ = bus.Close() }()
 	tel := telemetry.New()
 	_ = tel.EmitMetric(ctx, ports.MetricSample{Name: "doctor.runs", Value: 1})
 

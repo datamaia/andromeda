@@ -33,6 +33,7 @@ func NewHTTPRequest(client *http.Client, secrets ports.SecretStorePort) HTTPRequ
 	return HTTPRequest{Client: client, Secrets: secrets}
 }
 
+// Describe returns the http_request tool descriptor.
 func (HTTPRequest) Describe(context.Context) (ports.ToolDescriptor, error) {
 	return ports.ToolDescriptor{
 		Name: "http_request", Namespace: "http", Version: "1",
@@ -56,6 +57,7 @@ type httpInput struct {
 	MaxRedirects  *int              `json:"max_redirects"`
 }
 
+// Validate requires method and a parseable url.
 func (HTTPRequest) Validate(_ context.Context, input ports.JSON) (ports.ValidationResult, error) {
 	var in httpInput
 	if err := json.Unmarshal(input, &in); err != nil || in.Method == "" || in.URL == "" {
@@ -67,6 +69,7 @@ func (HTTPRequest) Validate(_ context.Context, input ports.JSON) (ports.Validati
 	return ports.ValidationResult{Valid: true}, nil
 }
 
+// Resources requests network access to the target host, plus credential_access when a credential_ref is set.
 func (HTTPRequest) Resources(input ports.JSON) ([]ports.PermissionQuery, error) {
 	var in httpInput
 	_ = json.Unmarshal(input, &in)
@@ -81,6 +84,7 @@ func (HTTPRequest) Resources(input ports.JSON) ([]ports.PermissionQuery, error) 
 	return qs, nil
 }
 
+// Execute performs the HTTP request and returns its status, headers, and capped body.
 func (t HTTPRequest) Execute(ctx context.Context, req ports.ToolExecuteRequest) (ports.Stream[ports.ToolEvent], error) {
 	var in httpInput
 	_ = json.Unmarshal(req.Input, &in)
@@ -109,7 +113,7 @@ func (t HTTPRequest) Execute(ctx context.Context, req ports.ToolExecuteRequest) 
 	if err != nil {
 		return errEvent("request failed: " + err.Error()), nil
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	limited := io.LimitReader(resp.Body, maxHTTPBody+1)
 	data, _ := io.ReadAll(limited)
@@ -165,4 +169,5 @@ func (t HTTPRequest) resolveCredential(ctx context.Context, ref string) (string,
 	return string(v.Bytes()), nil
 }
 
+// Cancel is a no-op; the request is bounded by the Execute context.
 func (HTTPRequest) Cancel(context.Context, core.ULID) error { return nil }

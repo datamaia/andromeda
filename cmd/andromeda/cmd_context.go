@@ -25,27 +25,27 @@ func newContextCommand() *cobra.Command {
 				return err
 			}
 			out := cmd.OutOrStdout()
-			fmt.Fprintf(out, "workspace: %s\n", wd)
+			_, _ = fmt.Fprintf(out, "workspace: %s\n", wd)
 
 			if st, err := git.New("").Status(ctx, ports.RepoRef{Root: wd}); err == nil {
 				clean := "dirty"
 				if st.Clean {
 					clean = "clean"
 				}
-				fmt.Fprintf(out, "vcs:       branch %s (%s)\n", st.Branch, clean)
+				_, _ = fmt.Fprintf(out, "vcs:       branch %s (%s)\n", st.Branch, clean)
 			}
 
 			db, err := storage.OpenWorkspaceDB(ctx, wd)
 			if err == nil {
-				defer db.Close()
+				defer func() { _ = db.Close() }()
 				recs, _ := memory.New(db).Retrieve(ctx, ports.MemoryQuery{Limit: 1000})
-				fmt.Fprintf(out, "memory:    %d records\n", len(recs))
+				_, _ = fmt.Fprintf(out, "memory:    %d records\n", len(recs))
 			}
 
 			e := indexer.New()
 			if id, err := e.Build(ctx, ports.IndexSpec{Include: []ports.Path{wd}}); err == nil {
 				st, _ := e.Status(ctx, id)
-				fmt.Fprintf(out, "index:     %d files (generation %d)\n", st.Coverage, st.Generation)
+				_, _ = fmt.Fprintf(out, "index:     %d files (generation %d)\n", st.Coverage, st.Generation)
 			}
 			return nil
 		},
@@ -73,11 +73,11 @@ func newTraceCommand() *cobra.Command {
 					if err := rows.Scan(&ts, &name, &producer); err != nil {
 						return err
 					}
-					fmt.Fprintf(out, "%s  %-28s  %s\n", ts, name, producer)
+					_, _ = fmt.Fprintf(out, "%s  %-28s  %s\n", ts, name, producer)
 					n++
 				}
 				if n == 0 {
-					fmt.Fprintf(cmd.ErrOrStderr(), "no events for run %s\n", args[0])
+					_, _ = fmt.Fprintf(cmd.ErrOrStderr(), "no events for run %s\n", args[0])
 				}
 				return rows.Err()
 			})

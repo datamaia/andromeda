@@ -143,7 +143,7 @@ func (s *Scheduler) NewGroup(ctx context.Context, spec ports.GroupSpec) (ports.T
 }
 
 // Cancel cancels a task by ID with a recorded reason.
-func (s *Scheduler) Cancel(ctx context.Context, id ports.SchedTaskID, _ ports.CancelReason) error {
+func (s *Scheduler) Cancel(_ context.Context, id ports.SchedTaskID, _ ports.CancelReason) error {
 	s.mu.Lock()
 	tk, ok := s.tasks[id]
 	s.mu.Unlock()
@@ -155,7 +155,7 @@ func (s *Scheduler) Cancel(ctx context.Context, id ports.SchedTaskID, _ ports.Ca
 }
 
 // Stats returns per-pool occupancy.
-func (s *Scheduler) Stats(ctx context.Context) (ports.SchedulerStats, error) {
+func (s *Scheduler) Stats(_ context.Context) (ports.SchedulerStats, error) {
 	st := ports.SchedulerStats{Pools: map[string]ports.PoolStats{}}
 	for name, p := range s.pools {
 		st.Pools[name] = ports.PoolStats{
@@ -199,7 +199,7 @@ type group struct {
 	handles []ports.TaskHandle
 }
 
-func (g *group) Go(ctx context.Context, spec ports.TaskSpec) (ports.TaskHandle, error) {
+func (g *group) Go(_ context.Context, spec ports.TaskSpec) (ports.TaskHandle, error) {
 	if spec.Pool == "" {
 		spec.Pool = g.pool
 	}

@@ -149,7 +149,7 @@ func (e *Engine) ExecuteIn(ctx context.Context, sb ports.SandboxHandle, cmd port
 }
 
 // Teardown terminates the full process tree of a handle's executions and releases it.
-func (e *Engine) Teardown(ctx context.Context, sb ports.SandboxHandle) error {
+func (e *Engine) Teardown(_ context.Context, sb ports.SandboxHandle) error {
 	e.mu.Lock()
 	h, ok := e.handles[sb.ID]
 	if ok {

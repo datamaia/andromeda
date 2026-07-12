@@ -19,6 +19,7 @@ type ProcessControl struct {
 // NewProcessControl builds the process.control tool over a Terminal Engine.
 func NewProcessControl(e *terminal.Engine) ProcessControl { return ProcessControl{Engine: e} }
 
+// Describe returns the process_control tool descriptor.
 func (ProcessControl) Describe(context.Context) (ports.ToolDescriptor, error) {
 	return ports.ToolDescriptor{
 		Name: "process_control", Namespace: "process", Version: "1",
@@ -37,6 +38,7 @@ type processInput struct {
 	Signal      string `json:"signal"`
 }
 
+// Validate requires an operation, and execution_id for inspect, signal, and terminate.
 func (ProcessControl) Validate(_ context.Context, input ports.JSON) (ports.ValidationResult, error) {
 	var in processInput
 	if err := json.Unmarshal(input, &in); err != nil || in.Operation == "" {
@@ -48,10 +50,12 @@ func (ProcessControl) Validate(_ context.Context, input ports.JSON) (ports.Valid
 	return ports.ValidationResult{Valid: true}, nil
 }
 
+// Resources requests host-scoped process_spawn access.
 func (ProcessControl) Resources(ports.JSON) ([]ports.PermissionQuery, error) {
 	return []ports.PermissionQuery{{Permission: core.PermProcessSpawn, Scope: core.ScopeHost, Subject: "local"}}, nil
 }
 
+// Execute lists, inspects, signals, or terminates supervised processes via the Terminal Engine.
 func (t ProcessControl) Execute(ctx context.Context, req ports.ToolExecuteRequest) (ports.Stream[ports.ToolEvent], error) {
 	var in processInput
 	_ = json.Unmarshal(req.Input, &in)
@@ -86,6 +90,7 @@ func (t ProcessControl) Execute(ctx context.Context, req ports.ToolExecuteReques
 	}
 }
 
+// Cancel is a no-op; each operation completes synchronously within Execute.
 func (ProcessControl) Cancel(context.Context, core.ULID) error { return nil }
 
 func marshalProcesses(snaps []terminal.ExecutionSnapshot) string {

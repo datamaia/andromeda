@@ -45,7 +45,7 @@ func newAuthAddCommand() *cobra.Command {
 			if err := m.StoreAPIKey(cmd.Context(), args[0], profile, key); err != nil {
 				return err
 			}
-			fmt.Fprintf(cmd.OutOrStdout(), "stored credential for %s (profile %s)\n", args[0], orDefault(profile))
+			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "stored credential for %s (profile %s)\n", args[0], orDefault(profile))
 			return nil
 		},
 	}
@@ -69,11 +69,11 @@ func newAuthListCommand() *cobra.Command {
 				return err
 			}
 			if len(profiles) == 0 {
-				fmt.Fprintln(cmd.OutOrStdout(), "no credentials stored")
+				_, _ = fmt.Fprintln(cmd.OutOrStdout(), "no credentials stored")
 				return nil
 			}
 			for _, p := range profiles {
-				fmt.Fprintf(cmd.OutOrStdout(), "%s (profile %s)\n", p.Provider, p.Name)
+				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "%s (profile %s)\n", p.Provider, p.Name)
 			}
 			return nil
 		},
@@ -94,7 +94,7 @@ func newAuthRemoveCommand() *cobra.Command {
 			if err := m.Revoke(cmd.Context(), ports.AuthenticationHandle{Provider: args[0], Profile: profile}); err != nil {
 				return err
 			}
-			fmt.Fprintf(cmd.OutOrStdout(), "removed credential for %s\n", args[0])
+			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "removed credential for %s\n", args[0])
 			return nil
 		},
 	}

@@ -16,9 +16,6 @@ func osIsolationSupported() bool {
 	return err == nil
 }
 
-// osIsolationName identifies the platform mechanism (recorded per execution).
-const osIsolationName = "bubblewrap"
-
 // wrapOSIsolation wraps a command in bubblewrap with a filesystem and network policy derived
 // from the SandboxPolicy: the root is bound read-only, the policy's write paths are bound
 // read-write, /proc and a fresh /dev and /tmp are provided, and the network namespace is

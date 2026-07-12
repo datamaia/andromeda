@@ -45,6 +45,7 @@ type GroupSpec struct {
 // CancelReason records why work was cancelled.
 type CancelReason string
 
+// CancelUserInterrupt, CancelTimeout, CancelBudget, and CancelShutdown are the cancellation reasons.
 const (
 	CancelUserInterrupt CancelReason = "user_interrupt"
 	CancelTimeout       CancelReason = "timeout"

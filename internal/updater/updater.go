@@ -117,7 +117,7 @@ func (u *Updater) Apply(ctx context.Context, rel ports.ReleaseRef) (ports.Update
 	if err := copyFile(path, tmp); err != nil {
 		return ports.UpdateApplyReport{}, relErr("E-REL-004", "apply: stage failed", err)
 	}
-	_ = os.Chmod(tmp, 0o755)
+	_ = os.Chmod(tmp, 0o755) //nolint:gosec // G302: the staged file is the installed executable and must be runnable
 	if err := os.Rename(tmp, u.targetPath); err != nil {
 		return ports.UpdateApplyReport{}, relErr("E-REL-004", "apply: atomic replace failed", err)
 	}
@@ -127,7 +127,7 @@ func (u *Updater) Apply(ctx context.Context, rel ports.ReleaseRef) (ports.Update
 }
 
 // Rollback restores the previously retained version (offline).
-func (u *Updater) Rollback(ctx context.Context) (ports.RollbackReport, error) {
+func (u *Updater) Rollback(_ context.Context) (ports.RollbackReport, error) {
 	if u.backupPath == "" {
 		return ports.RollbackReport{}, relErr("E-REL-005", "no retained version to roll back to", nil)
 	}
@@ -142,7 +142,7 @@ func sha256File(path string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	h := sha256.New()
 	if _, err := io.Copy(h, f); err != nil {
 		return "", err
@@ -155,11 +155,11 @@ func copyFile(src, dst string) error {
 	if err != nil {
 		return err
 	}
-	defer in.Close()
-	if err := os.MkdirAll(filepath.Dir(dst), 0o755); err != nil {
+	defer func() { _ = in.Close() }()
+	if err := os.MkdirAll(filepath.Dir(dst), 0o755); err != nil { //nolint:gosec // G301: the installed binary's directory must be traversable (0o755)
 		return err
 	}
-	out, err := os.OpenFile(dst, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o755)
+	out, err := os.OpenFile(dst, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o755) //nolint:gosec // G302: the installed binary must be runnable (0o755)
 	if err != nil {
 		return err
 	}

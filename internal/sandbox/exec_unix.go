@@ -54,7 +54,7 @@ func (e *execution) killTree() {
 	e.cancel()
 }
 
-func (e *execution) wait(ctx context.Context) ports.CommandOutcome {
+func (e *execution) wait(_ context.Context) ports.CommandOutcome {
 	e.mu.Lock()
 	if e.done {
 		o := e.outcome

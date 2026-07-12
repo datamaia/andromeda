@@ -63,7 +63,7 @@ func (m *Manager) Authenticate(ctx context.Context, spec ports.AuthSpec) (ports.
 }
 
 // Refresh renews a session. API-key sessions do not expire, so the handle is returned as-is.
-func (m *Manager) Refresh(ctx context.Context, h ports.AuthenticationHandle) (ports.AuthenticationHandle, error) {
+func (m *Manager) Refresh(_ context.Context, h ports.AuthenticationHandle) (ports.AuthenticationHandle, error) {
 	return h, nil
 }
 
@@ -74,7 +74,7 @@ func (m *Manager) Revoke(ctx context.Context, h ports.AuthenticationHandle) erro
 
 // Rotate replaces a credential's material. For API keys this is a manual operation: the caller
 // re-runs StoreAPIKey. Rotate reports the current status rather than inventing a rotation.
-func (m *Manager) Rotate(ctx context.Context, credentialID core.ULID) (ports.RotationReport, error) {
+func (m *Manager) Rotate(_ context.Context, credentialID core.ULID) (ports.RotationReport, error) {
 	return ports.RotationReport{CredentialID: credentialID, Status: "active"}, nil
 }
 

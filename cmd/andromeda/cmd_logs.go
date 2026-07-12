@@ -31,7 +31,7 @@ func newLogsCommand() *cobra.Command {
 					if err := rows.Scan(&ts, &name, &producer); err != nil {
 						return err
 					}
-					fmt.Fprintf(out, "%s  %-28s  %s\n", ts, name, producer)
+					_, _ = fmt.Fprintf(out, "%s  %-28s  %s\n", ts, name, producer)
 				}
 				return rows.Err()
 			})
@@ -55,15 +55,15 @@ func newExportCommand() *cobra.Command {
 					return err
 				}
 				out := cmd.OutOrStdout()
-				fmt.Fprintln(out, "[")
+				_, _ = fmt.Fprintln(out, "[")
 				for i, s := range sessions {
 					comma := ","
 					if i == len(sessions)-1 {
 						comma = ""
 					}
-					fmt.Fprintf(out, `  {"id":%q,"state":%q,"created_at":%q}%s`+"\n", s.ID, s.State, s.CreatedAt, comma)
+					_, _ = fmt.Fprintf(out, `  {"id":%q,"state":%q,"created_at":%q}%s`+"\n", s.ID, s.State, s.CreatedAt, comma)
 				}
-				fmt.Fprintln(out, "]")
+				_, _ = fmt.Fprintln(out, "]")
 				return nil
 			})
 		},
@@ -79,6 +79,6 @@ func withWorkspaceDB(ctx context.Context, fn func(*storage.DB) error) error {
 	if err != nil {
 		return err
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 	return fn(db)
 }

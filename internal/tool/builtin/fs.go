@@ -20,6 +20,7 @@ import (
 // FSRead reads a UTF-8 text file. Phase: MVP.
 type FSRead struct{}
 
+// Describe returns the fs_read tool descriptor.
 func (FSRead) Describe(context.Context) (ports.ToolDescriptor, error) {
 	return ports.ToolDescriptor{
 		Name: "fs_read", Namespace: "fs", Version: "1", Description: "Read a text file",
@@ -29,6 +30,7 @@ func (FSRead) Describe(context.Context) (ports.ToolDescriptor, error) {
 	}, nil
 }
 
+// Validate requires a non-empty path.
 func (FSRead) Validate(_ context.Context, input ports.JSON) (ports.ValidationResult, error) {
 	var in struct{ Path string }
 	if err := json.Unmarshal(input, &in); err != nil || in.Path == "" {
@@ -37,11 +39,13 @@ func (FSRead) Validate(_ context.Context, input ports.JSON) (ports.ValidationRes
 	return ports.ValidationResult{Valid: true}, nil
 }
 
+// Resources requests read access to the target path.
 func (FSRead) Resources(input ports.JSON) ([]ports.PermissionQuery, error) {
 	p := pathOf(input)
 	return []ports.PermissionQuery{{Permission: core.PermRead, Scope: core.ScopePath, Subject: p}}, nil
 }
 
+// Execute reads the file and returns its content.
 func (FSRead) Execute(_ context.Context, req ports.ToolExecuteRequest) (ports.Stream[ports.ToolEvent], error) {
 	p := pathOf(req.Input)
 	data, err := os.ReadFile(p) //nolint:gosec // path is permission-checked by the Runtime
@@ -52,6 +56,7 @@ func (FSRead) Execute(_ context.Context, req ports.ToolExecuteRequest) (ports.St
 	return okEvent(string(out)), nil
 }
 
+// Cancel is a no-op; the read completes synchronously within Execute.
 func (FSRead) Cancel(context.Context, core.ULID) error { return nil }
 
 // ---- fs_write ----
@@ -59,6 +64,7 @@ func (FSRead) Cancel(context.Context, core.ULID) error { return nil }
 // FSWrite writes a text file, creating parent directories. Phase: MVP.
 type FSWrite struct{}
 
+// Describe returns the fs_write tool descriptor.
 func (FSWrite) Describe(context.Context) (ports.ToolDescriptor, error) {
 	return ports.ToolDescriptor{
 		Name: "fs_write", Namespace: "fs", Version: "1", Description: "Write a text file",
@@ -67,6 +73,7 @@ func (FSWrite) Describe(context.Context) (ports.ToolDescriptor, error) {
 	}, nil
 }
 
+// Validate requires path and content.
 func (FSWrite) Validate(_ context.Context, input ports.JSON) (ports.ValidationResult, error) {
 	var in struct {
 		Path    string
@@ -78,17 +85,19 @@ func (FSWrite) Validate(_ context.Context, input ports.JSON) (ports.ValidationRe
 	return ports.ValidationResult{Valid: true}, nil
 }
 
+// Resources requests write access to the target path.
 func (FSWrite) Resources(input ports.JSON) ([]ports.PermissionQuery, error) {
 	return []ports.PermissionQuery{{Permission: core.PermWrite, Scope: core.ScopePath, Subject: pathOf(input)}}, nil
 }
 
+// Execute creates parent directories as needed and writes the content to the file.
 func (FSWrite) Execute(_ context.Context, req ports.ToolExecuteRequest) (ports.Stream[ports.ToolEvent], error) {
 	var in struct {
 		Path    string `json:"path"`
 		Content string `json:"content"`
 	}
 	_ = json.Unmarshal(req.Input, &in)
-	if err := os.MkdirAll(filepath.Dir(in.Path), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(in.Path), 0o750); err != nil {
 		return errEvent("mkdir failed: " + err.Error()), nil
 	}
 	if err := os.WriteFile(in.Path, []byte(in.Content), 0o644); err != nil { //nolint:gosec // permission-checked
@@ -97,6 +106,7 @@ func (FSWrite) Execute(_ context.Context, req ports.ToolExecuteRequest) (ports.S
 	return okEvent(`{"written":true}`), nil
 }
 
+// Cancel is a no-op; the write completes synchronously within Execute.
 func (FSWrite) Cancel(context.Context, core.ULID) error { return nil }
 
 // ---- fs_search ----
@@ -104,6 +114,7 @@ func (FSWrite) Cancel(context.Context, core.ULID) error { return nil }
 // FSSearch does a case-insensitive substring search across text files under a root. Phase: MVP.
 type FSSearch struct{}
 
+// Describe returns the fs_search tool descriptor.
 func (FSSearch) Describe(context.Context) (ports.ToolDescriptor, error) {
 	return ports.ToolDescriptor{
 		Name: "fs_search", Namespace: "fs", Version: "1", Description: "Search files for a substring",
@@ -112,6 +123,7 @@ func (FSSearch) Describe(context.Context) (ports.ToolDescriptor, error) {
 	}, nil
 }
 
+// Validate requires a non-empty query.
 func (FSSearch) Validate(_ context.Context, input ports.JSON) (ports.ValidationResult, error) {
 	var in struct{ Query string }
 	if err := json.Unmarshal(input, &in); err != nil || in.Query == "" {
@@ -120,6 +132,7 @@ func (FSSearch) Validate(_ context.Context, input ports.JSON) (ports.ValidationR
 	return ports.ValidationResult{Valid: true}, nil
 }
 
+// Resources requests read access to the search root (defaulting to the current directory).
 func (FSSearch) Resources(input ports.JSON) ([]ports.PermissionQuery, error) {
 	var in struct{ Root string }
 	_ = json.Unmarshal(input, &in)
@@ -130,6 +143,7 @@ func (FSSearch) Resources(input ports.JSON) ([]ports.PermissionQuery, error) {
 	return []ports.PermissionQuery{{Permission: core.PermRead, Scope: core.ScopePath, Subject: root}}, nil
 }
 
+// Execute walks the root and returns file:line locations of case-insensitive substring matches.
 func (FSSearch) Execute(_ context.Context, req ports.ToolExecuteRequest) (ports.Stream[ports.ToolEvent], error) {
 	var in struct {
 		Query string `json:"query"`
@@ -171,6 +185,7 @@ func (FSSearch) Execute(_ context.Context, req ports.ToolExecuteRequest) (ports.
 	return okEvent(string(out)), nil
 }
 
+// Cancel is a no-op; the search completes synchronously within Execute.
 func (FSSearch) Cancel(context.Context, core.ULID) error { return nil }
 
 // ---- helpers ----

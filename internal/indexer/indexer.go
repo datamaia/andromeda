@@ -124,7 +124,7 @@ func (e *Engine) indexFile(path string, postings map[string]map[string]struct{},
 }
 
 // Update incrementally re-indexes changed paths.
-func (e *Engine) Update(ctx context.Context, indexID core.ULID, changes []ports.PathChange) error {
+func (e *Engine) Update(_ context.Context, indexID core.ULID, changes []ports.PathChange) error {
 	e.mu.Lock()
 	idx, ok := e.indexes[indexID]
 	e.mu.Unlock()
@@ -149,7 +149,7 @@ func (e *Engine) Update(ctx context.Context, indexID core.ULID, changes []ports.
 }
 
 // Query runs a lexical search, returning hits with the index generation.
-func (e *Engine) Query(ctx context.Context, indexID core.ULID, q ports.IndexQuery) ([]ports.IndexHit, error) {
+func (e *Engine) Query(_ context.Context, indexID core.ULID, q ports.IndexQuery) ([]ports.IndexHit, error) {
 	e.mu.Lock()
 	idx, ok := e.indexes[indexID]
 	e.mu.Unlock()
@@ -179,7 +179,7 @@ func (e *Engine) Query(ctx context.Context, indexID core.ULID, q ports.IndexQuer
 }
 
 // Invalidate marks a scope stale (forcing rebuild); dropping the whole index is always legal.
-func (e *Engine) Invalidate(ctx context.Context, indexID core.ULID, scope ports.InvalidateScope) error {
+func (e *Engine) Invalidate(_ context.Context, indexID core.ULID, scope ports.InvalidateScope) error {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	idx, ok := e.indexes[indexID]
@@ -198,7 +198,7 @@ func (e *Engine) Invalidate(ctx context.Context, indexID core.ULID, scope ports.
 }
 
 // Status returns the current state, generation, and coverage of an index.
-func (e *Engine) Status(ctx context.Context, indexID core.ULID) (ports.IndexStatus, error) {
+func (e *Engine) Status(_ context.Context, indexID core.ULID) (ports.IndexStatus, error) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	idx, ok := e.indexes[indexID]
@@ -252,7 +252,7 @@ func looksTextual(data []byte) bool {
 func tokenize(s string) map[string]struct{} {
 	set := map[string]struct{}{}
 	for _, f := range strings.FieldsFunc(strings.ToLower(s), func(r rune) bool {
-		return !(r == '_' || (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9'))
+		return r != '_' && (r < 'a' || r > 'z') && (r < '0' || r > '9')
 	}) {
 		if len(f) > 1 {
 			set[f] = struct{}{}

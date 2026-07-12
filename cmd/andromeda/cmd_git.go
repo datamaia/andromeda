@@ -39,19 +39,19 @@ func newGitStatusCommand() *cobra.Command {
 				return err
 			}
 			out := cmd.OutOrStdout()
-			fmt.Fprintf(out, "On branch %s\n", st.Branch)
+			_, _ = fmt.Fprintf(out, "On branch %s\n", st.Branch)
 			if st.Clean {
-				fmt.Fprintln(out, "nothing to commit, working tree clean")
+				_, _ = fmt.Fprintln(out, "nothing to commit, working tree clean")
 				return nil
 			}
 			for _, p := range st.Staged {
-				fmt.Fprintf(out, "  staged:    %s\n", p)
+				_, _ = fmt.Fprintf(out, "  staged:    %s\n", p)
 			}
 			for _, p := range st.Unstaged {
-				fmt.Fprintf(out, "  modified:  %s\n", p)
+				_, _ = fmt.Fprintf(out, "  modified:  %s\n", p)
 			}
 			for _, p := range st.Untracked {
-				fmt.Fprintf(out, "  untracked: %s\n", p)
+				_, _ = fmt.Fprintf(out, "  untracked: %s\n", p)
 			}
 			return nil
 		},
@@ -59,7 +59,7 @@ func newGitStatusCommand() *cobra.Command {
 }
 
 func newGitLogCommand() *cobra.Command {
-	var max int
+	var maxN int
 	c := &cobra.Command{
 		Use:   "log",
 		Short: "Show recent commits",
@@ -69,11 +69,11 @@ func newGitLogCommand() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			st, err := git.New("").Log(cmd.Context(), repo, ports.LogSpec{Max: max})
+			st, err := git.New("").Log(cmd.Context(), repo, ports.LogSpec{Max: maxN})
 			if err != nil {
 				return err
 			}
-			defer st.Close()
+			defer func() { _ = st.Close() }()
 			out := cmd.OutOrStdout()
 			for {
 				ci, err := st.Next(context.Background())
@@ -87,11 +87,11 @@ func newGitLogCommand() *cobra.Command {
 				if len(short) > 8 {
 					short = short[:8]
 				}
-				fmt.Fprintf(out, "%s  %s  %s\n", short, ci.Date, ci.Subject)
+				_, _ = fmt.Fprintf(out, "%s  %s  %s\n", short, ci.Date, ci.Subject)
 			}
 			return nil
 		},
 	}
-	c.Flags().IntVarP(&max, "max", "n", 10, "maximum commits to show")
+	c.Flags().IntVarP(&maxN, "max", "n", 10, "maximum commits to show")
 	return c
 }

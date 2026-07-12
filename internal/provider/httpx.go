@@ -49,7 +49,7 @@ func (c *Client) PostJSON(ctx context.Context, path string, body any, out any) e
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	data, _ := io.ReadAll(resp.Body)
 	if err := mapStatus(resp.StatusCode, data); err != nil {
 		return err
@@ -121,7 +121,7 @@ func (c *Client) GetJSON(ctx context.Context, path string, out any) error {
 	if err != nil {
 		return provErr(CodeConnectivity, "could not reach provider", err.Error(), true, err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	data, _ := io.ReadAll(resp.Body)
 	if err := mapStatus(resp.StatusCode, data); err != nil {
 		return err

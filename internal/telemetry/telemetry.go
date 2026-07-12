@@ -59,7 +59,7 @@ func (r *Recorder) StartSpan(ctx context.Context, name string, attrs ports.Attri
 }
 
 // Flush drains buffered telemetry to local sinks. The local recorder has nothing to flush.
-func (r *Recorder) Flush(ctx context.Context) error { return nil }
+func (r *Recorder) Flush(_ context.Context) error { return nil }
 
 // MetricSnapshot returns the count and running sum for a metric (for tests and diagnostics).
 func (r *Recorder) MetricSnapshot(name string) (count int64, sum float64, ok bool) {

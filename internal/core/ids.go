@@ -8,6 +8,7 @@ type ULID = string
 // Phase is a delivery phase from the Volume 1 phase model.
 type Phase string
 
+// Phase enumeration from the Volume 1 delivery-phase model.
 const (
 	PhaseCore       Phase = "Core"
 	PhaseMVP        Phase = "MVP"

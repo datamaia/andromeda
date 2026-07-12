@@ -78,6 +78,7 @@ type AttrValue struct {
 // SpanStatus mirrors the Trace recorded-status vocabulary.
 type SpanStatus string
 
+// SpanOK, SpanError, and SpanInterrupted are the recorded span statuses.
 const (
 	SpanOK          SpanStatus = "ok"
 	SpanError       SpanStatus = "error"

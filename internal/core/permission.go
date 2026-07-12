@@ -4,12 +4,13 @@ package core
 // Closed enumeration; extending it requires an ADR.
 type Permission string
 
+// Permission enumeration (Volume 9, FR-SEC-100); each value is the wire-stable identifier.
 const (
 	PermRead                  Permission = "read"
 	PermWrite                 Permission = "write"
 	PermExecute               Permission = "execute"
 	PermNetwork               Permission = "network"
-	PermCredentialAccess      Permission = "credential_access"
+	PermCredentialAccess      Permission = "credential_access" //nolint:gosec // G101: permission identifier literal, not a credential
 	PermGitMutation           Permission = "git_mutation"
 	PermProcessSpawn          Permission = "process_spawn"
 	PermContainerAccess       Permission = "container_access"
@@ -23,6 +24,7 @@ const (
 // PermissionScope names the extent a grant applies to (Volume 9). Closed enumeration.
 type PermissionScope string
 
+// PermissionScope enumeration (Volume 9); each value is the wire-stable identifier.
 const (
 	ScopeSession      PermissionScope = "session"
 	ScopeWorkspace    PermissionScope = "workspace"
@@ -40,6 +42,7 @@ const (
 // Closed enumeration.
 type PermissionDecisionKind string
 
+// PermissionDecisionKind enumeration (Volume 9); each value is the wire-stable identifier.
 const (
 	DecisionAllowOnce         PermissionDecisionKind = "allow_once"
 	DecisionAllowForSession   PermissionDecisionKind = "allow_for_session"
@@ -54,6 +57,7 @@ const (
 // allow proceeds, deny refuses, ask indicates interaction is required.
 type DecisionOutcome string
 
+// DecisionOutcome enumeration (Volume 9); each value is the wire-stable identifier.
 const (
 	OutcomeAllow DecisionOutcome = "allow"
 	OutcomeDeny  DecisionOutcome = "deny"

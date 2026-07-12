@@ -46,7 +46,7 @@ func newConfigShowCommand() *cobra.Command {
 			}
 			sort.Strings(keys)
 			for _, k := range keys {
-				fmt.Fprintf(out, "%-32s = %-20v [%s]\n", k, res.Values[k], res.Sources[k])
+				_, _ = fmt.Fprintf(out, "%-32s = %-20v [%s]\n", k, res.Values[k], res.Sources[k])
 			}
 			return nil
 		},

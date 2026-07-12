@@ -19,5 +19,5 @@ func ptyStart(cmd *exec.Cmd) (*os.File, error) {
 
 // ptySetsize sets the PTY window size.
 func ptySetsize(f *os.File, cols, rows int) error {
-	return pty.Setsize(f, &pty.Winsize{Cols: uint16(cols), Rows: uint16(rows)})
+	return pty.Setsize(f, &pty.Winsize{Cols: uint16(cols & 0xFFFF), Rows: uint16(rows & 0xFFFF)})
 }

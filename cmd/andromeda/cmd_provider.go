@@ -22,7 +22,7 @@ func newProviderCommand() *cobra.Command {
 				{"anthropic", "api key", "Anthropic Messages API"},
 			}
 			for _, r := range rows {
-				fmt.Fprintf(out, "%-18s %-8s %s\n", r.name, r.auth, r.note)
+				_, _ = fmt.Fprintf(out, "%-18s %-8s %s\n", r.name, r.auth, r.note)
 			}
 			return nil
 		},
@@ -52,11 +52,11 @@ func newModelCommand() *cobra.Command {
 			}
 			out := cmd.OutOrStdout()
 			if len(models) == 0 {
-				fmt.Fprintln(cmd.ErrOrStderr(), "no models reported (the provider may not expose a discovery endpoint)")
+				_, _ = fmt.Fprintln(cmd.ErrOrStderr(), "no models reported (the provider may not expose a discovery endpoint)")
 				return nil
 			}
 			for _, m := range models {
-				fmt.Fprintln(out, m.ID)
+				_, _ = fmt.Fprintln(out, m.ID)
 			}
 			return nil
 		},

@@ -11,6 +11,7 @@ import (
 // Effect is a grant/rule effect. It maps onto the three-value evaluation vocabulary.
 type Effect string
 
+// EffectAllow, EffectDeny, and EffectAsk are the grant/rule effects.
 const (
 	EffectAllow Effect = "allow"
 	EffectDeny  Effect = "deny"

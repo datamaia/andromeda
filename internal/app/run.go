@@ -42,7 +42,7 @@ func RunAgent(ctx context.Context, opts RunAgentOptions) (agent.RunResult, error
 	if err != nil {
 		return agent.RunResult{}, err
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	pm := permission.NewManager(permission.NewStore(db), permission.WithActor("cli"))
 	// Safe by default: read is granted within the workspace subtree; write only when asked.

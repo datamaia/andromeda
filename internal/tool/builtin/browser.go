@@ -31,6 +31,7 @@ func NewBrowserControl(endpoint string, client *http.Client) BrowserControl {
 	return BrowserControl{endpoint: strings.TrimRight(endpoint, "/"), sessdir: "/session", client: client}
 }
 
+// Describe returns the browser_control tool descriptor.
 func (BrowserControl) Describe(context.Context) (ports.ToolDescriptor, error) {
 	return ports.ToolDescriptor{
 		Name: "browser_control", Namespace: "browser", Version: "1",
@@ -51,6 +52,7 @@ type browserInput struct {
 	Text      string `json:"text"`
 }
 
+// Validate requires operation and session, and requires url for the navigate operation.
 func (BrowserControl) Validate(_ context.Context, input ports.JSON) (ports.ValidationResult, error) {
 	var in browserInput
 	if err := json.Unmarshal(input, &in); err != nil || in.Operation == "" || in.Session == "" {
@@ -64,10 +66,12 @@ func (BrowserControl) Validate(_ context.Context, input ports.JSON) (ports.Valid
 
 func (in browserInput) operationNeedsURL() bool { return in.Operation == "navigate" }
 
+// Resources requests network access to the WebDriver endpoint.
 func (BrowserControl) Resources(ports.JSON) ([]ports.PermissionQuery, error) {
 	return []ports.PermissionQuery{{Permission: core.PermNetwork, Scope: core.ScopeDomain, Subject: "webdriver"}}, nil
 }
 
+// Execute maps the requested operation to its W3C WebDriver command and returns the response.
 func (t BrowserControl) Execute(ctx context.Context, req ports.ToolExecuteRequest) (ports.Stream[ports.ToolEvent], error) {
 	var in browserInput
 	_ = json.Unmarshal(req.Input, &in)
@@ -111,7 +115,7 @@ func (t BrowserControl) call(ctx context.Context, method, url string, payload []
 	if err != nil {
 		return errEvent("WebDriver request failed: " + err.Error()), nil
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	data, _ := io.ReadAll(io.LimitReader(resp.Body, maxHTTPBody))
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return errEvent("WebDriver error " + resp.Status + ": " + string(data)), nil
@@ -125,4 +129,5 @@ func (t BrowserControl) call(ctx context.Context, method, url string, payload []
 	return okEvent(string(out)), nil
 }
 
+// Cancel is a no-op; WebDriver commands complete synchronously within Execute.
 func (BrowserControl) Cancel(context.Context, core.ULID) error { return nil }

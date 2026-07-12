@@ -126,7 +126,7 @@ func (e *Engine) runTool(ctx context.Context, tc ports.ToolCall, subj ports.Perm
 	if err != nil {
 		return "error: " + err.Error()
 	}
-	defer st.Close()
+	defer func() { _ = st.Close() }()
 	var last string
 	for {
 		ev, err := st.Next(ctx)
@@ -158,7 +158,7 @@ func (e *Engine) declarations(ctx context.Context, names []string) ([]ports.Tool
 	return out, nil
 }
 
-func (e *Engine) persistRun(ctx context.Context, runID, sessionID core.ULID) {
+func (e *Engine) persistRun(ctx context.Context, runID, _ core.ULID) {
 	if e.sessions == nil {
 		return
 	}

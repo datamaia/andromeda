@@ -28,6 +28,7 @@ var ErrRevisionConflict = errors.New("storage: session revision conflict")
 // ErrNotFound indicates a requested row does not exist.
 var ErrNotFound = errors.New("storage: not found")
 
+// SaveSession persists a session snapshot, inserting or replacing the stored row.
 func (s *SessionStore) SaveSession(ctx context.Context, snap ports.SessionSnapshot) error {
 	if snap.ID == "" {
 		return fmt.Errorf("SaveSession: empty session id")
@@ -55,6 +56,7 @@ WHERE sessions.revision = ?`,
 	return nil
 }
 
+// LoadSession returns the stored snapshot for the given session id.
 func (s *SessionStore) LoadSession(ctx context.Context, id core.ULID) (ports.SessionSnapshot, error) {
 	var snap ports.SessionSnapshot
 	err := s.db.sql.QueryRowContext(ctx,
@@ -66,6 +68,7 @@ func (s *SessionStore) LoadSession(ctx context.Context, id core.ULID) (ports.Ses
 	return snap, err
 }
 
+// ListSessions returns session summaries matching the filter, newest first.
 func (s *SessionStore) ListSessions(ctx context.Context, f ports.SessionFilter) ([]ports.SessionSummary, error) {
 	q := `SELECT id, state, created_at FROM sessions`
 	var args []any
@@ -94,6 +97,7 @@ func (s *SessionStore) ListSessions(ctx context.Context, f ports.SessionFilter) 
 	return out, rows.Err()
 }
 
+// AppendRunRecords appends a batch of run records to the given run in one transaction.
 func (s *SessionStore) AppendRunRecords(ctx context.Context, runID core.ULID, batch []ports.RunRecord) error {
 	if len(batch) == 0 {
 		return nil
@@ -121,6 +125,7 @@ func (s *SessionStore) AppendRunRecords(ctx context.Context, runID core.ULID, ba
 	return tx.Commit()
 }
 
+// LoadRun returns the stored run snapshot for the given run id.
 func (s *SessionStore) LoadRun(ctx context.Context, id core.ULID) (ports.RunSnapshot, error) {
 	var snap ports.RunSnapshot
 	err := s.db.sql.QueryRowContext(ctx, `SELECT id, state FROM runs WHERE id = ?`, id).
@@ -147,6 +152,7 @@ func (s *SessionStore) LoadRun(ctx context.Context, id core.ULID) (ports.RunSnap
 	return snap, rows.Err()
 }
 
+// ListRuns returns run summaries matching the filter, newest first.
 func (s *SessionStore) ListRuns(ctx context.Context, f ports.RunFilter) ([]ports.RunSummary, error) {
 	q := `SELECT id, session_id, state FROM runs`
 	var conds []string
@@ -165,7 +171,7 @@ func (s *SessionStore) ListRuns(ctx context.Context, f ports.RunFilter) ([]ports
 		} else {
 			q += " AND "
 		}
-		q += c
+		q += c //nolint:gosec // G202: c is a constant clause fragment ("col = ?"); every value is bound via args
 	}
 	q += " ORDER BY id DESC"
 	if f.Limit > 0 {

@@ -10,7 +10,7 @@ func linearDef(names ...string) Definition {
 	def := Definition{Name: "test"}
 	for _, n := range names {
 		nm := n
-		def.Stages = append(def.Stages, Stage{Name: nm, Run: func(ctx context.Context, rs *RunState) (StageResult, error) {
+		def.Stages = append(def.Stages, Stage{Name: nm, Run: func(_ context.Context, _ *RunState) (StageResult, error) {
 			return StageResult{Summary: nm + " done", Artifacts: map[string]string{nm: "ok"}}, nil
 		}})
 	}

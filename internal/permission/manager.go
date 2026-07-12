@@ -195,7 +195,7 @@ func (m *Manager) audit(ctx context.Context, q ports.PermissionQuery, outcome co
 	})
 }
 
-func (m *Manager) mintGrantFor(kind core.PermissionDecisionKind, q ports.PermissionQuery, outcome core.DecisionOutcome) *Grant {
+func (m *Manager) mintGrantFor(kind core.PermissionDecisionKind, q ports.PermissionQuery, _ core.DecisionOutcome) *Grant {
 	base := Grant{
 		ID:         core.NewULID(),
 		Permission: q.Permission,

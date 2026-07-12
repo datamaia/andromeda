@@ -84,6 +84,7 @@ type TerminalPort interface {
 // SignalName is a portable signal name; the PAL maps it to platform mechanics.
 type SignalName string
 
+// SignalInterrupt, SignalTerminate, and SignalKill are the portable signal names.
 const (
 	SignalInterrupt SignalName = "interrupt"
 	SignalTerminate SignalName = "terminate"

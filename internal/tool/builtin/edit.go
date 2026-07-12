@@ -21,6 +21,7 @@ import (
 // must be unique unless replace_all. Phase: MVP.
 type FSReplace struct{}
 
+// Describe returns the fs_replace tool descriptor.
 func (FSReplace) Describe(context.Context) (ports.ToolDescriptor, error) {
 	return ports.ToolDescriptor{
 		Name: "fs_replace", Namespace: "fs", Version: "1", Description: "Replace text inside a file",
@@ -40,6 +41,7 @@ type replaceInput struct {
 	Regex      bool   `json:"regex"`
 }
 
+// Validate requires path and old, and compiles the pattern when regex is set.
 func (FSReplace) Validate(_ context.Context, input ports.JSON) (ports.ValidationResult, error) {
 	var in replaceInput
 	if err := json.Unmarshal(input, &in); err != nil || in.Path == "" || in.Old == "" {
@@ -53,6 +55,7 @@ func (FSReplace) Validate(_ context.Context, input ports.JSON) (ports.Validation
 	return ports.ValidationResult{Valid: true}, nil
 }
 
+// Resources requests read and write access to the target path.
 func (FSReplace) Resources(input ports.JSON) ([]ports.PermissionQuery, error) {
 	p := pathOf(input)
 	return []ports.PermissionQuery{
@@ -61,6 +64,7 @@ func (FSReplace) Resources(input ports.JSON) ([]ports.PermissionQuery, error) {
 	}, nil
 }
 
+// Execute replaces the matched text in the file and returns the replacement count and new hash.
 func (FSReplace) Execute(_ context.Context, req ports.ToolExecuteRequest) (ports.Stream[ports.ToolEvent], error) {
 	var in replaceInput
 	_ = json.Unmarshal(req.Input, &in)
@@ -115,6 +119,7 @@ func (FSReplace) Execute(_ context.Context, req ports.ToolExecuteRequest) (ports
 	return okEvent(string(res)), nil
 }
 
+// Cancel is a no-op; the replacement completes synchronously within Execute.
 func (FSReplace) Cancel(context.Context, core.ULID) error { return nil }
 
 // ---- fs_diff ----
@@ -122,6 +127,7 @@ func (FSReplace) Cancel(context.Context, core.ULID) error { return nil }
 // FSDiff computes a unified diff between two files (or a file and provided content). Phase: MVP.
 type FSDiff struct{}
 
+// Describe returns the fs_diff tool descriptor.
 func (FSDiff) Describe(context.Context) (ports.ToolDescriptor, error) {
 	return ports.ToolDescriptor{
 		Name: "fs_diff", Namespace: "fs", Version: "1", Description: "Compute a unified diff",
@@ -139,6 +145,7 @@ type diffInput struct {
 	ContextLines *int    `json:"context_lines"`
 }
 
+// Validate requires left and either right or right_content.
 func (FSDiff) Validate(_ context.Context, input ports.JSON) (ports.ValidationResult, error) {
 	var in diffInput
 	if err := json.Unmarshal(input, &in); err != nil || in.Left == "" {
@@ -150,6 +157,7 @@ func (FSDiff) Validate(_ context.Context, input ports.JSON) (ports.ValidationRes
 	return ports.ValidationResult{Valid: true}, nil
 }
 
+// Resources requests read access to the left file and, when supplied as a path, the right file.
 func (FSDiff) Resources(input ports.JSON) ([]ports.PermissionQuery, error) {
 	var in diffInput
 	_ = json.Unmarshal(input, &in)
@@ -160,6 +168,7 @@ func (FSDiff) Resources(input ports.JSON) ([]ports.PermissionQuery, error) {
 	return qs, nil
 }
 
+// Execute computes and returns the unified diff between the two inputs.
 func (FSDiff) Execute(_ context.Context, req ports.ToolExecuteRequest) (ports.Stream[ports.ToolEvent], error) {
 	var in diffInput
 	_ = json.Unmarshal(req.Input, &in)
@@ -195,6 +204,7 @@ func (FSDiff) Execute(_ context.Context, req ports.ToolExecuteRequest) (ports.St
 	return okEvent(string(out)), nil
 }
 
+// Cancel is a no-op; the diff is computed synchronously within Execute.
 func (FSDiff) Cancel(context.Context, core.ULID) error { return nil }
 
 // ---- fs_patch ----
@@ -202,6 +212,7 @@ func (FSDiff) Cancel(context.Context, core.ULID) error { return nil }
 // FSPatch applies a unified diff to the workspace atomically — all hunks or none. Phase: MVP.
 type FSPatch struct{}
 
+// Describe returns the fs_patch tool descriptor.
 func (FSPatch) Describe(context.Context) (ports.ToolDescriptor, error) {
 	return ports.ToolDescriptor{
 		Name: "fs_patch", Namespace: "fs", Version: "1", Description: "Apply a unified diff atomically",
@@ -218,6 +229,7 @@ type patchInput struct {
 	Root      string `json:"root"`
 }
 
+// Validate requires a non-empty, parseable unified diff.
 func (FSPatch) Validate(_ context.Context, input ports.JSON) (ports.ValidationResult, error) {
 	var in patchInput
 	if err := json.Unmarshal(input, &in); err != nil || strings.TrimSpace(in.Diff) == "" {
@@ -229,6 +241,7 @@ func (FSPatch) Validate(_ context.Context, input ports.JSON) (ports.ValidationRe
 	return ports.ValidationResult{Valid: true}, nil
 }
 
+// Resources requests write access to every file named in the diff, rooted at root.
 func (FSPatch) Resources(input ports.JSON) ([]ports.PermissionQuery, error) {
 	var in patchInput
 	_ = json.Unmarshal(input, &in)
@@ -243,6 +256,7 @@ func (FSPatch) Resources(input ports.JSON) ([]ports.PermissionQuery, error) {
 	return qs, nil
 }
 
+// Execute applies the unified diff atomically, writing all patched files or none.
 func (FSPatch) Execute(_ context.Context, req ports.ToolExecuteRequest) (ports.Stream[ports.ToolEvent], error) {
 	var in patchInput
 	_ = json.Unmarshal(req.Input, &in)
@@ -279,7 +293,7 @@ func (FSPatch) Execute(_ context.Context, req ports.ToolExecuteRequest) (ports.S
 	}
 
 	for _, w := range toWrite {
-		if err := os.MkdirAll(filepath.Dir(w.path), 0o755); err != nil {
+		if err := os.MkdirAll(filepath.Dir(w.path), 0o750); err != nil {
 			return errEvent("mkdir failed: " + err.Error()), nil
 		}
 		if err := os.WriteFile(w.path, []byte(w.content), 0o644); err != nil { //nolint:gosec // permission-checked
@@ -290,6 +304,7 @@ func (FSPatch) Execute(_ context.Context, req ports.ToolExecuteRequest) (ports.S
 	return okEvent(string(out)), nil
 }
 
+// Cancel is a no-op; the patch is applied synchronously within Execute.
 func (FSPatch) Cancel(context.Context, core.ULID) error { return nil }
 
 // isBinary reports whether data looks non-textual (contains a NUL byte in its head).

@@ -179,7 +179,7 @@ func (ex *execution) finish() {
 }
 
 // Stream returns the execution's output stream (single consumer).
-func (e *Engine) Stream(ctx context.Context, id ports.ExecutionID) (ports.Stream[ports.TerminalChunk], error) {
+func (e *Engine) Stream(_ context.Context, id ports.ExecutionID) (ports.Stream[ports.TerminalChunk], error) {
 	ex, err := e.lookup(id)
 	if err != nil {
 		return nil, err
@@ -188,7 +188,7 @@ func (e *Engine) Stream(ctx context.Context, id ports.ExecutionID) (ports.Stream
 }
 
 // Write sends input to the command's stdin.
-func (e *Engine) Write(ctx context.Context, id ports.ExecutionID, input []byte) error {
+func (e *Engine) Write(_ context.Context, id ports.ExecutionID, input []byte) error {
 	ex, err := e.lookup(id)
 	if err != nil {
 		return err
@@ -209,7 +209,7 @@ func (e *Engine) Write(ctx context.Context, id ports.ExecutionID, input []byte) 
 }
 
 // Signal delivers a portable signal to the command.
-func (e *Engine) Signal(ctx context.Context, id ports.ExecutionID, sig ports.SignalName) error {
+func (e *Engine) Signal(_ context.Context, id ports.ExecutionID, sig ports.SignalName) error {
 	ex, err := e.lookup(id)
 	if err != nil {
 		return err
@@ -218,7 +218,7 @@ func (e *Engine) Signal(ctx context.Context, id ports.ExecutionID, sig ports.Sig
 }
 
 // Resize sets the PTY window size (a no-op in pipe mode).
-func (e *Engine) Resize(ctx context.Context, id ports.ExecutionID, cols, rows int) error {
+func (e *Engine) Resize(_ context.Context, id ports.ExecutionID, cols, rows int) error {
 	ex, err := e.lookup(id)
 	if err != nil {
 		return err

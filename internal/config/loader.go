@@ -18,7 +18,7 @@ const ConfigFileName = "andromeda.toml"
 // (<root>/.andromeda/andromeda.toml), the project file (<root>/andromeda.toml), and the
 // process environment. Invocation overrides are added by the caller via SetOverrides. Missing
 // files are skipped; a present-but-malformed file returns its E-CFG error.
-func Load(ctx context.Context, dirs pal.ConfigDirs, workspaceRoot string) (*Manager, error) {
+func Load(_ context.Context, dirs pal.ConfigDirs, workspaceRoot string) (*Manager, error) {
 	m := New()
 	m.SetDefaults(Defaults())
 

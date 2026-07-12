@@ -38,7 +38,7 @@ func TestULIDUniquenessAndMonotonicity(t *testing.T) {
 func TestULIDMonotonicSameMillisecond(t *testing.T) {
 	a := ulidGen.next(1000)
 	b := ulidGen.next(1000)
-	if !(a < b) {
+	if a >= b {
 		t.Errorf("same-ms ULIDs not monotonic: %q >= %q", a, b)
 	}
 }

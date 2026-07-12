@@ -92,8 +92,8 @@ type unixFileLocking struct{}
 // NewFileLocking returns the Unix FileLocking surface.
 func NewFileLocking() FileLocking { return unixFileLocking{} }
 
-func (unixFileLocking) Acquire(ctx context.Context, path string, exclusive bool) (FileLock, error) {
-	f, err := os.OpenFile(path, os.O_CREATE|os.O_RDWR, 0o600)
+func (unixFileLocking) Acquire(_ context.Context, path string, exclusive bool) (FileLock, error) {
+	f, err := os.OpenFile(path, os.O_CREATE|os.O_RDWR, 0o600) //nolint:gosec // G304: path is an internal lock-file location supplied by callers, not raw user input
 	if err != nil {
 		return nil, err
 	}

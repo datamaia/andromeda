@@ -26,7 +26,7 @@ func withMemory(ctx context.Context, fn func(*memory.Store) error) error {
 	if err != nil {
 		return err
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 	return fn(memory.New(db))
 }
 
@@ -43,7 +43,7 @@ func newMemoryAddCommand() *cobra.Command {
 				if err != nil {
 					return err
 				}
-				fmt.Fprintf(cmd.OutOrStdout(), "added %s\n", ids[0])
+				_, _ = fmt.Fprintf(cmd.OutOrStdout(), "added %s\n", ids[0])
 				return nil
 			})
 		},
@@ -64,7 +64,7 @@ func newMemoryListCommand() *cobra.Command {
 					return err
 				}
 				for _, r := range recs {
-					fmt.Fprintf(cmd.OutOrStdout(), "[%s] %s\n", r.Layer, r.Content)
+					_, _ = fmt.Fprintf(cmd.OutOrStdout(), "[%s] %s\n", r.Layer, r.Content)
 				}
 				return nil
 			})
@@ -85,7 +85,7 @@ func newMemorySearchCommand() *cobra.Command {
 					return err
 				}
 				for _, r := range recs {
-					fmt.Fprintf(cmd.OutOrStdout(), "[%s] %s\n", r.Layer, r.Content)
+					_, _ = fmt.Fprintf(cmd.OutOrStdout(), "[%s] %s\n", r.Layer, r.Content)
 				}
 				return nil
 			})

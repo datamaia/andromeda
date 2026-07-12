@@ -25,6 +25,7 @@ var gitMutating = map[string]bool{
 	"stage": true, "unstage": true, "commit": true, "branch_create": true, "branch_switch": true,
 }
 
+// Describe returns the git_exec tool descriptor.
 func (GitExec) Describe(context.Context) (ports.ToolDescriptor, error) {
 	return ports.ToolDescriptor{
 		Name: "git_exec", Namespace: "git", Version: "1",
@@ -43,6 +44,7 @@ type gitInput struct {
 	Repo      string          `json:"repo"`
 }
 
+// Validate requires a non-empty operation.
 func (GitExec) Validate(_ context.Context, input ports.JSON) (ports.ValidationResult, error) {
 	var in gitInput
 	if err := json.Unmarshal(input, &in); err != nil || in.Operation == "" {
@@ -51,6 +53,7 @@ func (GitExec) Validate(_ context.Context, input ports.JSON) (ports.ValidationRe
 	return ports.ValidationResult{Valid: true}, nil
 }
 
+// Resources requests read access to the repository, plus git_mutation for mutating operations.
 func (GitExec) Resources(input ports.JSON) ([]ports.PermissionQuery, error) {
 	var in gitInput
 	_ = json.Unmarshal(input, &in)
@@ -65,6 +68,7 @@ func (GitExec) Resources(input ports.JSON) ([]ports.PermissionQuery, error) {
 	return qs, nil
 }
 
+// Execute dispatches the operation to the Git Engine and returns its result.
 func (t GitExec) Execute(ctx context.Context, req ports.ToolExecuteRequest) (ports.Stream[ports.ToolEvent], error) {
 	var in gitInput
 	_ = json.Unmarshal(req.Input, &in)
@@ -137,6 +141,7 @@ func (t GitExec) dispatch(ctx context.Context, repo ports.RepoRef, in gitInput) 
 	}
 }
 
+// Cancel is a no-op; Git operations complete synchronously within Execute.
 func (GitExec) Cancel(context.Context, core.ULID) error { return nil }
 
 // collect drains a stream into a slice.

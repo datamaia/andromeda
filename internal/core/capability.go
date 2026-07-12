@@ -5,6 +5,7 @@ package core
 // enumeration (Volume 5, chapter 02); extending it requires an ADR.
 type Capability string
 
+// Capability enumeration (Volume 5, chapter 02); each value is the wire-stable identifier.
 const (
 	CapChat                Capability = "chat"
 	CapStreaming           Capability = "streaming"
@@ -16,7 +17,7 @@ const (
 	CapAudioInput          Capability = "audio_input"
 	CapAudioOutput         Capability = "audio_output"
 	CapEmbeddings          Capability = "embeddings"
-	CapTokenUsageReporting Capability = "token_usage_reporting"
+	CapTokenUsageReporting Capability = "token_usage_reporting" //nolint:gosec // G101: capability identifier literal, not a credential
 	CapCostReporting       Capability = "cost_reporting"
 	CapModelDiscovery      Capability = "model_discovery"
 	CapCancellation        Capability = "cancellation"

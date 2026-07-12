@@ -9,9 +9,6 @@ import "github.com/datamaia/andromeda/internal/ports"
 // process-level layer is offered here, so the effective level is honestly reported as process.
 func osIsolationSupported() bool { return false }
 
-// osIsolationName identifies the platform mechanism.
-const osIsolationName = "none"
-
 // wrapOSIsolation is a passthrough on platforms without an OS-level layer.
 func wrapOSIsolation(_ ports.SandboxPolicy, program string, args []string) (string, []string) {
 	return program, args

@@ -105,7 +105,7 @@ func postForm(ctx context.Context, cfg OAuthConfig, endpoint string, form url.Va
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	return json.NewDecoder(resp.Body).Decode(out)
 }
 

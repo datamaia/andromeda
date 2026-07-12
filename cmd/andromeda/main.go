@@ -109,11 +109,11 @@ func newRunCommand() *cobra.Command {
 			})
 			out := cmd.OutOrStdout()
 			if err != nil {
-				fmt.Fprintf(out, "run %s (%s)\n", res.State, res.RunID)
+				_, _ = fmt.Fprintf(out, "run %s (%s)\n", res.State, res.RunID)
 				return err
 			}
-			fmt.Fprintln(out, res.FinalText)
-			fmt.Fprintf(cmd.ErrOrStderr(),
+			_, _ = fmt.Fprintln(out, res.FinalText)
+			_, _ = fmt.Fprintf(cmd.ErrOrStderr(),
 				"\n[run %s · %d iterations · %d tool calls · %d/%d tokens]\n",
 				res.State, res.Iterations, res.ToolCalls, res.InputTokens, res.OutputTokens)
 			return nil
@@ -151,12 +151,12 @@ func newDoctorCommand() *cobra.Command {
 				if !c.OK {
 					mark = "FAIL"
 				}
-				fmt.Fprintf(out, "[%s] %-13s %s\n", mark, c.Name, c.Detail)
+				_, _ = fmt.Fprintf(out, "[%s] %-13s %s\n", mark, c.Name, c.Detail)
 			}
 			if !rep.OK() {
 				return fmt.Errorf("one or more checks failed")
 			}
-			fmt.Fprintln(out, "doctor: all checks passed")
+			_, _ = fmt.Fprintln(out, "doctor: all checks passed")
 			return nil
 		},
 	}

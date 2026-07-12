@@ -61,7 +61,7 @@ func (m *WASMModule) CallI32(ctx context.Context, fn string) (int32, error) {
 	if len(res) == 0 {
 		return 0, pluginErr("E-PLUG-022", "wasm function returned no value")
 	}
-	return int32(res[0]), nil
+	return int32(res[0]), nil //nolint:gosec // G115: res[0] holds a wasm i32 return value in its low 32 bits per the guest ABI
 }
 
 // Run passes input bytes to the guest's alloc+run ABI and returns the result bytes.
@@ -76,7 +76,7 @@ func (m *WASMModule) Run(ctx context.Context, input []byte) ([]byte, error) {
 	if err != nil {
 		return nil, pluginErr("E-PLUG-022", "wasm alloc failed: "+err.Error())
 	}
-	ptr := uint32(ptrRes[0])
+	ptr := uint32(ptrRes[0]) //nolint:gosec // G115: alloc returns a wasm i32 pointer bounded by the 32-bit linear-memory address space
 	if !mem.Write(ptr, input) {
 		return nil, pluginErr("E-PLUG-022", "wasm memory write out of range")
 	}

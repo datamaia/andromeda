@@ -16,9 +16,6 @@ func osIsolationSupported() bool {
 	return err == nil
 }
 
-// osIsolationName identifies the platform mechanism (recorded per execution).
-const osIsolationName = "seatbelt"
-
 // wrapOSIsolation wraps a command in sandbox-exec with a Seatbelt profile generated from the
 // policy: reads are broadly allowed, writes are denied except under the policy's write paths,
 // and network is denied when the policy denies it. Returns the wrapped program and args.

@@ -25,7 +25,7 @@ func newToolCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			out := cmd.OutOrStdout()
 			for _, t := range builtinToolSummaries() {
-				fmt.Fprintf(out, "%-14s %-8s %s\n", t.name, t.perms, t.desc)
+				_, _ = fmt.Fprintf(out, "%-14s %-8s %s\n", t.name, t.perms, t.desc)
 			}
 			return nil
 		},
@@ -83,9 +83,9 @@ func newIndexCommand() *cobra.Command {
 			}
 			out := cmd.OutOrStdout()
 			st, _ := e.Status(context.Background(), id)
-			fmt.Fprintf(cmd.ErrOrStderr(), "[indexed %d files, generation %d]\n", st.Coverage, st.Generation)
+			_, _ = fmt.Fprintf(cmd.ErrOrStderr(), "[indexed %d files, generation %d]\n", st.Coverage, st.Generation)
 			for _, h := range hits {
-				fmt.Fprintf(out, "%.2f  %s\n", h.Score, h.Path)
+				_, _ = fmt.Fprintf(out, "%.2f  %s\n", h.Score, h.Path)
 			}
 			return nil
 		},
@@ -111,9 +111,9 @@ func newUpdateCommand() *cobra.Command {
 			out := cmd.OutOrStdout()
 			switch res.Status {
 			case "update_available":
-				fmt.Fprintf(out, "update available: %s → %s (channel %s)\n", res.Current, res.Latest, res.Channel)
+				_, _ = fmt.Fprintf(out, "update available: %s → %s (channel %s)\n", res.Current, res.Latest, res.Channel)
 			default:
-				fmt.Fprintf(out, "up to date: %s (channel %s)\n", res.Current, res.Channel)
+				_, _ = fmt.Fprintf(out, "up to date: %s (channel %s)\n", res.Current, res.Channel)
 			}
 			return nil
 		},
@@ -127,7 +127,7 @@ func newCompletionCommand(root *cobra.Command) *cobra.Command {
 	return &cobra.Command{
 		Use:       "completion [bash|zsh|fish]",
 		Short:     "Generate a shell completion script",
-		Args:      cobra.ExactValidArgs(1),
+		Args:      cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
 		ValidArgs: []string{"bash", "zsh", "fish"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			out := cmd.OutOrStdout()
