@@ -85,13 +85,18 @@ func TestGroupFirstErrorPropagates(t *testing.T) {
 
 func TestCancelBeforeStart(t *testing.T) {
 	ctx := context.Background()
-	// A pool of size 1, saturated, so the second task queues and can be cancelled before start.
+	// A pool of size 1: the first task must be occupying the only slot before the second is
+	// submitted, so the second genuinely queues and can be cancelled before it starts.
 	s := New(map[string]int{"io": 1})
+	started := make(chan struct{})
 	block := make(chan struct{})
 	s.Submit(ctx, ports.TaskSpec{Pool: "io", Run: func(context.Context) (ports.TaskOutcome, error) {
+		close(started)
 		<-block
 		return ports.TaskOutcome{OK: true}, nil
 	}})
+	<-started // the first task now holds the slot; the next submission must queue
+
 	h2, _ := s.Submit(ctx, ports.TaskSpec{Pool: "io", Run: func(context.Context) (ports.TaskOutcome, error) {
 		return ports.TaskOutcome{OK: true}, nil
 	}})
