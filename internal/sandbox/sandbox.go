@@ -64,7 +64,29 @@ func (e *Engine) ApplyPolicy(ctx context.Context, sb ports.SandboxHandle, policy
 		return secErr("E-SEC-030", "unknown sandbox handle")
 	}
 	h.policy = policy
+	// Resolve the effective containment level (ADR-021): honor a request for OS-level isolation
+	// only when the platform supports it; a downgrade to process-level is explicit and recorded.
+	switch policy.Isolation {
+	case "os", "auto":
+		if osIsolationSupported() {
+			h.containment = "os"
+		} else {
+			h.containment = "process"
+		}
+	default:
+		h.containment = "process"
+	}
 	return nil
+}
+
+// ContainmentLevel returns the effective containment level of a handle (observable state).
+func (e *Engine) ContainmentLevel(sb ports.SandboxHandle) string {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	if h, ok := e.handles[sb.ID]; ok {
+		return h.containment
+	}
+	return ""
 }
 
 // ExecuteIn starts a command inside the sandbox after policy checks and env filtering, and
@@ -106,8 +128,16 @@ func (e *Engine) ExecuteIn(ctx context.Context, sb ports.SandboxHandle, cmd port
 		}
 	}
 
+	// Apply OS-level isolation when the handle's effective containment is "os".
+	program, progArgs := cmd.Program, cmd.Args
+	if h.containment == "os" {
+		program, progArgs = wrapOSIsolation(h.policy, cmd.Program, cmd.Args)
+	}
+	wrapped := cmd
+	wrapped.Program, wrapped.Args = program, progArgs
+
 	timeout := time.Duration(h.policy.TimeLimitSec) * time.Second
-	ex, err := startExecution(ctx, cmd, dir, env, timeout)
+	ex, err := startExecution(ctx, wrapped, dir, env, timeout)
 	if err != nil {
 		return "", secErr("E-SEC-033", "failed to start sandboxed command")
 	}

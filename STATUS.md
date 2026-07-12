@@ -36,7 +36,9 @@ Beyond the minimum, also implemented: **SDD Workflow Engine**, **MCP client + to
 
 Per the specification's own phasing and PENDING VALIDATION items — not part of the MVP:
 
-- **OS-level sandbox** (Seatbelt/Landlock) — ADR-021 marks this Beta/v1, PENDING VALIDATION.
+- **OS-level sandbox**: macOS **Seatbelt** (`sandbox-exec`) now implemented and verified
+  (enforces the write policy; effective containment reported as `os`). Linux Landlock/bubblewrap
+  remains a follow-up (ADR-021 PENDING VALIDATION per platform).
 - **Windows native** — v2 candidate (WSL is a distinct modality).
 - **OAuth MCP auth**, **WASM plugins** — PENDING VALIDATION / v2 (ADR-010/009).
 - **macOS notarization** — needs an Apple Developer identity (open question OQ-003).

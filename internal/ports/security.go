@@ -128,4 +128,9 @@ type SandboxPolicy struct {
 	TimeLimitSec  int
 	CommandAllow  []string
 	CommandDeny   []string
+	// Isolation selects the containment mechanism (ADR-021): "" or "process" for the MVP
+	// process-level controls; "os" to require OS-level isolation (macOS Seatbelt, Linux
+	// Landlock/bubblewrap); "auto" to use OS-level isolation when the platform supports it and
+	// fall back to process-level otherwise. A downgrade is always explicit and observable.
+	Isolation string
 }
