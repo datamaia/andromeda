@@ -61,8 +61,11 @@ Thumbs.db
 prompt.md
 
 # === Andromeda ===
-/andromeda            # dev binary if built into the repo root
+# NOTE: .gitignore does not support trailing comments — patterns must stand alone.
+/andromeda
 coverage.out
 coverage.html
-.andromeda/           # project-local state of Andromeda-developing-Andromeda
-dist/                 # goreleaser output
+# project-local runtime state (workspace DB, marker dir; ADR-028)
+.andromeda/
+# goreleaser output
+dist/
