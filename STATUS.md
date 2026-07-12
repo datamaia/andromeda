@@ -42,8 +42,10 @@ Per the specification's own phasing and PENDING VALIDATION items — not part of
 - **Windows native** — v2 candidate (WSL is a distinct modality).
 - **OAuth MCP auth**, **WASM plugins** — PENDING VALIDATION / v2 (ADR-010/009).
 - **macOS notarization** — needs an Apple Developer identity (open question OQ-003).
-- **OpenTelemetry SDK export**, **live config watch**, **PTY terminal mode**, **semantic
-  embeddings retrieval**, **per-stage SDD agent wiring**, **v2 Bubble Tea migration**,
+- ✅ **Semantic embeddings retrieval** now implemented (`indexer.SemanticEngine`): embeds files
+  and answers queries by in-process cosine similarity (ADR-020), backed by any `ProviderPort`
+  via `ProviderEmbedder`; verified with a deterministic embedder.
+- **OpenTelemetry SDK export**, **live config watch**, **PTY terminal mode**, **per-stage SDD agent wiring**, **v2 Bubble Tea migration**,
   **remaining CLI commands** (context, trace) — refinements layered on the working MVP.
 
 The full traceability automation (Volume 11 ch 07 GitHub-side checks) and branch protection are
