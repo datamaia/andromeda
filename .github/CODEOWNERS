@@ -13,9 +13,6 @@
 /sdk/                   @datamaia
 /schemas/               @datamaia
 
-# Specification (spec and code evolve together; gated by spec_lint)
-/docs/spec/             @datamaia
-
 # Process integrity
 /.github/workflows/     @datamaia
 /scripts/traceability/  @datamaia

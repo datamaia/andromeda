@@ -69,3 +69,7 @@ coverage.html
 .andromeda/
 # goreleaser output
 dist/
+# Private IP kept OUT of this (public) repo: the specification corpus and brand source assets.
+# They live locally for development and in a separate private home; never commit them here.
+docs/spec/
+docs/brand/

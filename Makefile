@@ -72,8 +72,12 @@ coverage-gate: coverage ## Fail if total coverage is below COVERAGE_MIN (SM-14)
 		|| { echo "coverage below threshold"; exit 1; }
 
 .PHONY: spec-lint
-spec-lint: ## Run the specification linter over docs/spec
-	python3 scripts/spec_lint.py
+spec-lint: ## Run the specification linter over docs/spec when it is present (private, not in this repo)
+	@if [ -d docs/spec ]; then \
+		python3 scripts/spec_lint.py; \
+	else \
+		echo "spec-lint: skipped (docs/spec is not part of this checkout)"; \
+	fi
 
 .PHONY: structure-check
 structure-check: ## Verify the mandatory repository layout (FR-GH-002)

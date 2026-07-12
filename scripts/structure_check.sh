@@ -28,7 +28,6 @@ required_paths=(
   internal/pal
   sdk
   sdk/go.mod
-  docs/spec
   scripts
   .github/CODEOWNERS
   .github/PULL_REQUEST_TEMPLATE.md
@@ -54,7 +53,7 @@ done
 # Mandatory CODEOWNERS path rules.
 co=".github/CODEOWNERS"
 if [ -f "$co" ]; then
-  for rule in "/internal/ports/" "/sdk/" "/docs/spec/" "/.github/workflows/" \
+  for rule in "/internal/ports/" "/sdk/" "/.github/workflows/" \
               "/internal/permission/" "/internal/sandbox/" "/internal/secret/" \
               "/.goreleaser.yaml" "/packaging/"; do
     grep -qF "$rule" "$co" || { echo "structure-check: MISSING CODEOWNERS rule $rule"; fail=1; }
