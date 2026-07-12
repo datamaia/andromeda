@@ -8,11 +8,12 @@ Commit history by the release automation (ADR-013) and committed at release time
 
 ## [Unreleased]
 
-## [0.1.2] - 2026-07-12
+## [0.1.3] - 2026-07-12
 
 Hardening and distribution release. Binaries are rebuilt with a patched standard library and
-Homebrew installation is now available. (Supersedes 0.1.1, whose binaries published but whose
-cask-publishing step failed on a goreleaser template; use 0.1.2 or later for `brew`.)
+Homebrew installation is now available. (Supersedes 0.1.1 and 0.1.2, whose binaries published
+but whose cask-publishing steps failed on goreleaser template issues; use 0.1.3 or later for
+`brew`.)
 
 ### Added
 

@@ -73,7 +73,9 @@ homebrew_casks:
     repository:
       owner: datamaia
       name: homebrew-tap
-      token: '{{ index .Env "HOMEBREW_TAP_TOKEN" }}'
+      # goreleaser requires the token field to be exactly a {{ .Env.VAR }} reference (no other
+      # interpolation). The release workflow always sets HOMEBREW_TAP_TOKEN (secret or empty).
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
     # The default Actions GITHUB_TOKEN is scoped to this repository only and cannot push to
     # the separate tap repo. Cask upload therefore activates only once a HOMEBREW_TAP_TOKEN
     # secret with write access to datamaia/homebrew-tap is provisioned; until then goreleaser
