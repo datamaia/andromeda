@@ -165,10 +165,14 @@ func (ex *execution) finish() {
 		ex.mu.Lock()
 		ex.outcome = out
 		ex.waited = true
-		ex.mu.Unlock()
+		// Close the PTY under the same lock that Resize/Write take, then clear it: creack/pty's
+		// Setsize reaches through File.Fd() (outside the poll refcount), so a Resize racing this
+		// Close is a genuine data race. Serializing here and nil-ing the handle closes that race.
 		if ex.ptyFile != nil {
 			_ = ex.ptyFile.Close()
+			ex.ptyFile = nil
 		}
+		ex.mu.Unlock()
 		ex.closeCh()
 		close(ex.done)
 	})
@@ -189,8 +193,12 @@ func (e *Engine) Write(ctx context.Context, id ports.ExecutionID, input []byte) 
 	if err != nil {
 		return err
 	}
-	if ex.ptyFile != nil {
-		_, werr := ex.ptyFile.Write(input)
+	ex.mu.Lock()
+	pty := ex.ptyFile
+	ex.mu.Unlock()
+	if pty != nil {
+		// os.File.Write is refcount-safe against a concurrent Close, so it need not hold the lock.
+		_, werr := pty.Write(input)
 		return werr
 	}
 	if ex.stdin == nil {
@@ -215,6 +223,10 @@ func (e *Engine) Resize(ctx context.Context, id ports.ExecutionID, cols, rows in
 	if err != nil {
 		return err
 	}
+	// Hold the lock across Setsize: it reaches through File.Fd(), which must not overlap the
+	// Close in finish() (they would race on the file descriptor teardown).
+	ex.mu.Lock()
+	defer ex.mu.Unlock()
 	if ex.ptyFile != nil {
 		return ptySetsize(ex.ptyFile, cols, rows)
 	}

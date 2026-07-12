@@ -125,3 +125,29 @@ func TestPTYModeCapturesOutput(t *testing.T) {
 		t.Errorf("pty outcome = %+v", outcome)
 	}
 }
+
+// TestPTYResizeRacesFinish drives Resize concurrently with the process exiting (and its PTY being
+// closed in finish). Under -race this reproduces the File.Fd()-vs-Close data race if the PTY
+// lifecycle is not serialized. It must remain race-clean.
+func TestPTYResizeRacesFinish(t *testing.T) {
+	if !ptySupported() {
+		t.Skip("pty not supported")
+	}
+	ctx := context.Background()
+	for i := 0; i < 20; i++ {
+		e := New()
+		id, err := e.Execute(ctx, ports.CommandSpec{Program: "sh", Args: []string{"-c", "printf x"}, PTY: true})
+		if err != nil {
+			t.Fatal(err)
+		}
+		done := make(chan struct{})
+		go func() {
+			for j := 0; j < 50; j++ {
+				_ = e.Resize(ctx, id, 80+j, 24)
+			}
+			close(done)
+		}()
+		_, _ = e.Wait(ctx, id) // triggers finish()/PTY close, racing the Resize loop
+		<-done
+	}
+}
