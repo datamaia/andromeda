@@ -45,8 +45,13 @@ Per the specification's own phasing and PENDING VALIDATION items — not part of
   amd64 and windows/arm64**; runtime validation on a Windows host remains (v2, no host here).
 - ✅ **OAuth device authorization grant** implemented (`auth`, ADR-063, RFC 8628):
   start-device-flow + poll-token (honoring authorization_pending, slow_down, and deadlines) +
-  store, verified with an httptest OAuth server. (MCP client-OAuth binding awaits the upstream
-  SDK graduating it.)
+  store, verified with an httptest OAuth server.
+- ✅ **HTTP MCP transport with OAuth bearer** implemented (`mcp`, ADR-010): JSON-response mode of
+  the Streamable HTTP transport (POST-per-request, also parses `text/event-stream` responses),
+  adapting the newline-delimited JSON-RPC framing to HTTP. `BearerFromSecretStore` binds it to
+  the device grant — the token the OAuth flow stored is read from the Secret Store as the bearer
+  on each request. Verified with an httptest MCP server (bearer attached, anonymous, 401 fails a
+  single call, SSE response, and the full Secret-Store→bearer path).
 - ✅ **WASM plugin runtime** implemented (`plugin`, ADR-009 v2, wazero): in-process WebAssembly
   plugins with no host capabilities, bridged to permission-mediated ToolPorts; verified with an
   embedded wasm module. (Was previously a v2 candidate; wazero is pure-Go so it is testable here.)
