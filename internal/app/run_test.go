@@ -73,6 +73,33 @@ func TestRunAgentReadsAFileEndToEnd(t *testing.T) {
 	}
 }
 
+func TestRunAgentHonorsConfigMaxIterations(t *testing.T) {
+	ctx := context.Background()
+	ws := t.TempDir()
+	if err := os.WriteFile(filepath.Join(ws, "hello.txt"), []byte("hi"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	// Project config caps the loop at a single iteration.
+	if err := os.WriteFile(filepath.Join(ws, "andromeda.toml"), []byte("[agent.loop]\nmax_iterations = 1\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	input, _ := json.Marshal(map[string]string{"path": filepath.Join(ws, "hello.txt")})
+	// The model never stops calling a tool, so only the iteration cap can end the run.
+	prov := &scriptedProvider{responses: []ports.ChatResponse{
+		assistantMsg("call 1", ports.ToolCall{ID: "1", Name: "fs_read", Input: input}),
+		assistantMsg("call 2", ports.ToolCall{ID: "2", Name: "fs_read", Input: input}),
+		assistantMsg("call 3", ports.ToolCall{ID: "3", Name: "fs_read", Input: input}),
+	}}
+	// No MaxIterations option: the value must come from config.
+	res, err := RunAgent(ctx, RunAgentOptions{WorkspaceRoot: ws, Goal: "loop", Model: "m", Provider: prov})
+	if err == nil {
+		t.Fatal("expected the iteration-budget error")
+	}
+	if res.Iterations != 1 {
+		t.Fatalf("iterations = %d, want 1 (from agent.loop.max_iterations)", res.Iterations)
+	}
+}
+
 func TestRunAgentWriteDeniedWithoutAllowWrite(t *testing.T) {
 	ctx := context.Background()
 	ws := t.TempDir()

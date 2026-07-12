@@ -93,7 +93,7 @@ func (m *Manager) LoadTOML(source string, data []byte) error {
 // separates configuration-table levels and a single underscore "_" is literal within a key
 // segment. When the name contains no "__", single underscores are treated as separators, so
 // the simple case still works: ANDROMEDA_TUI_THEME_MODE → tui.theme.mode, while
-// ANDROMEDA_AGENT__MAX_ITERATIONS → agent.max_iterations.
+// ANDROMEDA_AGENT__LOOP__MAX_ITERATIONS → agent.loop.max_iterations.
 func (m *Manager) SetEnv(environ []string) {
 	values := map[string]any{}
 	for _, kv := range environ {

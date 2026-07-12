@@ -182,10 +182,15 @@ Realizes FR-CFG-001 (configuration precedence) and the ADR-007/028/029 persisten
 
 **Decision recorded (to reconcile with Volume 10 FR-CFG-004):** the `ANDROMEDA_*` env-var
 mapping uses `__` to separate config-table levels and treats a single `_` as literal within a
-key segment (so `ANDROMEDA_AGENT__MAX_ITERATIONS` → `agent.max_iterations`), with a
+key segment (so `ANDROMEDA_AGENT__LOOP__MAX_ITERATIONS` → `agent.loop.max_iterations`), with a
 single-underscore fallback when no `__` is present (so the spec's `ANDROMEDA_TUI_THEME_MODE →
 tui.theme.mode` example still works). This resolves the underscore ambiguity the spec itself
 flags; Volume 10's text should adopt the same rule.
+
+**Config key alignment:** the loop-iteration default is keyed `agent.loop.max_iterations` (the
+Volume 10 catalog's canonical name) and is now actually consumed: `RunAgent` reads it from the
+resolved configuration when no `--max-iterations` flag/override is set, so `andromeda.toml` can
+cap the agent loop (flag > config > engine default).
 
 ### EP-04 — Observability foundation · ✅
 

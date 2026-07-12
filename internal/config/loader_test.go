@@ -24,7 +24,7 @@ func TestLoadLayersWithPrecedence(t *testing.T) {
 
 	// Global sets the theme to light; project overrides max_iterations.
 	mustWrite(t, filepath.Join(base, "config", ConfigFileName), "[tui.theme]\nmode = \"light\"\n")
-	mustWrite(t, filepath.Join(root, ConfigFileName), "[agent]\nmax_iterations = 7\n")
+	mustWrite(t, filepath.Join(root, ConfigFileName), "[agent.loop]\nmax_iterations = 7\n")
 
 	m, err := Load(ctx, fakeDirs{base: base}, root)
 	if err != nil {
@@ -37,8 +37,8 @@ func TestLoadLayersWithPrecedence(t *testing.T) {
 	if res.Values["tui.theme.mode"] != "light" || res.Sources["tui.theme.mode"] != SourceGlobal {
 		t.Errorf("theme mode = %v (%s)", res.Values["tui.theme.mode"], res.Sources["tui.theme.mode"])
 	}
-	if res.Values["agent.max_iterations"] != int64(7) || res.Sources["agent.max_iterations"] != SourceProject {
-		t.Errorf("max_iterations = %v (%s)", res.Values["agent.max_iterations"], res.Sources["agent.max_iterations"])
+	if res.Values["agent.loop.max_iterations"] != int64(7) || res.Sources["agent.loop.max_iterations"] != SourceProject {
+		t.Errorf("max_iterations = %v (%s)", res.Values["agent.loop.max_iterations"], res.Sources["agent.loop.max_iterations"])
 	}
 	// Default that no layer overrode retains its source.
 	if res.Sources["logging.level"] != SourceDefaults {
@@ -53,8 +53,8 @@ func TestLoadMissingFilesAreSkipped(t *testing.T) {
 		t.Fatalf("missing files must not error: %v", err)
 	}
 	res, _ := m.Resolve(ctx, ports.ConfigQuery{})
-	if res.Values["agent.max_iterations"] != int64(50) {
-		t.Errorf("default max_iterations = %v, want 50", res.Values["agent.max_iterations"])
+	if res.Values["agent.loop.max_iterations"] != int64(50) {
+		t.Errorf("default max_iterations = %v, want 50", res.Values["agent.loop.max_iterations"])
 	}
 }
 

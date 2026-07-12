@@ -58,7 +58,7 @@ func loadFileInto(m *Manager, source, path string) error {
 func Defaults() map[string]any {
 	return map[string]any{
 		"agent": map[string]any{
-			"max_iterations": int64(50),
+			"loop": map[string]any{"max_iterations": int64(50)},
 		},
 		"tui": map[string]any{
 			"theme": map[string]any{"mode": "dark"},

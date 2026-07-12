@@ -3,6 +3,8 @@ package app
 import (
 	"context"
 	"path/filepath"
+	"strconv"
+	"strings"
 
 	"github.com/datamaia/andromeda/internal/agent"
 	"github.com/datamaia/andromeda/internal/core"
@@ -108,6 +110,17 @@ func RunAgent(ctx context.Context, opts RunAgentOptions) (agent.RunResult, error
 	sessionID := core.NewULID()
 	_ = sessions.SaveSession(ctx, ports.SessionSnapshot{ID: sessionID, State: "active"})
 
+	// Precedence: an explicit option/flag wins; otherwise the resolved config's
+	// agent.loop.max_iterations applies; the Agent Engine falls back to its own default at 0.
+	maxIter := opts.MaxIterations
+	if maxIter == 0 {
+		if cfg, err := LoadedConfig(ctx, root); err == nil {
+			if v, ok := configInt(cfg.Values["agent.loop.max_iterations"]); ok {
+				maxIter = v
+			}
+		}
+	}
+
 	eng := agent.New(opts.Provider, rt, sessions, nil)
 	return eng.Run(ctx, agent.RunInput{
 		SessionID:     sessionID,
@@ -115,6 +128,24 @@ func RunAgent(ctx context.Context, opts RunAgentOptions) (agent.RunResult, error
 		System:        opts.System,
 		Model:         opts.Model,
 		ToolNames:     toolNames,
-		MaxIterations: opts.MaxIterations,
+		MaxIterations: maxIter,
 	})
+}
+
+// configInt coerces a resolved config value (int64 from TOML, or a numeric string from an env
+// override) to an int.
+func configInt(v any) (int, bool) {
+	switch n := v.(type) {
+	case int64:
+		return int(n), true
+	case int:
+		return n, true
+	case float64:
+		return int(n), true
+	case string:
+		if i, err := strconv.Atoi(strings.TrimSpace(n)); err == nil {
+			return i, true
+		}
+	}
+	return 0, false
 }
