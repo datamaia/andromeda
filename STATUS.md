@@ -43,8 +43,12 @@ Per the specification's own phasing and PENDING VALIDATION items — not part of
   known-folder config/data dirs, paths, temp files, exclusive-create file locking, plus Windows
   sandbox exec and terminal signal (taskkill). The whole tree **cross-compiles for windows/
   amd64 and windows/arm64**; runtime validation on a Windows host remains (v2, no host here).
-- **OAuth MCP auth**, **WASM plugins** — PENDING VALIDATION / v2 (ADR-010/009).
-- **macOS notarization** — needs an Apple Developer identity (open question OQ-003).
+- ✅ **OAuth device authorization grant** implemented (`auth`, ADR-063, RFC 8628):
+  start-device-flow + poll-token (honoring authorization_pending, slow_down, and deadlines) +
+  store, verified with an httptest OAuth server. (MCP client-OAuth binding awaits the upstream
+  SDK graduating it; WASM plugins remain a v2 candidate.)
+- ✅ **macOS notarization wiring** added to goreleaser, credential-gated (activates when
+  MACOS_SIGN_P12 is set); it needs an Apple Developer identity to run (OQ-003) but is ready.
 - ✅ **Semantic embeddings retrieval** now implemented (`indexer.SemanticEngine`): embeds files
   and answers queries by in-process cosine similarity (ADR-020), backed by any `ProviderPort`
   via `ProviderEmbedder`; verified with a deterministic embedder.

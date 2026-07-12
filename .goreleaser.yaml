@@ -30,6 +30,21 @@ archives:
     formats: [tar.gz]
     name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
 
+# macOS notarization (ADR-013). Ready to activate: it enables only when the signing identity
+# is provisioned (MACOS_SIGN_P12 present), since an Apple Developer ID is required (open
+# question OQ-003). Until then it is a no-op and the pipeline still ships checksums, cosign
+# signatures, and provenance.
+notarize:
+  macos:
+    - enabled: '{{ isEnvSet "MACOS_SIGN_P12" }}'
+      sign:
+        certificate: "{{.Env.MACOS_SIGN_P12}}"
+        password: "{{.Env.MACOS_SIGN_PASSWORD}}"
+      notarize:
+        issuer_id: "{{.Env.MACOS_NOTARY_ISSUER_ID}}"
+        key_id: "{{.Env.MACOS_NOTARY_KEY_ID}}"
+        key: "{{.Env.MACOS_NOTARY_KEY}}"
+
 checksum:
   name_template: "checksums.txt"
   algorithm: sha256
