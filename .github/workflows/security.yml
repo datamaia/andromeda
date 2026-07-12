@@ -1,8 +1,7 @@
 # Security scanning (Volume 11 chapter 06, FR-GH-010). CodeQL static analysis for Go plus a
 # dependency vulnerability audit (govulncheck). Runs on pull requests, pushes to main, and a
 # weekly schedule. Least-privilege tokens per ADR-149; CodeQL needs security-events: write to
-# upload results to the Security tab. Action versions use major tags here; full commit-SHA
-# pinning (ADR-149) is a hardening step tracked in STATUS.md.
+# upload results to the Security tab. Every action is pinned to a full commit SHA (ADR-149).
 name: security
 
 on:
@@ -27,12 +26,12 @@ jobs:
       contents: read
       security-events: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: github/codeql-action/init@v3
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: github/codeql-action/init@02c5e83432fe5497fd85b873b6c9f16a8578e1d9 # v3
         with:
           languages: go
-      - uses: github/codeql-action/autobuild@v3
-      - uses: github/codeql-action/analyze@v3
+      - uses: github/codeql-action/autobuild@02c5e83432fe5497fd85b873b6c9f16a8578e1d9 # v3
+      - uses: github/codeql-action/analyze@02c5e83432fe5497fd85b873b6c9f16a8578e1d9 # v3
         with:
           category: "/language:go"
 
@@ -40,8 +39,8 @@ jobs:
     name: govulncheck
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
           go-version-file: go.mod
           cache: true

@@ -6,8 +6,8 @@
 # unreliably; darwin/amd64 binaries are still built and shipped by goreleaser (.goreleaser.yaml)
 # and are exercised indirectly by the macOS (darwin code) and ubuntu-amd64 (amd64) legs. The
 # authoritative gate remains `make ci`; each matrix leg runs it end to end. `fail-fast: false`
-# keeps every platform's result visible when one fails. Actions are pinned to major tags here;
-# full commit-SHA pinning (ADR-149) is a hardening step tracked in STATUS.md.
+# keeps every platform's result visible when one fails. Every action is pinned to a full commit
+# SHA (ADR-149) with its version in a trailing comment; Dependabot updates the pins.
 name: ci
 
 on:
@@ -31,13 +31,13 @@ jobs:
       matrix:
         os: [ubuntu-24.04, ubuntu-24.04-arm, macos-14]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
           go-version-file: go.mod
           cache: true
       - name: Set up Python for spec lint
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: "3.12"
       - name: Install golangci-lint

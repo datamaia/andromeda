@@ -1,7 +1,7 @@
 # Release pipeline (Volume 11 chapter 06, ADR-013). Runs on a version tag: builds the matrix,
 # signs with keyless cosign (OIDC), attaches SBOMs and provenance, and publishes the release.
-# Least-privilege token; id-token for cosign. Actions are pinned to major tags here; full
-# commit-SHA pinning is a hardening step (see STATUS.md).
+# Least-privilege token; id-token for cosign. Every action is pinned to a full commit SHA
+# (ADR-149) with its version in a trailing comment; Dependabot updates the pins.
 name: release
 
 on:
@@ -19,16 +19,16 @@ jobs:
       contents: write # publish the GitHub Release
       id-token: write # cosign keyless signing (OIDC)
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           fetch-depth: 0
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
           go-version-file: go.mod
-      - uses: sigstore/cosign-installer@v3
-      - uses: anchore/sbom-action/download-syft@v0
+      - uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac # v3
+      - uses: anchore/sbom-action/download-syft@e22c389904149dbc22b58101806040fa8d37a610 # v0
       - name: Run goreleaser
-        uses: goreleaser/goreleaser-action@v6
+        uses: goreleaser/goreleaser-action@e435ccd777264be153ace6237001ef4d979d3a7a # v6
         with:
           version: "~> v2"
           args: release --clean
