@@ -39,7 +39,10 @@ Per the specification's own phasing and PENDING VALIDATION items — not part of
 - **OS-level sandbox**: macOS **Seatbelt** (`sandbox-exec`) now implemented and verified
   (enforces the write policy; effective containment reported as `os`). Linux Landlock/bubblewrap
   remains a follow-up (ADR-021 PENDING VALIDATION per platform).
-- **Windows native** — v2 candidate (WSL is a distinct modality).
+- ✅ **Windows PAL backends** implemented (build-tagged): Credential Manager (via keyring),
+  known-folder config/data dirs, paths, temp files, exclusive-create file locking, plus Windows
+  sandbox exec and terminal signal (taskkill). The whole tree **cross-compiles for windows/
+  amd64 and windows/arm64**; runtime validation on a Windows host remains (v2, no host here).
 - **OAuth MCP auth**, **WASM plugins** — PENDING VALIDATION / v2 (ADR-010/009).
 - **macOS notarization** — needs an Apple Developer identity (open question OQ-003).
 - ✅ **Semantic embeddings retrieval** now implemented (`indexer.SemanticEngine`): embeds files
