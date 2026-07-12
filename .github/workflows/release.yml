@@ -1,0 +1,36 @@
+# Release pipeline (Volume 11 chapter 06, ADR-013). Runs on a version tag: builds the matrix,
+# signs with keyless cosign (OIDC), attaches SBOMs and provenance, and publishes the release.
+# Least-privilege token; id-token for cosign. Actions are pinned to major tags here; full
+# commit-SHA pinning is a hardening step (see STATUS.md).
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    environment: release
+    permissions:
+      contents: write # publish the GitHub Release
+      id-token: write # cosign keyless signing (OIDC)
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - uses: sigstore/cosign-installer@v3
+      - uses: anchore/sbom-action/download-syft@v0
+      - name: Run goreleaser
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          version: "~> v2"
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

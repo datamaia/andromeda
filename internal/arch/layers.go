@@ -47,6 +47,8 @@ var PackageLayer = map[string]Layer{
 	"terminal":   L3Engine,
 	"workflow":   L3Engine,
 	"scheduler":  L2Infrastructure,
+	"jsonrpc":    L2Infrastructure,
+	"mcp":        L3Engine,
 	"auth":       L3Engine,
 	"updater":    L3Engine,
 	"pkgmgr":     L3Engine,

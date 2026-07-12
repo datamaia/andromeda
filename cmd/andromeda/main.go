@@ -62,7 +62,9 @@ func newRootCommand() *cobra.Command {
 		newWorkflowCommand(),
 		newProviderCommand(),
 		newModelCommand(),
+		newUpdateCommand(),
 	)
+	root.AddCommand(newCompletionCommand(root))
 	return root
 }
 

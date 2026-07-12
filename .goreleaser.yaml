@@ -1,0 +1,75 @@
+# goreleaser configuration (ADR-013, Volume 14). Builds cross-platform binaries, checksums,
+# SBOMs, cosign signatures, and SLSA provenance, and publishes a GitHub Release plus a Homebrew
+# tap. The macOS + Linux (x86_64/arm64) build matrix realizes the Tier 1 platform set; macOS
+# Developer ID notarization is PENDING VALIDATION (Volume 1 open questions) and added when the
+# signing identity is available.
+version: 2
+
+project_name: andromeda
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: andromeda
+    main: ./cmd/andromeda
+    binary: andromeda
+    env:
+      - CGO_ENABLED=0
+    goos: [darwin, linux]
+    goarch: [amd64, arm64]
+    ldflags:
+      - -s -w
+      - -X github.com/datamaia/andromeda/internal/buildinfo.version={{.Version}}
+      - -X github.com/datamaia/andromeda/internal/buildinfo.commit={{.Commit}}
+      - -X github.com/datamaia/andromeda/internal/buildinfo.date={{.Date}}
+
+archives:
+  - id: andromeda
+    formats: [tar.gz]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+
+checksum:
+  name_template: "checksums.txt"
+  algorithm: sha256
+
+sboms:
+  - artifacts: archive
+
+signs:
+  - cmd: cosign
+    signature: "${artifact}.sig"
+    certificate: "${artifact}.pem"
+    args:
+      - sign-blob
+      - "--yes"
+      - "--output-signature=${signature}"
+      - "--output-certificate=${certificate}"
+      - "${artifact}"
+    artifacts: checksum
+
+brews:
+  - name: andromeda
+    repository:
+      owner: datamaia
+      name: homebrew-tap
+    description: "Your terminal companion for shipping great software."
+    homepage: "https://github.com/datamaia/andromeda"
+    license: "Apache-2.0"
+
+release:
+  github:
+    owner: datamaia
+    name: andromeda
+  draft: false
+  prerelease: auto
+
+changelog:
+  use: github
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^ci:"

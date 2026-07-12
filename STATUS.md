@@ -342,6 +342,23 @@ a working agent.
 **Gate status:** `make ci` passes. CLI groups: **13**. All 18 ports done; agent + SDD workflow
 shell both runnable from the command line.
 
+### EP — MCP client, distribution, and remaining CLI · 🔄
+
+- ✅ JSON-RPC 2.0 stdio transport (`internal/jsonrpc`): newline-delimited framing (MCP-faithful),
+  a background read loop demultiplexing responses to concurrent callers, context cancellation,
+  and error propagation. Shared by MCP (ADR-010) and the Andromeda Runtime Protocol (ADR-009).
+- ✅ MCP client (`internal/mcp`, **FR-MCP-001**): `initialize`, `tools/list`, `tools/call`, and a
+  **bridge** exposing MCP tools as `ToolPort`s (origin `mcp`, untrusted) so the Tool Runtime
+  mediates them like built-ins. Verified against an in-memory fake MCP server.
+- ✅ Distribution (Volume 14, ADR-013): `.goreleaser.yaml` (darwin/linux × amd64/arm64,
+  checksums, SBOMs, keyless cosign signing, Homebrew tap), the `release.yml` tag-triggered
+  workflow (least-privilege, OIDC), and a checksum-verifying `packaging/installer/install.sh`.
+- ✅ More CLI: `update` (channel check) and `completion` (bash/zsh/fish).
+- ⬜ Plugin subprocess runtime over ARP, skill format/loader, MCP server subprocess spawning,
+  the TUI, and `logs/trace/export/context` commands — remaining.
+
+**Gate status:** `make ci` passes. CLI groups: **15**. Distribution pipeline configured.
+
 ## Deliberate deviations from the specification (free-tier accommodations)
 
 Recorded honestly so they can be reverted when the constraint lifts.

@@ -6,8 +6,10 @@ import (
 	"os"
 	"strings"
 
+	"github.com/datamaia/andromeda/internal/buildinfo"
 	"github.com/datamaia/andromeda/internal/indexer"
 	"github.com/datamaia/andromeda/internal/ports"
+	"github.com/datamaia/andromeda/internal/updater"
 	"github.com/spf13/cobra"
 )
 
@@ -73,4 +75,55 @@ func newIndexCommand() *cobra.Command {
 		},
 	})
 	return cmd
+}
+
+// update — check for a newer release on the configured channel.
+func newUpdateCommand() *cobra.Command {
+	var channel string
+	c := &cobra.Command{
+		Use:   "update",
+		Short: "Check for and apply updates",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			self, _ := os.Executable()
+			// No release source is wired for a from-source dev build; Check reports cleanly.
+			u := updater.New(buildinfo.Get().Version, channel, self, nil)
+			res, err := u.Check(cmd.Context())
+			if err != nil {
+				return err
+			}
+			out := cmd.OutOrStdout()
+			switch res.Status {
+			case "update_available":
+				fmt.Fprintf(out, "update available: %s → %s (channel %s)\n", res.Current, res.Latest, res.Channel)
+			default:
+				fmt.Fprintf(out, "up to date: %s (channel %s)\n", res.Current, res.Channel)
+			}
+			return nil
+		},
+	}
+	c.Flags().StringVar(&channel, "channel", "stable", "release channel: stable|beta|nightly|rc")
+	return c
+}
+
+// completion — generate shell completion scripts.
+func newCompletionCommand(root *cobra.Command) *cobra.Command {
+	return &cobra.Command{
+		Use:       "completion [bash|zsh|fish]",
+		Short:     "Generate a shell completion script",
+		Args:      cobra.ExactValidArgs(1),
+		ValidArgs: []string{"bash", "zsh", "fish"},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			out := cmd.OutOrStdout()
+			switch args[0] {
+			case "bash":
+				return root.GenBashCompletionV2(out, true)
+			case "zsh":
+				return root.GenZshCompletion(out)
+			case "fish":
+				return root.GenFishCompletion(out, true)
+			}
+			return fmt.Errorf("unsupported shell %q", args[0])
+		},
+	}
 }
