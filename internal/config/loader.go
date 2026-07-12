@@ -48,6 +48,7 @@ func loadFileInto(m *Manager, source, path string) error {
 	if err != nil {
 		return err
 	}
+	m.TrackFile(source, path)
 	return m.LoadTOML(source, data)
 }
 

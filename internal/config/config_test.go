@@ -2,7 +2,10 @@ package config
 
 import (
 	"context"
+	"os"
+	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/datamaia/andromeda/internal/ports"
 )
@@ -101,7 +104,7 @@ func TestFlattenUnflattenRoundTrip(t *testing.T) {
 	}
 }
 
-func TestWatchReturnsUsableStream(t *testing.T) {
+func TestWatchWithNoFilesEndsImmediately(t *testing.T) {
 	m := New()
 	st, err := m.Watch(context.Background(), ports.ConfigSelector{})
 	if err != nil {
@@ -110,5 +113,38 @@ func TestWatchReturnsUsableStream(t *testing.T) {
 	defer st.Close()
 	if _, err := st.Next(context.Background()); err != ports.ErrEndOfStream {
 		t.Errorf("want ErrEndOfStream, got %v", err)
+	}
+}
+
+func TestWatchEmitsChangeOnFileEdit(t *testing.T) {
+	WatchInterval = 20 * time.Millisecond
+	dir := t.TempDir()
+	path := filepath.Join(dir, "andromeda.toml")
+	os.WriteFile(path, []byte("[tui.theme]\nmode = \"dark\"\n"), 0o600)
+
+	m := New()
+	if err := m.LoadTOML(SourceWorkspace, []byte("[tui.theme]\nmode = \"dark\"\n")); err != nil {
+		t.Fatal(err)
+	}
+	m.TrackFile(SourceWorkspace, path)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	st, err := m.Watch(ctx, ports.ConfigSelector{Prefixes: []string{"tui."}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer st.Close()
+
+	// Edit the file; the watcher should emit a change for tui.theme.mode.
+	time.Sleep(30 * time.Millisecond)
+	os.WriteFile(path, []byte("[tui.theme]\nmode = \"light\"\n"), 0o600)
+
+	got, err := st.Next(ctx)
+	if err != nil {
+		t.Fatalf("watch: %v", err)
+	}
+	if got.Key != "tui.theme.mode" || got.NewValue != "light" {
+		t.Fatalf("change = %+v", got)
 	}
 }

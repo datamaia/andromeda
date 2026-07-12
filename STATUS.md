@@ -45,7 +45,10 @@ Per the specification's own phasing and PENDING VALIDATION items — not part of
 - ✅ **Semantic embeddings retrieval** now implemented (`indexer.SemanticEngine`): embeds files
   and answers queries by in-process cosine similarity (ADR-020), backed by any `ProviderPort`
   via `ProviderEmbedder`; verified with a deterministic embedder.
-- **OpenTelemetry SDK export**, **live config watch**, **PTY terminal mode**, **per-stage SDD agent wiring**, **v2 Bubble Tea migration**,
+- ✅ **Live config watch** now implemented (`ConfigPort.Watch`): polls tracked config files'
+  mtimes and emits `ConfigChange` events for affected keys matching the selector; verified by
+  editing a file and observing the change.
+- **OpenTelemetry SDK export**, **PTY terminal mode**, **per-stage SDD agent wiring**, **v2 Bubble Tea migration**,
   **remaining CLI commands** (context, trace) — refinements layered on the working MVP.
 
 The full traceability automation (Volume 11 ch 07 GitHub-side checks) and branch protection are
