@@ -1,11 +1,11 @@
 # Quality-gate mirror of `make ci` (Volume 11 chapter 06).
 #
-# Deliberately lean for a private free-tier repository: a single Linux job, because macOS
-# hosted runners consume 10x Actions minutes on private repos. The authoritative gate is
-# `make ci`, run locally on macOS and Linux. The full Tier-1 platform matrix and the
-# separate policy/traceability/security/e2e workflows the spec mandates activate when the
-# repository is public or on a paid plan (tracked in STATUS.md). Actions are pinned to major
-# tags here; full commit-SHA pinning (ADR-149) is a hardening step tracked in STATUS.md.
+# The repository is public, so Actions minutes are unlimited and the full Tier-1 platform
+# matrix runs on every push and pull request: Linux and macOS on both amd64 and arm64 — the
+# same platform set goreleaser ships (.goreleaser.yaml). The authoritative gate remains
+# `make ci`; each matrix leg runs it end to end. `fail-fast: false` keeps every platform's
+# result visible when one fails. Actions are pinned to major tags here; full commit-SHA
+# pinning (ADR-149) is a hardening step tracked in STATUS.md.
 name: ci
 
 on:
@@ -22,7 +22,12 @@ concurrency:
 
 jobs:
   gate:
-    runs-on: ubuntu-24.04
+    name: gate (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, ubuntu-24.04-arm, macos-14, macos-13]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
