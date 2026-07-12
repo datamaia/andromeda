@@ -48,6 +48,15 @@ func builtinToolSummaries() []toolSummary {
 		{"process_control", "process_spawn", "List/inspect/signal/terminate supervised processes (requires --allow-exec)"},
 		{"sqlite_query", "read,write", "Run SQL against a workspace SQLite database"},
 		{"http_request", "network,credential_access", "Perform one HTTP request (requires --allow-network)"},
+		{"docker_control", "container_access,network", "Operate the local Docker Engine (Beta; needs docker)"},
+		{"kubernetes_control", "container_access,network,execute", "Operate Kubernetes via kubectl (v1; needs kubectl)"},
+		{"browser_control", "network,process_spawn", "Drive a browser via W3C WebDriver (v1; needs a driver endpoint)"},
+		{"github_request", "external_service_access,network", "GitHub official API transport (Beta; needs [services.github])"},
+		{"gitlab_request", "external_service_access,network", "GitLab official API transport (v1; needs [services.gitlab])"},
+		{"jira_request", "external_service_access,network", "Jira official API transport (v1; needs [services.jira])"},
+		{"slack_request", "external_service_access,network,notifications", "Slack official API transport (v1; needs [services.slack])"},
+		{"notion_request", "external_service_access,network", "Notion official API transport (v2; needs [services.notion])"},
+		{"linear_request", "external_service_access,network", "Linear official API transport (v2; needs [services.linear])"},
 	}
 }
 

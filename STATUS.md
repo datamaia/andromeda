@@ -5,7 +5,7 @@ file tracks the **implementation** against Volume 15's epics and milestones. Upd
 pushed on every advance.
 
 **Last updated:** 2026-07-12 · **MVP phase functionally complete** · **Ports:** 18/18 ✅ ·
-**CLI:** 20 command groups · **TUI:** ✅ · ~18.4k LOC Go, 52 test files, `make ci` green
+**CLI:** 20 command groups · **TUI:** ✅ · **Built-in tools:** 20/20 · ~20k LOC Go, 60 test files, `make ci` green
 
 ## MVP-minimum coverage (Volume 1 chapter 05, 27 items)
 
@@ -32,8 +32,9 @@ Beyond the minimum, also implemented: **SDD Workflow Engine**, **MCP client + to
 **HTTP MCP transport with OAuth bearer**, **plugin subprocess runtime (ARP)**, **WASM plugin
 runtime (wazero)**, **skill system**, **scheduler**, **package manager**, **auth layer + OAuth
 device grant**, **secret store (keychain+age)**, **sandbox (process + macOS Seatbelt / Linux
-bubblewrap)**, **JSON Schema tool-payload validation**, and the **full MVP built-in tool catalog
-(fs read/write/search/replace/diff/patch, git_exec, terminal_run)**.
+bubblewrap)**, **JSON Schema tool-payload validation**, and the **complete built-in tool catalog (20/20 —
+filesystem, git, terminal, http, sqlite, process, docker, kubernetes, browser, and the six
+service integrations as transport surfaces)**.
 
 ## Remaining work — all spec-designated later phases (Beta/v1/v2) or refinements
 
@@ -318,18 +319,26 @@ Auth, Tool/Terminal, Updater, Package remain).
   `terminal_run`. Each is a `ToolPort` with input/output schemas, declared permissions, and
   path/repository-scoped resource queries so grants apply per file/path/repo. Wired into the
   `andromeda run` composition (write-gated tools appear only with `--allow-write`).
-- ✅ **Beta network/data/platform tools** now implemented and wired (catalog at **11/20**):
-  `http_request` (one HTTP request against an allowed host — `network` per-host, optional
-  `credential_ref` resolved from the Secret Store into a bearer and never echoed into the record,
-  redirect cap, 1 MiB body cap; behind `--allow-network`), `sqlite_query` (SQL over a workspace
-  SQLite file — refuses Andromeda's own state DBs, classifies read vs. mutation, and enforces
-  read-only at the DB via `query_only` so a CTE-hidden write cannot slip through; mutations need
-  `--allow-write`), and `process_control` (list/inspect/signal/terminate over the Terminal
-  Engine's supervised process trees, sharing one engine with `terminal_run`; behind `--allow-exec`).
-- ⬜ Remaining later-phase tools: `docker.control` / `browser.control` (need Docker daemon /
-  WebDriver — external to this host), service integrations (`github.request`, `gitlab.request`,
-  `jira.request`, `slack.request`, `notion.request`, `linear.request` — per-service API facts
-  PENDING VALIDATION, need live credentials) — Beta/v1/v2.
+- ✅ **Full built-in tool catalog implemented (20/20, FR-TOOL-007)** — all phases:
+  - MVP (8): `fs_read/write/search/replace/diff/patch`, `git_exec`, `terminal_run`.
+  - Beta/v1 network/data/platform (3): `http_request` (per-host `network`, `credential_ref`
+    resolved from the Secret Store and never echoed, redirect/body caps), `sqlite_query` (refuses
+    state DBs, classifies read vs. mutation, DB-level `query_only` so a CTE-hidden write can't
+    slip past), `process_control` (list/inspect/signal/terminate over the Terminal Engine).
+  - Container runtimes (2): `docker_control` (docker CLI), `kubernetes_control` (kubectl;
+    `exec` additionally gated `execute`) — structured operation→argv, never a raw shell string; a
+    missing runtime binary surfaces as a tool error.
+  - Service integrations (6): `github/gitlab/jira/slack/notion/linear_request` over a shared
+    transport-and-schema surface. Per ADR-074 the per-service endpoints/auth/rate-limits are
+    PENDING VALIDATION, so **none are hardcoded** — the base URL and credential ref come from
+    `[services.<name>]` config and the Secret Store; the transport injects auth, executes, and
+    surfaces rate-limit headers. Secret material never appears in the record.
+  - Browser (1): `browser_control` over the **W3C WebDriver** standard (not a proprietary
+    mechanism) against a config-supplied driver endpoint.
+  Every tool is a `ToolPort` with input/output schemas, declared permissions, and scoped resource
+  queries; verified with httptest servers, mock WebDriver, and stub-binary CLI runtimes. The
+  network/data/platform tools are wired into `andromeda run`; the container/service/browser tools
+  need their runtime/endpoint/credentials configured before use (not available on this host).
 
 **Gate status:** `make ci` passes. Ports implemented: **17 / 18** (Tool; Terminal, Auth,
 Updater, Package remain).
