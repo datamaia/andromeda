@@ -79,8 +79,16 @@ spec-lint: ## Run the specification linter over docs/spec
 structure-check: ## Verify the mandatory repository layout (FR-GH-002)
 	@bash scripts/structure_check.sh
 
+.PHONY: lint-charm
+lint-charm: ## Ban Bubble Tea/Lip Gloss v1 imports; the TUI must use the charm.land v2 stack (ADR-006)
+	@hits=$$(grep -rn "github.com/charmbracelet/\(bubbletea\|lipgloss\|bubbles\)" $$(find . -name '*.go' -not -path './vendor/*') 2>/dev/null); \
+	if [ -n "$$hits" ]; then \
+		echo "ADR-006 violation: v1 charm imports found (use charm.land/*/v2):"; echo "$$hits"; exit 1; \
+	fi; \
+	echo "lint-charm: no v1 charm imports"
+
 .PHONY: ci
-ci: tidy-check lint build test coverage-gate spec-lint structure-check ## Full local gate (mirrors CI)
+ci: tidy-check lint lint-charm build test coverage-gate spec-lint structure-check ## Full local gate (mirrors CI)
 	@echo "ci: all gates passed"
 
 .PHONY: tidy-check

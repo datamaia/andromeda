@@ -14,7 +14,7 @@ Every item of the change-controlled MVP minimum is implemented:
 | Item | Status | Item | Status |
 |---|---|---|---|
 | Functional CLI | ✅ (20 groups) | Streaming | ✅ (SSE adapters) |
-| Functional TUI | ✅ (Bubble Tea) | Configuration | ✅ (FR-CFG-001) |
+| Functional TUI | ✅ (Bubble Tea v2) | Configuration | ✅ (FR-CFG-001) |
 | Agent runtime | ✅ (FR-AGT-001) | Logging | ✅ (slog+redaction) |
 | Basic planner | ✅ (in-loop) | Session persistence | ✅ (SQLite) |
 | Execution engine | ✅ | macOS | ✅ (dev + tests) |
@@ -72,7 +72,11 @@ Per the specification's own phasing and PENDING VALIDATION items — not part of
 - ✅ **OpenTelemetry SDK export** now implemented (`telemetry.OTel`): a TelemetryPort backed by
   the official OTel Go SDK (ADR-011) — metrics via counters, nested spans with attributes and
   error/status, and flush; export is consent-gated at the caller (Volume 10). Verified.
-- **v2 Bubble Tea migration** — a refinement layered on the working MVP.
+- ✅ **Bubble Tea v2 migration done** (ADR-006): the TUI now uses the Charm v2 stack via the
+  `charm.land/*/v2` vanity paths (v2 `KeyPressMsg`, `View() tea.View`, declarative AltScreen); a
+  `make lint-charm` gate bans the v1 `github.com/charmbracelet/*` paths. The start screen renders
+  the **brand splash** — the ASCII cat mascot with sparkles, the wordmark, and the tagline
+  (ADR-026, from `docs/brand/banner-sketch.png`).
 - ✅ **Per-stage SDD agent wiring** now implemented (`app.RunSDD`): each of the 14 SDD stages
   runs an agent goal scoped to the stage and objective; `andromeda workflow run sdd --goal ...`
   drives it, gates halt without `--auto-approve`. Verified with a scripted provider.
@@ -497,11 +501,12 @@ through the Tool Runtime.
 
 ### EP — TUI and observability commands · ✅
 
-- ✅ Terminal UI (`internal/tui`, Volume 8): a Bubble Tea session model with a scrollable
+- ✅ Terminal UI (`internal/tui`, Volume 8): a **Bubble Tea v2** session model with a scrollable
   transcript, a prompt input, and a brand-styled status bar (design tokens from ADR-026 —
-  violet primary, off-white, taupe, the fixed danger red). The start banner shows the tagline.
-  The **responder drives the real agent** for each submitted goal. Update logic is unit-tested
-  headlessly (submit, backspace, empty-submit no-op, esc-quit, banner/status render).
+  violet primary, off-white, taupe, the fixed danger red). The start screen renders the ASCII cat
+  mascot splash (wordmark + tagline). The **responder drives the real agent** for each submitted
+  goal. Update/render logic is unit-tested headlessly (submit, backspace, empty-submit no-op,
+  esc-quit, ctrl+c-quit, splash/status render, splash-hidden-after-exchange).
 - ✅ `andromeda tui` command wiring the model to a provider + agent (`--provider/--model/
   --allow-write/--allow-exec`).
 - ✅ `logs` (recent persisted events from the workspace event store) and `export` (sessions as
@@ -510,9 +515,8 @@ through the Tool Runtime.
 **Gate status:** `make ci` passes. **20 CLI command entries**; an interactive TUI that runs the
 agent.
 
-**Deviation (ADR-006):** the TUI uses Bubble Tea **v1** (github.com/charmbracelet/bubbletea)
-for a stable working implementation; ADR-006 specifies the v2 charm.land stack. Migration to v2
-is a tracked follow-up (the Model/Update/View structure ports directly).
+**ADR-006 compliance:** the TUI uses the Charm **v2** stack via the `charm.land/*/v2` vanity
+paths; `make lint-charm` fails the build if any v1 `github.com/charmbracelet/*` import reappears.
 
 ## Deliberate deviations from the specification (free-tier accommodations)
 
