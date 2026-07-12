@@ -6,6 +6,7 @@ import (
 
 	"github.com/datamaia/andromeda/internal/agent"
 	"github.com/datamaia/andromeda/internal/core"
+	"github.com/datamaia/andromeda/internal/git"
 	"github.com/datamaia/andromeda/internal/permission"
 	"github.com/datamaia/andromeda/internal/ports"
 	"github.com/datamaia/andromeda/internal/storage"
@@ -58,11 +59,22 @@ func RunAgent(ctx context.Context, opts RunAgentOptions) (agent.RunResult, error
 	}
 
 	rt := tool.NewRuntime(pm)
-	toolNames := []string{"fs_read", "fs_search"}
-	tools := []ports.ToolPort{builtin.FSRead{}, builtin.FSSearch{}}
+	toolNames := []string{"fs_read", "fs_search", "fs_diff"}
+	tools := []ports.ToolPort{builtin.FSRead{}, builtin.FSSearch{}, builtin.FSDiff{}}
 	if opts.AllowWrite {
-		tools = append(tools, builtin.FSWrite{})
-		toolNames = append(toolNames, "fs_write")
+		tools = append(tools, builtin.FSWrite{}, builtin.FSReplace{}, builtin.FSPatch{})
+		toolNames = append(toolNames, "fs_write", "fs_replace", "fs_patch")
+		// The Git built-in operates on the workspace repository. Read is implied by the
+		// workspace read grant above; mutating operations request git_mutation, granted here so
+		// a write-enabled run can stage/commit (destructive actions remain the caller's to gate).
+		_, _ = pm.GrantPermission(ctx, permission.Grant{
+			Permission: core.PermRead, Scope: core.ScopeRepository, Selector: "*", Effect: permission.EffectAllow,
+		})
+		_, _ = pm.GrantPermission(ctx, permission.Grant{
+			Permission: core.PermGitMutation, Scope: core.ScopeRepository, Selector: "*", Effect: permission.EffectAllow,
+		})
+		tools = append(tools, builtin.NewGitExec(git.New("")))
+		toolNames = append(toolNames, "git_exec")
 	}
 	if opts.AllowExec {
 		_, _ = pm.GrantPermission(ctx, permission.Grant{

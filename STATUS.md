@@ -298,11 +298,15 @@ Auth, Tool/Terminal, Updater, Package remain).
   registry, per-invocation input validation, permission evaluation via `PermissionPort` with
   **denial-as-data** (a refused invocation returns a terminal error event, not a transport
   failure), and path-level permission derivation for tools that declare their resources.
-- ✅ Built-in filesystem tools (`internal/tool/builtin`): `fs_read`, `fs_write`, `fs_search`,
-  each a `ToolPort` with input/output schemas, declared permissions, and path-scoped resource
-  queries so grants apply per file/path.
-- ⬜ Terminal Engine (`TerminalPort`) and a `terminal.run` tool over the sandbox — next.
-- ⬜ Remaining built-in tools (git, http, patch, …), tool state machine wiring — later.
+- ✅ Built-in tools (`internal/tool/builtin`) — the **full MVP catalog (8/8, FR-TOOL-007)**:
+  `fs_read`, `fs_write`, `fs_search`, `fs_replace` (exact/regex, unique-unless-replace_all),
+  `fs_diff` and `fs_patch` (a self-contained offline unified-diff engine — compute and atomic
+  all-or-none apply that round-trips), `git_exec` (structured operations over the Git Engine;
+  reads need `read`, mutations additionally request `git_mutation` per operation), and
+  `terminal_run`. Each is a `ToolPort` with input/output schemas, declared permissions, and
+  path/repository-scoped resource queries so grants apply per file/path/repo. Wired into the
+  `andromeda run` composition (write-gated tools appear only with `--allow-write`).
+- ⬜ Later-phase built-in tools (`http.request`, `sqlite.query`, service integrations) — Beta/v1.
 
 **Gate status:** `make ci` passes. Ports implemented: **17 / 18** (Tool; Terminal, Auth,
 Updater, Package remain).
