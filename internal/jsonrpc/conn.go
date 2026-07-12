@@ -37,7 +37,8 @@ func (e *RPCError) Error() string { return fmt.Sprintf("jsonrpc error %d: %s", e
 type Conn struct {
 	rw      io.ReadWriteCloser
 	enc     *json.Encoder
-	mu      sync.Mutex // guards writes and the pending map
+	writeMu sync.Mutex // serializes writes; never held with mu
+	mu      sync.Mutex // guards nextID and the pending map only
 	nextID  int64
 	pending map[int64]chan Response
 	closed  chan struct{}
@@ -104,8 +105,13 @@ func (c *Conn) Call(ctx context.Context, method string, params any) (json.RawMes
 	id := c.nextID
 	ch := make(chan Response, 1)
 	c.pending[id] = ch
-	err := c.enc.Encode(Request{JSONRPC: "2.0", ID: id, Method: method, Params: raw})
 	c.mu.Unlock()
+
+	// Write outside the state mutex so the read loop can deliver responses concurrently
+	// (net.Pipe and pipes make Encode a blocking write). writeMu just serializes writers.
+	c.writeMu.Lock()
+	err := c.enc.Encode(Request{JSONRPC: "2.0", ID: id, Method: method, Params: raw})
+	c.writeMu.Unlock()
 	if err != nil {
 		c.mu.Lock()
 		delete(c.pending, id)

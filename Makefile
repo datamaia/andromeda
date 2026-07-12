@@ -50,11 +50,11 @@ build: ## Build all packages
 
 .PHONY: test
 test: ## Run all tests with the race detector
-	$(GO) test -race $(PKGS)
+	$(GO) test -race -timeout 120s $(PKGS)
 
 .PHONY: test-unit
 test-unit: ## Run unit tests with the race detector
-	$(GO) test -race $(PKGS)
+	$(GO) test -race -timeout 120s $(PKGS)
 
 .PHONY: test-integration
 test-integration: ## Run integration-tagged tests
