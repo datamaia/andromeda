@@ -298,6 +298,10 @@ Auth, Tool/Terminal, Updater, Package remain).
   registry, per-invocation input validation, permission evaluation via `PermissionPort` with
   **denial-as-data** (a refused invocation returns a terminal error event, not a transport
   failure), and path-level permission derivation for tools that declare their resources.
+- ✅ **JSON Schema payload validation (FR-TOOL-002, ADR-024)**: the Runtime compiles each tool's
+  declared `InputSchema` at registration (santhosh-tekuri/jsonschema v6) — a malformed schema is
+  rejected there — and validates every invocation's input against it before the tool's own
+  semantic `Validate`, so structural conformance is a Runtime guarantee independent of the tool.
 - ✅ Built-in tools (`internal/tool/builtin`) — the **full MVP catalog (8/8, FR-TOOL-007)**:
   `fs_read`, `fs_write`, `fs_search`, `fs_replace` (exact/regex, unique-unless-replace_all),
   `fs_diff` and `fs_patch` (a self-contained offline unified-diff engine — compute and atomic

@@ -211,7 +211,7 @@ func rangeStr(start, length int) string {
 
 // parsedHunk is one hunk extracted from a unified diff.
 type parsedHunk struct {
-	aStart int // 1-based
+	aStart int      // 1-based
 	lines  []string // each begins with ' ', '-', or '+'
 }
 

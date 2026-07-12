@@ -1,8 +1,11 @@
 package tool
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+
+	"github.com/santhosh-tekuri/jsonschema/v6"
 
 	"github.com/datamaia/andromeda/internal/core"
 	"github.com/datamaia/andromeda/internal/ports"
@@ -18,16 +21,19 @@ type ResourceScoped interface {
 
 // Runtime registers tools and mediates their invocation under validation and permissions.
 type Runtime struct {
-	perms ports.PermissionPort
-	tools map[string]ports.ToolPort
+	perms   ports.PermissionPort
+	tools   map[string]ports.ToolPort
+	schemas map[string]*jsonschema.Schema // compiled InputSchema per tool (ADR-024, FR-TOOL-002)
 }
 
 // NewRuntime returns a Tool Runtime that decides permissions through perms.
 func NewRuntime(perms ports.PermissionPort) *Runtime {
-	return &Runtime{perms: perms, tools: map[string]ports.ToolPort{}}
+	return &Runtime{perms: perms, tools: map[string]ports.ToolPort{}, schemas: map[string]*jsonschema.Schema{}}
 }
 
-// Register adds a tool by its declared name.
+// Register adds a tool by its declared name and compiles its input JSON Schema. A tool whose
+// declared InputSchema is not a valid JSON Schema is rejected at registration (FR-TOOL-002:
+// an incomplete or malformed declaration is never partially accepted).
 func (r *Runtime) Register(ctx context.Context, t ports.ToolPort) error {
 	d, err := t.Describe(ctx)
 	if err != nil {
@@ -36,8 +42,29 @@ func (r *Runtime) Register(ctx context.Context, t ports.ToolPort) error {
 	if d.Name == "" {
 		return fmt.Errorf("tool has no name")
 	}
+	if len(d.InputSchema) > 0 {
+		sch, err := compileSchema(d.Name, d.InputSchema)
+		if err != nil {
+			return toolErr("E-TOOL-002", "invalid input schema for "+d.Name+": "+err.Error())
+		}
+		r.schemas[d.Name] = sch
+	}
 	r.tools[d.Name] = t
 	return nil
+}
+
+// compileSchema compiles a tool's declared JSON Schema document.
+func compileSchema(name string, schema ports.JSON) (*jsonschema.Schema, error) {
+	doc, err := jsonschema.UnmarshalJSON(bytes.NewReader(schema))
+	if err != nil {
+		return nil, err
+	}
+	c := jsonschema.NewCompiler()
+	url := "mem://tool/" + name
+	if err := c.AddResource(url, doc); err != nil {
+		return nil, err
+	}
+	return c.Compile(url)
 }
 
 // Names returns the registered tool names.
@@ -69,6 +96,17 @@ func (r *Runtime) Invoke(ctx context.Context, name string, subjectCtx ports.Perm
 	desc, err := t.Describe(ctx)
 	if err != nil {
 		return nil, err
+	}
+	// Structural validation first: the declared JSON Schema is enforced by the Runtime, not left
+	// to each tool (ADR-024, FR-TOOL-002). Then the tool's own semantic Validate runs.
+	if sch := r.schemas[name]; sch != nil {
+		inst, err := jsonschema.UnmarshalJSON(bytes.NewReader(input))
+		if err != nil {
+			return nil, toolErr("E-TOOL-002", "input is not valid JSON for "+name)
+		}
+		if err := sch.Validate(inst); err != nil {
+			return nil, toolErr("E-TOOL-002", "input schema validation failed for "+name+": "+schemaMessage(err))
+		}
 	}
 	vr, err := t.Validate(ctx, input)
 	if err != nil {
@@ -116,6 +154,18 @@ func (r *Runtime) permissionQueries(t ports.ToolPort, desc ports.ToolDescriptor,
 		})
 	}
 	return qs
+}
+
+// schemaMessage renders a jsonschema validation error compactly (the full tree is verbose).
+func schemaMessage(err error) string {
+	if ve, ok := err.(*jsonschema.ValidationError); ok {
+		msg := ve.Error()
+		if i := bytes.IndexByte([]byte(msg), '\n'); i > 0 {
+			return msg[:i]
+		}
+		return msg
+	}
+	return err.Error()
 }
 
 func toolErr(code, msg string) error {

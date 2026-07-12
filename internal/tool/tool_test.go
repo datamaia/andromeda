@@ -134,3 +134,85 @@ func TestSearchFindsMatches(t *testing.T) {
 		t.Errorf("search count = %d, want 1", out.Count)
 	}
 }
+
+// permissiveTool declares a strict input schema but a permissive Validate and no permissions, so
+// it isolates the Runtime's schema enforcement (ADR-024, FR-TOOL-002) from tool-level checks.
+type permissiveTool struct {
+	schema string
+}
+
+func (permissiveTool) Describe(context.Context) (ports.ToolDescriptor, error) {
+	return ports.ToolDescriptor{
+		Name: "strict", Namespace: "test", Version: "1", Description: "strict schema",
+		InputSchema: []byte(`{"type":"object","required":["n"],"properties":{"n":{"type":"integer","minimum":1}}}`),
+		Origin:      "builtin", TrustLevel: "trusted",
+	}, nil
+}
+func (permissiveTool) Validate(context.Context, ports.JSON) (ports.ValidationResult, error) {
+	return ports.ValidationResult{Valid: true}, nil // always valid: the Runtime schema must gate
+}
+func (permissiveTool) Execute(context.Context, ports.ToolExecuteRequest) (ports.Stream[ports.ToolEvent], error) {
+	return streamsSliceOK(), nil
+}
+func (permissiveTool) Cancel(context.Context, core.ULID) error { return nil }
+
+func streamsSliceOK() ports.Stream[ports.ToolEvent] {
+	return &sliceStream{events: []ports.ToolEvent{{Kind: "terminal", Terminal: true, Outcome: "success", Text: "{}"}}}
+}
+
+type sliceStream struct {
+	events []ports.ToolEvent
+	i      int
+}
+
+func (s *sliceStream) Next(context.Context) (ports.ToolEvent, error) {
+	if s.i >= len(s.events) {
+		return ports.ToolEvent{}, ports.ErrEndOfStream
+	}
+	ev := s.events[s.i]
+	s.i++
+	return ev, nil
+}
+func (s *sliceStream) Close() error { return nil }
+
+func TestRuntimeEnforcesInputSchema(t *testing.T) {
+	ctx := context.Background()
+	rt := tool.NewRuntime(nil) // no permissions needed: the tool declares none
+	if err := rt.Register(ctx, permissiveTool{}); err != nil {
+		t.Fatal(err)
+	}
+	// Out-of-schema inputs are rejected by the Runtime even though Validate says "valid".
+	for _, bad := range []string{`{}`, `{"n":0}`, `{"n":"x"}`} {
+		if _, err := rt.Invoke(ctx, "strict", ports.PermissionQuery{}, ports.JSON(bad)); err == nil {
+			t.Fatalf("input %s should have failed schema validation", bad)
+		}
+	}
+	// A conforming input proceeds to execution.
+	st, err := rt.Invoke(ctx, "strict", ports.PermissionQuery{}, ports.JSON(`{"n":5}`))
+	if err != nil {
+		t.Fatalf("valid input rejected: %v", err)
+	}
+	if term := drain(t, st); term.Outcome != "success" {
+		t.Fatalf("outcome = %s", term.Outcome)
+	}
+}
+
+func TestRuntimeRejectsMalformedSchemaAtRegister(t *testing.T) {
+	err := tool.NewRuntime(nil).Register(context.Background(), permissiveTool{})
+	if err != nil {
+		t.Fatalf("valid schema should register: %v", err)
+	}
+	if err := tool.NewRuntime(nil).Register(context.Background(), badSchemaTool{}); err == nil {
+		t.Fatal("a tool with a malformed input schema must be rejected at registration")
+	}
+}
+
+// badSchemaTool declares an input schema that is not valid JSON.
+type badSchemaTool struct{ permissiveTool }
+
+func (badSchemaTool) Describe(context.Context) (ports.ToolDescriptor, error) {
+	return ports.ToolDescriptor{
+		Name: "broken", Namespace: "test", Version: "1",
+		InputSchema: []byte(`{not valid json`), Origin: "builtin", TrustLevel: "trusted",
+	}, nil
+}
