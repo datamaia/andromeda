@@ -48,7 +48,9 @@ Per the specification's own phasing and PENDING VALIDATION items — not part of
 - ✅ **Live config watch** now implemented (`ConfigPort.Watch`): polls tracked config files'
   mtimes and emits `ConfigChange` events for affected keys matching the selector; verified by
   editing a file and observing the change.
-- **OpenTelemetry SDK export**, **PTY terminal mode**, **per-stage SDD agent wiring**, **v2 Bubble Tea migration** — refinements layered on the
+- ✅ **PTY terminal mode** now implemented (`TerminalPort` PTY path via creack/pty): a real
+  pseudoterminal with merged output, stdin write, and window `Resize`; verified end-to-end.
+- **OpenTelemetry SDK export**, **per-stage SDD agent wiring**, **v2 Bubble Tea migration** — refinements layered on the
   working MVP.
 - ✅ **All mandated CLI commands** now present (added `context` and `trace`): the full Volume 8
   command surface — run, plan/exec (via run), init (via workspace open), config, auth, provider,

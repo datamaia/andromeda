@@ -101,3 +101,27 @@ func TestUnknownExecution(t *testing.T) {
 		t.Error("expected error for unknown execution")
 	}
 }
+
+func TestPTYModeCapturesOutput(t *testing.T) {
+	if !ptySupported() {
+		t.Skip("pty not supported")
+	}
+	ctx := context.Background()
+	e := New()
+	id, err := e.Execute(ctx, ports.CommandSpec{Program: "sh", Args: []string{"-c", "printf pty-hello"}, PTY: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Resize should succeed on a PTY execution.
+	if err := e.Resize(ctx, id, 100, 40); err != nil {
+		t.Errorf("resize: %v", err)
+	}
+	out := collect(t, e, id)
+	if !strings.Contains(out, "pty-hello") {
+		t.Errorf("pty output = %q", out)
+	}
+	outcome, _ := e.Wait(ctx, id)
+	if outcome.Status != "succeeded" {
+		t.Errorf("pty outcome = %+v", outcome)
+	}
+}

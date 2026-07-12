@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"io"
+	"os"
 	"os/exec"
 	"sync"
 	"time"
@@ -24,6 +25,7 @@ type Engine struct {
 type execution struct {
 	cmd     *exec.Cmd
 	stdin   io.WriteCloser
+	ptyFile *os.File // set for PTY-mode executions
 	stream  ports.Stream[ports.TerminalChunk]
 	sendCh  func(ports.TerminalChunk) bool
 	closeCh func()
@@ -43,8 +45,13 @@ func New() *Engine {
 
 var _ ports.TerminalPort = (*Engine)(nil)
 
-// Execute starts a command in pipe mode and returns its execution ID.
+// Execute starts a command and returns its execution ID. When spec.PTY is set and the platform
+// supports it, the command runs under a pseudoterminal (merged output, resizable); otherwise it
+// runs in pipe mode with tagged stdout/stderr.
 func (e *Engine) Execute(ctx context.Context, spec ports.CommandSpec) (ports.ExecutionID, error) {
+	if spec.PTY && ptySupported() {
+		return e.executePTY(ctx, spec)
+	}
 	cmd := exec.CommandContext(ctx, spec.Program, spec.Args...) //nolint:gosec // permission-checked upstream
 	cmd.Dir = spec.Dir
 	if len(spec.Env) > 0 {
@@ -75,6 +82,39 @@ func (e *Engine) Execute(ctx context.Context, spec ports.CommandSpec) (ports.Exe
 	pumps.Add(2)
 	go ex.pump(stdout, "stdout", e.maxOutput, &pumps)
 	go ex.pump(stderr, "stderr", e.maxOutput, &pumps)
+	go func() {
+		pumps.Wait()
+		ex.finish()
+	}()
+
+	id := core.NewULID()
+	e.mu.Lock()
+	e.execs[id] = ex
+	e.mu.Unlock()
+	return id, nil
+}
+
+// executePTY runs a command under a pseudoterminal.
+func (e *Engine) executePTY(ctx context.Context, spec ports.CommandSpec) (ports.ExecutionID, error) {
+	cmd := exec.CommandContext(ctx, spec.Program, spec.Args...) //nolint:gosec // permission-checked upstream
+	cmd.Dir = spec.Dir
+	if len(spec.Env) > 0 {
+		env := make([]string, 0, len(spec.Env))
+		for k, v := range spec.Env {
+			env = append(env, k+"="+v)
+		}
+		cmd.Env = env
+	}
+	f, err := ptyStart(cmd)
+	if err != nil {
+		return "", termErr("E-TOOL-011", "could not allocate pty", err)
+	}
+	st, send, closeFn := streams.Chan[ports.TerminalChunk](256)
+	ex := &execution{cmd: cmd, ptyFile: f, stream: st, sendCh: send, closeCh: closeFn, start: time.Now(), done: make(chan struct{})}
+
+	var pumps sync.WaitGroup
+	pumps.Add(1)
+	go ex.pump(f, "pty", e.maxOutput, &pumps)
 	go func() {
 		pumps.Wait()
 		ex.finish()
@@ -126,6 +166,9 @@ func (ex *execution) finish() {
 		ex.outcome = out
 		ex.waited = true
 		ex.mu.Unlock()
+		if ex.ptyFile != nil {
+			_ = ex.ptyFile.Close()
+		}
 		ex.closeCh()
 		close(ex.done)
 	})
@@ -146,6 +189,10 @@ func (e *Engine) Write(ctx context.Context, id ports.ExecutionID, input []byte) 
 	if err != nil {
 		return err
 	}
+	if ex.ptyFile != nil {
+		_, werr := ex.ptyFile.Write(input)
+		return werr
+	}
 	if ex.stdin == nil {
 		return termErr("E-TOOL-012", "stdin not available", nil)
 	}
@@ -162,10 +209,16 @@ func (e *Engine) Signal(ctx context.Context, id ports.ExecutionID, sig ports.Sig
 	return sendSignal(ex.cmd, sig)
 }
 
-// Resize is a no-op in pipe mode (no PTY).
+// Resize sets the PTY window size (a no-op in pipe mode).
 func (e *Engine) Resize(ctx context.Context, id ports.ExecutionID, cols, rows int) error {
-	_, err := e.lookup(id)
-	return err
+	ex, err := e.lookup(id)
+	if err != nil {
+		return err
+	}
+	if ex.ptyFile != nil {
+		return ptySetsize(ex.ptyFile, cols, rows)
+	}
+	return nil
 }
 
 // Wait blocks until the command terminates and returns its outcome.
