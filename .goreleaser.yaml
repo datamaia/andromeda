@@ -64,14 +64,33 @@ signs:
       - "${artifact}"
     artifacts: checksum
 
-brews:
+# Homebrew cask (goreleaser v2 replaced the deprecated `brews`/formula block with
+# `homebrew_casks`). A cask installs the prebuilt binary rather than compiling from source.
+homebrew_casks:
   - name: andromeda
+    binaries:
+      - andromeda
     repository:
       owner: datamaia
       name: homebrew-tap
+      token: '{{ envOrDefault "HOMEBREW_TAP_TOKEN" "" }}'
+    # The default Actions GITHUB_TOKEN is scoped to this repository only and cannot push to
+    # the separate tap repo. Cask upload therefore activates only once a HOMEBREW_TAP_TOKEN
+    # secret with write access to datamaia/homebrew-tap is provisioned; until then goreleaser
+    # still generates the cask locally but skips the cross-repo push, so the release succeeds
+    # without a tap. (ADR-013, Volume 14; tracked in STATUS.md.)
+    skip_upload: '{{ if isEnvSet "HOMEBREW_TAP_TOKEN" }}false{{ else }}true{{ end }}'
     description: "Your terminal companion for shipping great software."
     homepage: "https://github.com/datamaia/andromeda"
-    license: "Apache-2.0"
+    # Binaries are not yet Developer ID signed/notarized (the notarize block above activates
+    # when MACOS_SIGN_P12 is provisioned). Until then, strip the Gatekeeper quarantine
+    # attribute on install so the cask runs on macOS without a manual override.
+    hooks:
+      post:
+        install: |
+          if OS.mac?
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/andromeda"]
+          end
 
 release:
   github:
