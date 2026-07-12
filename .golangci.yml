@@ -21,6 +21,11 @@ linters:
     - gosec           # security issues
 
   settings:
+    errcheck:
+      # sql.Rows.Close returns the deferred iteration error, which is already surfaced via
+      # rows.Err()/Scan; its Close error is not separately actionable. Standard exclusion.
+      exclude-functions:
+        - (*database/sql.Rows).Close
     depguard:
       rules:
         core-domain:
@@ -32,6 +37,16 @@ linters:
               desc: "core domain (L0) must not depend on interface drivers"
             - pkg: github.com/datamaia/andromeda/internal/tui
               desc: "core domain (L0) must not depend on interface drivers"
+
+  exclusions:
+    # Test code deliberately ignores errors in setup/teardown and uses fixed paths,
+    # sub-processes, and weak randomness for fixtures. errcheck and gosec on production
+    # code stay fully enforced; excluding them from *_test.go is a standard, scoped choice.
+    rules:
+      - path: '_test\.go'
+        linters:
+          - errcheck
+          - gosec
 
 formatters:
   enable:
