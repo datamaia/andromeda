@@ -542,11 +542,11 @@ Recorded honestly so they can be reverted when the constraint lifts.
    (leaves the board). The transitions are driven by `scripts/project_sync.py` (resolves linked
    issues via `closingIssuesReferences`, forward-only so `Released` is never dragged back) and run
    on `pull_request_target` without ever checking out PR code (untrusted values passed via `env`;
-   passes `policy_check.py`). The **only** remaining FR-GH-008 item is the five board **views**
-   (Board/Roadmap/Triage/Incidents/MVP/Security) — GitHub exposes no `createProjectV2View`
-   mutation, so they are a one-time UI step, documented with exact per-view config in
-   `docs/maintainers/roadmap-board.md`. Remaining benchmark future work: the operation/scenario
-   tiers + rolling-baseline regression gating.
+   passes `policy_check.py`). The six board **views** (Board, Roadmap, Triage, Incidents, MVP
+   burn-down, Security review) now exist too — GitHub exposes no `createProjectV2View` mutation,
+   so they were added in the UI per the exact per-view config recorded in
+   `docs/maintainers/roadmap-board.md`. **FR-GH-008 is complete.** Remaining benchmark future
+   work: the operation/scenario tiers + rolling-baseline regression gating.
 2. **Action pinning — RESOLVED.** Every workflow action is pinned to a full commit SHA (ADR-149)
    with its version in a trailing comment; Dependabot's `github-actions` updater bumps them, and
    `policy.yml` fails any unpinned action.

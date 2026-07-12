@@ -70,8 +70,9 @@ python3 scripts/project_sync.py drop     --issue 123
 
 GitHub's public GraphQL API can create statuses, fields, and items, but it exposes **no
 `createProjectV2View` / `updateProjectV2View` mutation** — Projects v2 views cannot be scripted.
-Add these five once in the board's UI (**+ New view**). They are the last manual step; everything
-else above is automated.
+These six views (three named + three filtered) are therefore the one manual step; everything else
+above is automated. They are already created on board #1; the settings below are the source of
+truth for re-creating them (**+ New view**) if the board is ever rebuilt.
 
 | # | View name | Layout | Configuration |
 |---|---|---|---|
@@ -98,4 +99,4 @@ gh variable set ROADMAP_PROJECT_URL --repo datamaia/andromeda --body "<board url
 #    ROADMAP_PROJECT_TOKEN must be a PAT with the 'project' scope
 ```
 
-Then add the five views above in the UI. After that the board is fully self-maintaining.
+Then add the six views above in the UI. After that the board is fully self-maintaining.

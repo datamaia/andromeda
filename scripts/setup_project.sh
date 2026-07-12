@@ -89,7 +89,7 @@ Next, wire project.yml to it (run these):
 
 The 8 statuses, 9 fields, and all five automations (intake / In Review / Validation / Released /
 drop) are provisioned — the automations live in .github/workflows/project.yml, driven by
-scripts/project_sync.py. The ONLY remaining manual step is the five board views, which GitHub's
+scripts/project_sync.py. The ONLY remaining manual step is the six board views, which GitHub's
 API cannot create (no createProjectV2View mutation). Add them in the UI per the exact per-view
 configuration in docs/maintainers/roadmap-board.md.
 EOF
