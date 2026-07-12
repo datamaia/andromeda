@@ -50,7 +50,10 @@ Per the specification's own phasing and PENDING VALIDATION items — not part of
   editing a file and observing the change.
 - ✅ **PTY terminal mode** now implemented (`TerminalPort` PTY path via creack/pty): a real
   pseudoterminal with merged output, stdin write, and window `Resize`; verified end-to-end.
-- **OpenTelemetry SDK export**, **v2 Bubble Tea migration** — a refinement layered on the working MVP.
+- ✅ **OpenTelemetry SDK export** now implemented (`telemetry.OTel`): a TelemetryPort backed by
+  the official OTel Go SDK (ADR-011) — metrics via counters, nested spans with attributes and
+  error/status, and flush; export is consent-gated at the caller (Volume 10). Verified.
+- **v2 Bubble Tea migration** — a refinement layered on the working MVP.
 - ✅ **Per-stage SDD agent wiring** now implemented (`app.RunSDD`): each of the 14 SDD stages
   runs an agent goal scoped to the stage and objective; `andromeda workflow run sdd --goal ...`
   drives it, gates halt without `--auto-approve`. Verified with a scripted provider.
