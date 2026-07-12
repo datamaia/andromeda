@@ -12,17 +12,19 @@ func newProviderCommand() *cobra.Command {
 	cmd := &cobra.Command{Use: "provider", Short: "Inspect model providers"}
 	cmd.AddCommand(&cobra.Command{
 		Use:   "list",
-		Short: "List the provider adapters Andromeda supports",
+		Short: "List the model providers Andromeda supports",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			out := cmd.OutOrStdout()
-			rows := []struct{ name, auth, note string }{
-				{"ollama", "none", "local (default), http://localhost:11434"},
-				{"openai-compatible", "api key", "generic OpenAI Chat Completions surface"},
-				{"anthropic", "api key", "Anthropic Messages API"},
-			}
-			for _, r := range rows {
-				_, _ = fmt.Fprintf(out, "%-18s %-8s %s\n", r.name, r.auth, r.note)
+			for _, p := range app.Providers() {
+				auth := "none"
+				if p.KeyEnv != "" {
+					auth = p.KeyEnv
+					if !p.KeyRequired {
+						auth += " (optional)"
+					}
+				}
+				_, _ = fmt.Fprintf(out, "%-12s %-24s %-24s %s\n", p.ID, p.Display, auth, p.Note)
 			}
 			return nil
 		},

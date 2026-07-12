@@ -156,7 +156,7 @@ func TestProviderListCommand(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, want := range []string{"ollama", "anthropic", "openai-compatible"} {
+	for _, want := range []string{"ollama", "anthropic", "openai", "groq", "cerebras", "openrouter", "gemini"} {
 		if !strings.Contains(out, want) {
 			t.Errorf("provider list missing %q", want)
 		}
