@@ -45,6 +45,7 @@ func builtinToolSummaries() []toolSummary {
 		{"fs_patch", "write", "Apply a unified diff atomically (requires --allow-write)"},
 		{"git_exec", "read,git_mutation", "Run a structured Git operation (mutations require --allow-write)"},
 		{"terminal_run", "execute", "Run a shell command (requires --allow-exec)"},
+		{"process_control", "process_spawn", "List/inspect/signal/terminate supervised processes (requires --allow-exec)"},
 		{"sqlite_query", "read,write", "Run SQL against a workspace SQLite database"},
 		{"http_request", "network,credential_access", "Perform one HTTP request (requires --allow-network)"},
 	}

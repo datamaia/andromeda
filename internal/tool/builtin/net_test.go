@@ -29,7 +29,9 @@ func (m memSecrets) Delete(_ context.Context, ref ports.SecretRef) error {
 	delete(m, ref.Namespace+"/"+ref.Name)
 	return nil
 }
-func (memSecrets) List(context.Context, ports.SecretScope) ([]ports.SecretRef, error) { return nil, nil }
+func (memSecrets) List(context.Context, ports.SecretScope) ([]ports.SecretRef, error) {
+	return nil, nil
+}
 
 func TestHTTPRequestBasic(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

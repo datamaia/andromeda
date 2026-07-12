@@ -249,6 +249,61 @@ func (e *Engine) Wait(ctx context.Context, id ports.ExecutionID) (ports.CommandO
 	}
 }
 
+// ExecutionSnapshot is a point-in-time view of a supervised execution (process.control tool).
+type ExecutionSnapshot struct {
+	ID       ports.ExecutionID
+	Running  bool
+	Status   string
+	ExitCode int
+	PID      int
+}
+
+// Snapshot lists the engine's supervised executions and their current state. Scope is strictly
+// Andromeda-supervised process trees; arbitrary host processes are never reported.
+func (e *Engine) Snapshot() []ExecutionSnapshot {
+	e.mu.Lock()
+	type pair struct {
+		id ports.ExecutionID
+		ex *execution
+	}
+	pairs := make([]pair, 0, len(e.execs))
+	for id, ex := range e.execs {
+		pairs = append(pairs, pair{id, ex})
+	}
+	e.mu.Unlock()
+
+	out := make([]ExecutionSnapshot, 0, len(pairs))
+	for _, p := range pairs {
+		s := ExecutionSnapshot{ID: p.id}
+		select {
+		case <-p.ex.done:
+			p.ex.mu.Lock()
+			s.Status, s.ExitCode = p.ex.outcome.Status, p.ex.outcome.ExitCode
+			p.ex.mu.Unlock()
+		default:
+			s.Running, s.Status = true, "running"
+		}
+		if p.ex.cmd != nil && p.ex.cmd.Process != nil {
+			s.PID = p.ex.cmd.Process.Pid
+		}
+		out = append(out, s)
+	}
+	return out
+}
+
+// SnapshotOne returns a single supervised execution's snapshot.
+func (e *Engine) SnapshotOne(id ports.ExecutionID) (ExecutionSnapshot, error) {
+	if _, err := e.lookup(id); err != nil {
+		return ExecutionSnapshot{}, err
+	}
+	for _, s := range e.Snapshot() {
+		if s.ID == id {
+			return s, nil
+		}
+	}
+	return ExecutionSnapshot{}, termErr("E-TOOL-013", "unknown execution", nil)
+}
+
 func (e *Engine) lookup(id ports.ExecutionID) (*execution, error) {
 	e.mu.Lock()
 	defer e.mu.Unlock()

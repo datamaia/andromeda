@@ -83,8 +83,13 @@ func RunAgent(ctx context.Context, opts RunAgentOptions) (agent.RunResult, error
 		_, _ = pm.GrantPermission(ctx, permission.Grant{
 			Permission: core.PermExecute, Scope: core.ScopeCommand, Selector: "*", Effect: permission.EffectAllow,
 		})
-		tools = append(tools, builtin.NewTerminalRun(terminal.New()))
-		toolNames = append(toolNames, "terminal_run")
+		_, _ = pm.GrantPermission(ctx, permission.Grant{
+			Permission: core.PermProcessSpawn, Scope: core.ScopeHost, Selector: "*", Effect: permission.EffectAllow,
+		})
+		// One engine shared by both tools so process_control supervises what terminal_run starts.
+		termEngine := terminal.New()
+		tools = append(tools, builtin.NewTerminalRun(termEngine), builtin.NewProcessControl(termEngine))
+		toolNames = append(toolNames, "terminal_run", "process_control")
 	}
 	if opts.AllowNetwork {
 		_, _ = pm.GrantPermission(ctx, permission.Grant{
