@@ -7,55 +7,83 @@ import (
 )
 
 // The start-screen splash is the terminal-native rendering of the brand banner
-// (docs/brand/banner-sketch.png, ADR-026): the ASCII cat mascot with sparkle accents, the
-// lowercase wordmark, and the tagline. Glyphs are ASCII-safe so it renders in any terminal; the
-// styling degrades to plain text with no color (Volume 8 degradation tiers).
+// (docs/brand/banner-sketch.png, ADR-026): a front-facing sitting cat mascot with sparkle
+// accents, the lowercase wordmark, and the tagline. The mascot art is pure ASCII so it
+// renders in any terminal; the violet coloring and the four-pointed sparkles degrade to
+// plain monochrome under the no-color tier (Volume 8 degradation tiers).
 
-// mascot is the ASCII-art cat — a front-facing sitting cat evoking the banner sketch.
+// mascot is the ASCII-art cat evoking the sketch: tall pointed ears, large round eyes,
+// whiskers, and a seated body with two front paws. It is centered as a block (one shared
+// indent) so the cat keeps its shape regardless of per-line width.
 var mascot = []string{
-	`      /\_/\`,
-	`     ( o.o )`,
-	`     =( " )=`,
-	`      )   (`,
-	`     (  Y  )`,
-	`     /_/ \_\`,
+	`     /\     /\`,
+	`    /  \___/  \`,
+	`   (           )`,
+	`   (  (O) (O)  )`,
+	` ~~(     Y     )~~`,
+	`   (    \_/    )`,
+	`    \         /`,
+	`     \_______/`,
+	`     /       \`,
+	`    |  |   |  |`,
+	`     \_|   |_/`,
+	`     (_)   (_)`,
 }
 
-// Splash renders the start-screen banner: sparkles, the mascot, the wordmark, and the tagline,
-// centered within width. It is shown while the session has no exchanges yet. The mascot is
-// centered as a block (one shared indent) so the cat keeps its shape regardless of per-line width.
+// scattered sparkles echo the sketch's stars: a few small ones around the cat, in the side
+// gutters, plus the large one beside the wordmark. Keyed by mascot row index.
+var (
+	leftSparkleRow  = map[int]bool{1: true, 6: true, 9: true}
+	rightSparkleRow = map[int]bool{3: true, 10: true}
+)
+
+// gutter is the blank margin reserved on each side of the mascot for scattered sparkles, so
+// the cat itself stays centered on the given width.
+const gutter = 6
+
+// Splash renders the start-screen banner: the sparkled mascot, the wordmark, and the tagline,
+// centered within width. It is shown while the session has no exchanges yet.
 func (m Model) Splash(width int) string {
 	if width <= 0 {
 		width = m.width
 	}
-	star := m.styles.Title.Render("✦")
+	big := m.styles.Title.Render("✦")
+	small := m.styles.Muted.Render("✧")
 	cat := m.styles.Agent // violet
 
-	// Block indent from the widest mascot line, so every line shares the same left margin.
 	widest := 0
 	for _, line := range mascot {
-		if len(line) > widest {
-			widest = len(line)
+		if w := lipgloss.Width(line); w > widest {
+			widest = w
 		}
 	}
+	block := widest + gutter*2
 	indent := 0
-	if width > widest {
-		indent = (width - widest) / 2
+	if width > block {
+		indent = (width - block) / 2
 	}
 	pad := strings.Repeat(" ", indent)
 
 	var b strings.Builder
 	b.WriteString("\n")
-	b.WriteString(pad + "        " + star + "\n") // sparkle above, over the right ear
 	for i, line := range mascot {
-		row := pad + cat.Render(line)
-		if i == 1 {
-			row += "      " + star // sparkle beside the face
+		var row strings.Builder
+		row.WriteString(pad)
+		// left gutter, optionally holding a small sparkle
+		if leftSparkleRow[i] {
+			row.WriteString(strings.Repeat(" ", gutter-2) + small + " ")
+		} else {
+			row.WriteString(strings.Repeat(" ", gutter))
 		}
-		b.WriteString(row + "\n")
+		row.WriteString(cat.Render(line))
+		// right gutter, optionally holding a sparkle aligned past the widest line
+		if rightSparkleRow[i] {
+			row.WriteString(strings.Repeat(" ", widest-lipgloss.Width(line)+2) + small)
+		}
+		b.WriteString(strings.TrimRight(row.String(), " ") + "\n")
 	}
 	b.WriteString("\n")
-	b.WriteString(center(m.styles.Title.Render("andromeda")+" "+star, width) + "\n")
+	b.WriteString(center(m.styles.Title.Render("andromeda")+"  "+big, width) + "\n")
 	b.WriteString(center(m.styles.Muted.Render(Tagline), width) + "\n")
 	return b.String()
 }
