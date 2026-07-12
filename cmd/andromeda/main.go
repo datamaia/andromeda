@@ -82,6 +82,7 @@ func newRunCommand() *cobra.Command {
 		system       string
 		allowWrite   bool
 		allowExec    bool
+		allowNetwork bool
 		maxIter      int
 	)
 	cmd := &cobra.Command{
@@ -104,7 +105,7 @@ func newRunCommand() *cobra.Command {
 			goal := strings.Join(args, " ")
 			res, err := app.RunAgent(cmd.Context(), app.RunAgentOptions{
 				WorkspaceRoot: wd, Goal: goal, System: system, Model: model,
-				Provider: prov, AllowWrite: allowWrite, AllowExec: allowExec, MaxIterations: maxIter,
+				Provider: prov, AllowWrite: allowWrite, AllowExec: allowExec, AllowNetwork: allowNetwork, MaxIterations: maxIter,
 			})
 			out := cmd.OutOrStdout()
 			if err != nil {
@@ -125,6 +126,7 @@ func newRunCommand() *cobra.Command {
 	cmd.Flags().StringVar(&system, "system", "You are Andromeda, a helpful engineering agent.", "system prompt")
 	cmd.Flags().BoolVar(&allowWrite, "allow-write", false, "grant the agent write access within the workspace")
 	cmd.Flags().BoolVar(&allowExec, "allow-exec", false, "grant the agent command execution (terminal_run)")
+	cmd.Flags().BoolVar(&allowNetwork, "allow-network", false, "grant the agent network access (http_request)")
 	cmd.Flags().IntVar(&maxIter, "max-iterations", 0, "iteration budget (0 = default)")
 	return cmd
 }

@@ -313,7 +313,15 @@ Auth, Tool/Terminal, Updater, Package remain).
   `terminal_run`. Each is a `ToolPort` with input/output schemas, declared permissions, and
   path/repository-scoped resource queries so grants apply per file/path/repo. Wired into the
   `andromeda run` composition (write-gated tools appear only with `--allow-write`).
-- ⬜ Later-phase built-in tools (`http.request`, `sqlite.query`, service integrations) — Beta/v1.
+- ✅ **Beta network/data tools** now implemented and wired (catalog at **10/20**): `http_request`
+  (one HTTP request against an allowed host — `network` per-host, optional `credential_ref`
+  resolved from the Secret Store into a bearer and never echoed into the record, redirect cap,
+  1 MiB body cap; behind `--allow-network`) and `sqlite_query` (SQL over a workspace SQLite file —
+  refuses Andromeda's own state DBs, classifies read vs. mutation, and enforces read-only at the
+  DB via `query_only` so a CTE-hidden write cannot slip through; mutations need `--allow-write`).
+- ⬜ Remaining later-phase tools: `process.control` (needs a shared process supervisor),
+  `docker.control` / `browser.control` (need Docker/WebDriver — external), service integrations
+  (`github.request`, …, per-service API facts PENDING VALIDATION) — Beta/v1/v2.
 
 **Gate status:** `make ci` passes. Ports implemented: **17 / 18** (Tool; Terminal, Auth,
 Updater, Package remain).

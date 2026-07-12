@@ -24,6 +24,7 @@ type RunAgentOptions struct {
 	Provider      ports.ProviderPort
 	AllowWrite    bool // grant write within the workspace (safe-by-default is read-only)
 	AllowExec     bool // grant command execution (terminal_run)
+	AllowNetwork  bool // grant network access (http_request)
 	MaxIterations int
 }
 
@@ -59,8 +60,10 @@ func RunAgent(ctx context.Context, opts RunAgentOptions) (agent.RunResult, error
 	}
 
 	rt := tool.NewRuntime(pm)
-	toolNames := []string{"fs_read", "fs_search", "fs_diff"}
-	tools := []ports.ToolPort{builtin.FSRead{}, builtin.FSSearch{}, builtin.FSDiff{}}
+	// sqlite_query is a read tool by default; mutating statements are gated per-statement by the
+	// write grant below (and refused entirely unless the caller passes read_only=false).
+	toolNames := []string{"fs_read", "fs_search", "fs_diff", "sqlite_query"}
+	tools := []ports.ToolPort{builtin.FSRead{}, builtin.FSSearch{}, builtin.FSDiff{}, builtin.SQLiteQuery{}}
 	if opts.AllowWrite {
 		tools = append(tools, builtin.FSWrite{}, builtin.FSReplace{}, builtin.FSPatch{})
 		toolNames = append(toolNames, "fs_write", "fs_replace", "fs_patch")
@@ -82,6 +85,13 @@ func RunAgent(ctx context.Context, opts RunAgentOptions) (agent.RunResult, error
 		})
 		tools = append(tools, builtin.NewTerminalRun(terminal.New()))
 		toolNames = append(toolNames, "terminal_run")
+	}
+	if opts.AllowNetwork {
+		_, _ = pm.GrantPermission(ctx, permission.Grant{
+			Permission: core.PermNetwork, Scope: core.ScopeDomain, Selector: "*", Effect: permission.EffectAllow,
+		})
+		tools = append(tools, builtin.NewHTTPRequest(nil, nil))
+		toolNames = append(toolNames, "http_request")
 	}
 	for _, tl := range tools {
 		if err := rt.Register(ctx, tl); err != nil {

@@ -40,7 +40,13 @@ func builtinToolSummaries() []toolSummary {
 		{"fs_read", "read", "Read a text file"},
 		{"fs_write", "write", "Write a text file (requires --allow-write)"},
 		{"fs_search", "read", "Search files for a substring"},
+		{"fs_diff", "read", "Compute a unified diff"},
+		{"fs_replace", "read,write", "Replace text inside a file (requires --allow-write)"},
+		{"fs_patch", "write", "Apply a unified diff atomically (requires --allow-write)"},
+		{"git_exec", "read,git_mutation", "Run a structured Git operation (mutations require --allow-write)"},
 		{"terminal_run", "execute", "Run a shell command (requires --allow-exec)"},
+		{"sqlite_query", "read,write", "Run SQL against a workspace SQLite database"},
+		{"http_request", "network,credential_access", "Perform one HTTP request (requires --allow-network)"},
 	}
 }
 
