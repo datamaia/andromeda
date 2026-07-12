@@ -1,0 +1,55 @@
+# Upgrade smoke test (Volume 11 chapter 06 / Volume 14, FR-GH-011). Verifies on each Tier-1
+# platform that the latest published release binary downloads and runs, and that a freshly built
+# HEAD binary builds and runs — an upgrade-readiness check that catches a broken published
+# artifact or a HEAD that no longer starts. A lightweight stand-in for the full
+# previous->candidate upgrade/rollback matrix until release channels exist. Runs weekly, on
+# release-candidate tags, and on demand.
+name: upgrade
+
+on:
+  schedule:
+    - cron: "23 6 * * 1" # weekly, Mondays 06:23 UTC
+  push:
+    tags: ["v*-rc*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: upgrade-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  upgrade:
+    name: upgrade (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-14]
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Download and run the latest released binary
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          os=$(go env GOOS); arch=$(go env GOARCH)
+          ver=$(gh release view --json tagName --jq .tagName)
+          asset="andromeda_${ver#v}_${os}_${arch}.tar.gz"
+          echo "latest release: $ver ($asset)"
+          gh release download "$ver" --pattern "$asset" --dir prev
+          tar -xzf "prev/$asset" -C prev
+          ./prev/andromeda version
+          ./prev/andromeda doctor
+      - name: Build and run HEAD
+        run: |
+          set -euo pipefail
+          go build -o head-andromeda ./cmd/andromeda
+          ./head-andromeda version
+          ./head-andromeda doctor

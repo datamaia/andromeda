@@ -25,7 +25,7 @@ Every item of the change-controlled MVP minimum is implemented:
 | Workspace engine | ✅ | Unit tests | ✅ (42 files) |
 | Terminal | ✅ (TerminalPort) | Integration tests | ✅ |
 | Filesystem tools | ✅ (full MVP catalog 8/8) | Main E2E | ✅ (doctor + run) |
-| Basic Git | ✅ (GitPort + git_exec) | GitHub Actions | ✅ (ci, e2e, security, traceability, release) |
+| Basic Git | ✅ (GitPort + git_exec) | GitHub Actions | ✅ (10 workflows; SHA-pinned) |
 | Provider abstraction | ✅ (FR-PROV-001) | Signed releases | ✅ (v0.1.0, cosign) |
 | ≥1 cloud provider | ✅ (Anthropic, OpenAI-compat) | ≥1 local provider | ✅ (Ollama) |
 
@@ -524,14 +524,15 @@ paths; `make lint-charm` fails the build if any v1 `github.com/charmbracelet/*` 
 
 Recorded honestly so they can be reverted when the constraint lifts.
 
-1. **CI platform matrix.** Volume 11 ch 06 mandates a macOS + Linux (×arch) test matrix. The
-   repository is **private on GitHub's free plan**, where macOS runners cost 10× Actions
-   minutes. The CI workflow therefore runs a **single Linux job** that invokes `make ci`;
-   macOS coverage is provided by running `make ci` locally on the maintainer's Mac. The full
-   matrix and the separate `policy.yml` / `traceability.yml` / `security.yml` / `e2e.yml`
-   workflows activate when the repo is public or on a paid plan. **Reversible.**
-2. **Action pinning.** CI actions use major-version tags, not full commit SHAs (ADR-149 asks
-   for SHA pins). SHA pinning + Dependabot enforcement is a hardening step to schedule.
+1. **CI platform matrix — RESOLVED (repo is public).** The Tier-1 matrix (Linux amd64/arm64,
+   macOS arm64) runs on every push/PR, and the mandated `policy.yml`, `traceability.yml`,
+   `security.yml`, `e2e.yml`, `labels.yml`, `audit.yml`, `upgrade.yml`, and `docs.yml` workflows
+   are all active (10 workflows total). macOS Intel (macos-13) is omitted — those hosted runners
+   are being retired. Still pending: `benchmarks.yml` (no benchmark suite exists yet) and
+   `project.yml` (needs a GitHub Project board).
+2. **Action pinning — RESOLVED.** Every workflow action is pinned to a full commit SHA (ADR-149)
+   with its version in a trailing comment; Dependabot's `github-actions` updater bumps them, and
+   `policy.yml` fails any unpinned action.
 3. **CODEOWNERS is a single maintainer** (`@datamaia`) rather than maintainer teams; teams
    activate once the GitHub org exists (namespace PENDING VALIDATION, OQ-001).
 4. **Structure check enforces the EP-01 subset** of the mandated tree; it extends as later

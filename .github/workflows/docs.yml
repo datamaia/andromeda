@@ -1,0 +1,30 @@
+# Documentation validation (Volume 11 chapter 06, FR-GH-011). The public repository has no
+# separate documentation site yet and the specification is a private companion document, so
+# instead of publishing this gate keeps the tracked Markdown honest: every relative link and
+# image must resolve. It catches the dangling docs/spec links a private-spec split can
+# introduce. Runs on documentation changes. (Publishing a user-docs site and spec HTML rendering
+# remain future work, tracked in STATUS.md.)
+name: docs
+
+on:
+  pull_request:
+    paths: ["**/*.md"]
+  push:
+    branches: [main]
+    paths: ["**/*.md"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docs-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  links:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - name: Validate Markdown links resolve
+        run: python3 scripts/check_doc_links.py
