@@ -2,6 +2,11 @@ module github.com/datamaia/andromeda
 
 go 1.25.0
 
+// Build with a patched toolchain (>= go1.25.3 fixes crypto/tls + crypto/x509 stdlib
+// advisories flagged by govulncheck) while keeping the language version at 1.25 so the
+// golangci-lint gate (built with go1.26.2) still accepts the module. See STATUS.md.
+toolchain go1.26.5
+
 require (
 	charm.land/bubbletea/v2 v2.0.8
 	charm.land/lipgloss/v2 v2.0.5
