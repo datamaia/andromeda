@@ -527,9 +527,12 @@ Recorded honestly so they can be reverted when the constraint lifts.
 1. **CI platform matrix — RESOLVED (repo is public).** The Tier-1 matrix (Linux amd64/arm64,
    macOS arm64) runs on every push/PR, and the mandated `policy.yml`, `traceability.yml`,
    `security.yml`, `e2e.yml`, `labels.yml`, `audit.yml`, `upgrade.yml`, and `docs.yml` workflows
-   are all active (10 workflows total). macOS Intel (macos-13) is omitted — those hosted runners
-   are being retired. Still pending: `benchmarks.yml` (no benchmark suite exists yet) and
-   `project.yml` (needs a GitHub Project board).
+   and `benchmarks.yml` are all active (11 workflows total). macOS Intel (macos-13) is omitted —
+   those hosted runners are being retired. `benchmarks.yml` runs the **micro-benchmark tier**
+   (`make bench`, Volume 12 ch03): Go `Benchmark*` functions for ULID, event-bus publish,
+   scheduler submit, tool dispatch, streaming, memory retrieval, and semantic search. The
+   operation/scenario tiers, calibrated reference machines, and rolling-baseline regression
+   gating remain future work. Still pending: `project.yml` (needs a GitHub Project board).
 2. **Action pinning — RESOLVED.** Every workflow action is pinned to a full commit SHA (ADR-149)
    with its version in a trailing comment; Dependabot's `github-actions` updater bumps them, and
    `policy.yml` fails any unpinned action.

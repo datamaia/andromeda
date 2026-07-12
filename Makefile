@@ -60,6 +60,10 @@ test-unit: ## Run unit tests with the race detector
 test-integration: ## Run integration-tagged tests
 	$(GO) test -race -tags=integration $(PKGS)
 
+.PHONY: bench
+bench: ## Run the micro-benchmark suite (Volume 12 chapter 03)
+	$(GO) test -run '^$$' -bench=. -benchmem $(PKGS)
+
 .PHONY: coverage
 coverage: ## Produce a coverage profile
 	$(GO) test -covermode=atomic -coverprofile=$(COVER_PROFILE) $(PKGS)
