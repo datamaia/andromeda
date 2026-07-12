@@ -4,8 +4,9 @@ Living tracker of the build. The **specification** (`docs/spec/`, v1.0.0) is com
 file tracks the **implementation** against Volume 15's epics and milestones. Updated and
 pushed on every advance.
 
-**Last updated:** 2026-07-12 · **MVP phase functionally complete** · **Ports:** 18/18 ✅ ·
-**CLI:** 20 command groups · **TUI:** ✅ · **Built-in tools:** 20/20 · ~20k LOC Go, 60 test files, `make ci` green
+**Last updated:** 2026-07-12 · **MVP phase functionally complete** · **Public repo · v0.1.0 released (signed)** ·
+**Ports:** 18/18 ✅ · **CLI:** 20 command groups · **TUI:** ✅ · **Built-in tools:** 20/20 ·
+**CI:** matrix (Linux amd64/arm64, macOS arm64), golangci-lint gate green · ~20k LOC Go, 60 test files, `make ci` green
 
 ## MVP-minimum coverage (Volume 1 chapter 05, 27 items)
 
@@ -17,15 +18,15 @@ Every item of the change-controlled MVP minimum is implemented:
 | Functional TUI | ✅ (Bubble Tea v2) | Configuration | ✅ (FR-CFG-001) |
 | Agent runtime | ✅ (FR-AGT-001) | Logging | ✅ (slog+redaction) |
 | Basic planner | ✅ (in-loop) | Session persistence | ✅ (SQLite) |
-| Execution engine | ✅ | macOS | ✅ (dev + tests) |
-| Context manager | ~ (assembly in loop) | Linux | ✅ (CI) |
+| Execution engine | ✅ | macOS | ✅ (dev + CI) |
+| Context manager | ~ (assembly in loop) | Linux | ✅ (CI matrix) |
 | Tool runtime | ✅ (FR-TOOL-001) | Installation | ✅ (shell installer) |
 | Permission manager | ✅ (FR-SEC-100) | Basic update | ✅ (UpdaterPort) |
 | Workspace engine | ✅ | Unit tests | ✅ (42 files) |
 | Terminal | ✅ (TerminalPort) | Integration tests | ✅ |
 | Filesystem tools | ✅ (full MVP catalog 8/8) | Main E2E | ✅ (doctor + run) |
-| Basic Git | ✅ (GitPort + git_exec) | GitHub Actions | ✅ (ci + release) |
-| Provider abstraction | ✅ (FR-PROV-001) | Signed releases (viable) | ✅ (goreleaser+cosign config) |
+| Basic Git | ✅ (GitPort + git_exec) | GitHub Actions | ✅ (matrix ci + release) |
+| Provider abstraction | ✅ (FR-PROV-001) | Signed releases | ✅ (v0.1.0, cosign) |
 | ≥1 cloud provider | ✅ (Anthropic, OpenAI-compat) | ≥1 local provider | ✅ (Ollama) |
 
 Beyond the minimum, also implemented: **SDD Workflow Engine**, **MCP client + tool bridging**,
@@ -85,8 +86,9 @@ Per the specification's own phasing and PENDING VALIDATION items — not part of
   model, tool, plugin (via runtime), skill, workflow, mcp (via client), memory, context, index,
   git, doctor, update, version, completion, logs, trace, export, tui.
 
-The full traceability automation (Volume 11 ch 07 GitHub-side checks) and branch protection are
-platform configuration applied on GitHub, not in-repo code.
+The repository is **public**, and **branch protection** on `main` is applied (force-push and
+deletion blocked, administrators included). The full traceability automation (Volume 11 ch 07
+GitHub-side checks) remains platform configuration applied on GitHub, not in-repo code.
 
 
 ## How work is organized

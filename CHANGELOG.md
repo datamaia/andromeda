@@ -8,6 +8,12 @@ Commit history by the release automation (ADR-013) and committed at release time
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-07-12
+
+First tagged release. Cross-platform signed binaries (Linux and macOS, amd64 and arm64)
+with SBOMs and a cosign signature are published on the GitHub release; install via
+`scripts/install.sh` or download an archive directly.
+
 ### Added
 
 - **EP-01 — Repository, CI, and process foundations.** Go module and walking-skeleton
