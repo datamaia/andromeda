@@ -1,0 +1,42 @@
+# Development traceability validators (Volume 11 chapter 07, FR-GH-001 / E-GH-001). Verifies
+# that every non-merge commit a change introduces follows Conventional Commits and carries no
+# attribution/advertising trailer — the CI mirror of the local .githooks/commit-msg policy, so a
+# commit that bypassed the hook is still caught before it lands. Runs on pull requests
+# (validating base..head) and on pushes to main (validating the pushed range). ADR-149 posture.
+name: traceability
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: traceability-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  commits:
+    name: commit messages
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # need the full range to walk commit history
+      - name: Determine the commit range
+        id: range
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "range=${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}" >> "$GITHUB_OUTPUT"
+          else
+            before="${{ github.event.before }}"
+            if [ -z "$before" ] || [ "$before" = "0000000000000000000000000000000000000000" ]; then
+              echo "range=${{ github.sha }}~1..${{ github.sha }}" >> "$GITHUB_OUTPUT"
+            else
+              echo "range=${before}..${{ github.sha }}" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+      - name: Validate commit messages in range
+        run: bash scripts/check_commits.sh "${{ steps.range.outputs.range }}"

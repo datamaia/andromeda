@@ -1,0 +1,41 @@
+# End-to-end smoke journey (Volume 11 chapter 06, FR-GH-009; MVP minimum item 25). Builds the
+# binary on each Tier-1 platform and exercises the hermetic main-journey commands: `version`,
+# `--help`, and `doctor` — which resolves layered configuration, opens the global and workspace
+# databases (running migrations), and emits a persisted event. No provider credentials or
+# network access are required, so it runs on untrusted pull requests. ADR-149 posture.
+name: e2e
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    name: smoke (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, ubuntu-24.04-arm, macos-14]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Build the binary
+        run: go build -o andromeda ./cmd/andromeda
+      - name: version reports build metadata
+        run: ./andromeda version
+      - name: help lists the command surface
+        run: ./andromeda --help
+      - name: doctor validates config, both databases, and the event bus
+        run: ./andromeda doctor

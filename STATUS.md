@@ -25,7 +25,7 @@ Every item of the change-controlled MVP minimum is implemented:
 | Workspace engine | ✅ | Unit tests | ✅ (42 files) |
 | Terminal | ✅ (TerminalPort) | Integration tests | ✅ |
 | Filesystem tools | ✅ (full MVP catalog 8/8) | Main E2E | ✅ (doctor + run) |
-| Basic Git | ✅ (GitPort + git_exec) | GitHub Actions | ✅ (matrix ci + release) |
+| Basic Git | ✅ (GitPort + git_exec) | GitHub Actions | ✅ (ci, e2e, security, traceability, release) |
 | Provider abstraction | ✅ (FR-PROV-001) | Signed releases | ✅ (v0.1.0, cosign) |
 | ≥1 cloud provider | ✅ (Anthropic, OpenAI-compat) | ≥1 local provider | ✅ (Ollama) |
 

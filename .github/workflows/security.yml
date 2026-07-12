@@ -1,0 +1,51 @@
+# Security scanning (Volume 11 chapter 06, FR-GH-010). CodeQL static analysis for Go plus a
+# dependency vulnerability audit (govulncheck). Runs on pull requests, pushes to main, and a
+# weekly schedule. Least-privilege tokens per ADR-149; CodeQL needs security-events: write to
+# upload results to the Security tab. Action versions use major tags here; full commit-SHA
+# pinning (ADR-149) is a hardening step tracked in STATUS.md.
+name: security
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "37 4 * * 1" # Mondays 04:37 UTC
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  codeql:
+    name: codeql (go)
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: go
+      - uses: github/codeql-action/autobuild@v3
+      - uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:go"
+
+  govulncheck:
+    name: govulncheck
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Install govulncheck
+        run: go install golang.org/x/vuln/cmd/govulncheck@latest
+      - name: Audit the module for called vulnerabilities
+        run: govulncheck ./...
