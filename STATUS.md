@@ -359,6 +359,24 @@ shell both runnable from the command line.
 
 **Gate status:** `make ci` passes. CLI groups: **15**. Distribution pipeline configured.
 
+### EP — Plugin Runtime and Skill System (Volume 6) · ✅
+
+- ✅ Plugin Runtime (`internal/plugin`, **FR-PLUG-001**): plugins are subprocesses speaking the
+  Andromeda Runtime Protocol (JSON-RPC 2.0 over stdio, ADR-009) — the same surface as MCP, so
+  the MCP client drives both. `Connect` (injectable transport) and `Spawn` (real subprocess)
+  do the handshake, `Tools` bridges the plugin's tools to permission-mediated ToolPorts, and
+  `Stop` runs the frozen Plugin lifecycle. Verified with an in-memory server AND a real
+  subprocess (a POSIX-sh ARP server responding to initialize).
+- ✅ Skill System (`internal/skill`, **FR-SKILL-001**): a loader that parses and validates a
+  skill directory (`skill.toml` manifest + prompt), and `Resolve` that checks required tools
+  and capabilities against the environment, composing the system prompt only when satisfied and
+  reporting missing requirements precisely (no silent degradation).
+
+**Extensibility axis complete:** MCP client + tool bridging, plugin subprocess runtime over ARP,
+and the skill format/loader — all permission-mediated through the Tool Runtime.
+
+**Gate status:** `make ci` passes.
+
 ## Deliberate deviations from the specification (free-tier accommodations)
 
 Recorded honestly so they can be reverted when the constraint lifts.
