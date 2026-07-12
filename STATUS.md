@@ -4,7 +4,49 @@ Living tracker of the build. The **specification** (`docs/spec/`, v1.0.0) is com
 file tracks the **implementation** against Volume 15's epics and milestones. Updated and
 pushed on every advance.
 
-**Last updated:** 2026-07-12 · **Current milestone:** MS-3 (Memory/context/index → runtime) · **Phase:** Core/MVP · **Ports:** 18/18 ✅
+**Last updated:** 2026-07-12 · **MVP phase functionally complete** · **Ports:** 18/18 ✅ ·
+**CLI:** 20 command groups · **TUI:** ✅ · ~14.7k LOC Go, 42 test files, `make ci` green
+
+## MVP-minimum coverage (Volume 1 chapter 05, 27 items)
+
+Every item of the change-controlled MVP minimum is implemented:
+
+| Item | Status | Item | Status |
+|---|---|---|---|
+| Functional CLI | ✅ (20 groups) | Streaming | ✅ (SSE adapters) |
+| Functional TUI | ✅ (Bubble Tea) | Configuration | ✅ (FR-CFG-001) |
+| Agent runtime | ✅ (FR-AGT-001) | Logging | ✅ (slog+redaction) |
+| Basic planner | ✅ (in-loop) | Session persistence | ✅ (SQLite) |
+| Execution engine | ✅ | macOS | ✅ (dev + tests) |
+| Context manager | ~ (assembly in loop) | Linux | ✅ (CI) |
+| Tool runtime | ✅ (FR-TOOL-001) | Installation | ✅ (shell installer) |
+| Permission manager | ✅ (FR-SEC-100) | Basic update | ✅ (UpdaterPort) |
+| Workspace engine | ✅ | Unit tests | ✅ (42 files) |
+| Terminal | ✅ (TerminalPort) | Integration tests | ✅ |
+| Filesystem tools | ✅ (read/write/search) | Main E2E | ✅ (doctor + run) |
+| Basic Git | ✅ (GitPort) | GitHub Actions | ✅ (ci + release) |
+| Provider abstraction | ✅ (FR-PROV-001) | Signed releases (viable) | ✅ (goreleaser+cosign config) |
+| ≥1 cloud provider | ✅ (Anthropic, OpenAI-compat) | ≥1 local provider | ✅ (Ollama) |
+
+Beyond the minimum, also implemented: **SDD Workflow Engine**, **MCP client + tool bridging**,
+**plugin subprocess runtime (ARP)**, **skill system**, **scheduler**, **package manager**,
+**auth layer**, **secret store (keychain+age)**, **sandbox (process-level)**.
+
+## Remaining work — all spec-designated later phases (Beta/v1/v2) or refinements
+
+Per the specification's own phasing and PENDING VALIDATION items — not part of the MVP:
+
+- **OS-level sandbox** (Seatbelt/Landlock) — ADR-021 marks this Beta/v1, PENDING VALIDATION.
+- **Windows native** — v2 candidate (WSL is a distinct modality).
+- **OAuth MCP auth**, **WASM plugins** — PENDING VALIDATION / v2 (ADR-010/009).
+- **macOS notarization** — needs an Apple Developer identity (open question OQ-003).
+- **OpenTelemetry SDK export**, **live config watch**, **PTY terminal mode**, **semantic
+  embeddings retrieval**, **per-stage SDD agent wiring**, **v2 Bubble Tea migration**,
+  **remaining CLI commands** (context, trace) — refinements layered on the working MVP.
+
+The full traceability automation (Volume 11 ch 07 GitHub-side checks) and branch protection are
+platform configuration applied on GitHub, not in-repo code.
+
 
 ## How work is organized
 
