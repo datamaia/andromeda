@@ -61,6 +61,9 @@ func (e *Engine) Execute(ctx context.Context, spec ports.CommandSpec) (ports.Exe
 		}
 		cmd.Env = env
 	}
+	// Run the child as its own process-group leader so Signal can reach the whole tree (a shell
+	// plus anything it forks); otherwise an orphaned grandchild keeps the pipes open and Wait hangs.
+	setpgid(cmd)
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		return "", termErr("E-TOOL-010", "stdout pipe", err)

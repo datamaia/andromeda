@@ -96,6 +96,25 @@ func TestSignalStopsLongRunning(t *testing.T) {
 	}
 }
 
+// TestSignalKillsProcessTree guards the orphaned-grandchild hang: the shell forks `sleep` as a
+// child and waits, so killing only the shell would leave `sleep` holding the output pipes open,
+// the pumps would never see EOF, and Wait would block. Signal must reach the whole process group.
+func TestSignalKillsProcessTree(t *testing.T) {
+	ctx := context.Background()
+	e := New()
+	id, _ := e.Execute(ctx, ports.CommandSpec{Program: "sh", Args: []string{"-c", "sleep 300 & wait"}})
+	if err := e.Signal(ctx, id, ports.SignalKill); err != nil {
+		t.Fatal(err)
+	}
+	done := make(chan ports.CommandOutcome, 1)
+	go func() { o, _ := e.Wait(ctx, id); done <- o }()
+	select {
+	case <-done:
+	case <-time.After(30 * time.Second):
+		t.Fatal("Wait hung after kill: the signal did not reach the whole process group")
+	}
+}
+
 func TestUnknownExecution(t *testing.T) {
 	if _, err := New().Wait(context.Background(), "nope"); err == nil {
 		t.Error("expected error for unknown execution")
