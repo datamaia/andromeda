@@ -12,6 +12,28 @@ import (
 	"github.com/datamaia/andromeda/internal/ports"
 )
 
+// The Codex/ChatGPT-subscription backend serves only gpt-5.5 and gpt-5.4 (verified live): supported
+// ids pass through, rejected ids (retired bases, dropped codex variants, the CLI's llama3 default)
+// remap to the default, and newer-but-not-yet-enabled ids (gpt-5.6) pass through so the backend's own
+// "not supported … with a ChatGPT account" error surfaces instead of a silent downgrade.
+func TestResolveModel(t *testing.T) {
+	cases := map[string]string{
+		"gpt-5.5":       "gpt-5.5", // supported — unchanged
+		"gpt-5.4":       "gpt-5.4", // supported — unchanged
+		"gpt-5.6":       "gpt-5.6", // newer, not yet on this backend — passes through to the clear 400
+		"gpt-5.1-codex": "gpt-5.5", // codex variant dropped by the backend → default
+		"gpt-5.2":       "gpt-5.5", // retired → default
+		"gpt-5-codex":   "gpt-5.5", // legacy alias → default
+		"llama3":        "gpt-5.5", // the CLI default id → default
+		"":              "gpt-5.5", // empty → default
+	}
+	for in, want := range cases {
+		if got := resolveModel(in); got != want {
+			t.Errorf("resolveModel(%q) = %q, want %q", in, got, want)
+		}
+	}
+}
+
 func TestChatBuildsResponsesRequestAndParsesOutput(t *testing.T) {
 	var gotPath string
 	var gotHeaders http.Header
@@ -21,14 +43,12 @@ func TestChatBuildsResponsesRequestAndParsesOutput(t *testing.T) {
 		gotHeaders = r.Header
 		raw, _ := io.ReadAll(r.Body)
 		_ = json.Unmarshal(raw, &gotBody)
-		w.Header().Set("Content-Type", "application/json")
-		_, _ = w.Write([]byte(`{
-			"output": [
-				{"type":"message","role":"assistant","content":[{"type":"output_text","text":"hello there"}]},
-				{"type":"function_call","name":"fs_read","arguments":"{\"path\":\"x\"}","call_id":"call_1"}
-			],
-			"usage": {"input_tokens": 11, "output_tokens": 5}
-		}`))
+		// The Codex backend is streaming-only: respond with Responses-API SSE events.
+		w.Header().Set("Content-Type", "text/event-stream")
+		_, _ = io.WriteString(w, "data: {\"type\":\"response.output_text.delta\",\"delta\":\"hello there\"}\n\n")
+		_, _ = io.WriteString(w, "data: {\"type\":\"response.output_item.done\",\"item\":{\"type\":\"function_call\",\"name\":\"fs_read\",\"arguments\":\"{\\\"path\\\":\\\"x\\\"}\",\"call_id\":\"call_1\"}}\n\n")
+		_, _ = io.WriteString(w, "data: {\"type\":\"response.completed\",\"response\":{\"usage\":{\"input_tokens\":11,\"output_tokens\":5}}}\n\n")
+		_, _ = io.WriteString(w, "data: [DONE]\n\n")
 	}))
 	defer srv.Close()
 
@@ -66,8 +86,11 @@ func TestChatBuildsResponsesRequestAndParsesOutput(t *testing.T) {
 	if store, _ := gotBody["store"].(bool); store {
 		t.Error("store must be false for the ChatGPT backend")
 	}
-	if gotBody["model"] != "gpt-5.1-codex" {
-		t.Errorf("model = %v, want remapped gpt-5.1-codex", gotBody["model"])
+	if stream, _ := gotBody["stream"].(bool); !stream {
+		t.Error("stream must be true — the Codex backend is streaming-only")
+	}
+	if gotBody["model"] != "gpt-5.5" {
+		t.Errorf("model = %v, want remapped gpt-5.5", gotBody["model"])
 	}
 	if instr, _ := gotBody["instructions"].(string); !strings.Contains(instr, "Codex") || !strings.Contains(instr, "be terse") {
 		t.Errorf("instructions should carry the Codex prompt + folded system message: %q", instr)
@@ -88,6 +111,61 @@ func TestChatBuildsResponsesRequestAndParsesOutput(t *testing.T) {
 	}
 	if resp.Usage.InputTokens != 11 || resp.Usage.OutputTokens != 5 {
 		t.Errorf("usage = %+v", resp.Usage)
+	}
+}
+
+// ChatStream parses Responses-API SSE into live content deltas, a completed tool call, and a
+// terminal event with usage. Regression: the backend requires stream:true, so a non-streaming
+// request 400'd ("Stream must be set to true").
+func TestChatStreamParsesResponsesSSE(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "text/event-stream")
+		_, _ = io.WriteString(w, "data: {\"type\":\"response.output_text.delta\",\"delta\":\"Ho\"}\n\n")
+		_, _ = io.WriteString(w, "data: {\"type\":\"response.output_text.delta\",\"delta\":\"la\"}\n\n")
+		_, _ = io.WriteString(w, "data: {\"type\":\"response.output_item.done\",\"item\":{\"type\":\"function_call\",\"name\":\"fs_write\",\"arguments\":\"{}\",\"call_id\":\"c1\"}}\n\n")
+		_, _ = io.WriteString(w, "data: {\"type\":\"response.completed\",\"response\":{\"usage\":{\"input_tokens\":3,\"output_tokens\":2}}}\n\n")
+	}))
+	defer srv.Close()
+
+	a := New(Config{BaseURL: srv.URL, Token: func(context.Context) (string, string, error) { return "t", "acc", nil }})
+	st, err := a.ChatStream(context.Background(), ports.ChatRequest{Model: "gpt-5.5", Messages: []ports.Message{{Role: "user", Parts: []ports.ContentPart{{Type: "text", Text: "hi"}}}}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = st.Close() }()
+
+	var content strings.Builder
+	var calls, terminals int
+	for {
+		ev, err := st.Next(context.Background())
+		if err == ports.ErrEndOfStream {
+			break
+		}
+		if err != nil {
+			t.Fatal(err)
+		}
+		switch ev.Kind {
+		case "content":
+			content.WriteString(ev.ContentDelta)
+		case "tool_call":
+			if ev.ToolCall != nil && ev.ToolCall.Name == "fs_write" {
+				calls++
+			}
+		case "terminal":
+			terminals++
+			if ev.Usage == nil || ev.Usage.OutputTokens != 2 {
+				t.Errorf("terminal usage = %+v", ev.Usage)
+			}
+		}
+	}
+	if content.String() != "Hola" {
+		t.Errorf("streamed content = %q, want Hola", content.String())
+	}
+	if calls != 1 {
+		t.Errorf("tool calls = %d, want 1", calls)
+	}
+	if terminals != 1 {
+		t.Errorf("terminal events = %d, want 1", terminals)
 	}
 }
 

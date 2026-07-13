@@ -61,13 +61,13 @@ var catalog = []ProviderInfo{
 	},
 	{
 		ID: "openai-chatgpt", Display: "ChatGPT (subscription)", Kind: KindOpenAIChatGPT,
-		Reasoning: true, DefaultModel: "gpt-5.1-codex",
+		Reasoning: true, DefaultModel: "gpt-5.5",
 		Note: "sign in with your ChatGPT account: andromeda auth login openai-chatgpt",
 	},
 	{
 		ID: "gemini", Display: "Google AI Studio (Gemini)", Kind: KindOpenAICompat,
 		BaseURL: "https://generativelanguage.googleapis.com/v1beta/openai", KeyEnv: "GEMINI_API_KEY",
-		KeyRequired: true, Reasoning: true, DefaultModel: "gemini-2.5-flash",
+		KeyRequired: true, Reasoning: true, DefaultModel: "gemini-2.0-flash",
 		Note: "Gemini via its OpenAI-compatible layer",
 	},
 	{

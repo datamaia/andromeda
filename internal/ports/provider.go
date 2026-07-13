@@ -52,10 +52,18 @@ type Message struct {
 	Parts []ContentPart
 }
 
-// ContentPart is a piece of message content (text, image reference, etc.).
+// ContentPart is a piece of message content. Type is "text" (Text carries the string), "tool_call"
+// (an assistant's request to invoke a tool: ToolCallID/ToolName/ToolInput), or "tool_result" (a tool
+// message's outcome: ToolCallID correlates it back to the call, Text carries the result). Carrying
+// tool-call linkage on the message is what lets a provider re-serialize a multi-turn tool exchange
+// (assistant tool_calls followed by tool results) without losing the correlation IDs.
 type ContentPart struct {
 	Type string
 	Text string
+
+	ToolCallID string // correlates a tool_call with its tool_result
+	ToolName   string // tool name (tool_call parts)
+	ToolInput  JSON   // tool arguments as JSON (tool_call parts)
 }
 
 // ToolDeclaration advertises a tool to a provider for tool calling.

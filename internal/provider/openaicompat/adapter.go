@@ -5,6 +5,7 @@ package openaicompat
 
 import (
 	"context"
+	"encoding/json"
 	"strings"
 
 	"github.com/datamaia/andromeda/internal/core"
@@ -44,15 +45,31 @@ var _ ports.ProviderPort = (*Adapter)(nil)
 
 // wire types for the OpenAI chat-completions surface.
 type chatReq struct {
-	Model    string        `json:"model"`
-	Messages []wireMessage `json:"messages"`
-	Tools    []wireTool    `json:"tools,omitempty"`
-	Stream   bool          `json:"stream,omitempty"`
+	Model           string        `json:"model"`
+	Messages        []wireMessage `json:"messages"`
+	Tools           []wireTool    `json:"tools,omitempty"`
+	Stream          bool          `json:"stream,omitempty"`
+	Temperature     *float64      `json:"temperature,omitempty"`
+	MaxTokens       *int          `json:"max_tokens,omitempty"`
+	ReasoningEffort string        `json:"reasoning_effort,omitempty"` // reasoning models only
 }
 
 type wireMessage struct {
-	Role    string `json:"role"`
-	Content string `json:"content"`
+	Role       string         `json:"role"`
+	Content    string         `json:"content"`
+	ToolCalls  []wireToolCall `json:"tool_calls,omitempty"`   // assistant messages that called tools
+	ToolCallID string         `json:"tool_call_id,omitempty"` // tool messages, correlating the result
+}
+
+type wireToolCall struct {
+	ID       string           `json:"id"`
+	Type     string           `json:"type"` // always "function"
+	Function wireToolCallFunc `json:"function"`
+}
+
+type wireToolCallFunc struct {
+	Name      string `json:"name"`
+	Arguments string `json:"arguments"` // a JSON string, per the OpenAI schema
 }
 
 type wireTool struct {
@@ -88,24 +105,54 @@ type chatResp struct {
 func buildMessages(msgs []ports.Message) []wireMessage {
 	out := make([]wireMessage, 0, len(msgs))
 	for _, m := range msgs {
+		wm := wireMessage{Role: m.Role}
 		var sb strings.Builder
 		for _, p := range m.Parts {
-			if p.Type == "" || p.Type == "text" {
+			switch p.Type {
+			case "tool_call":
+				args := string(p.ToolInput)
+				if strings.TrimSpace(args) == "" {
+					args = "{}" // the API requires a JSON string, never empty
+				}
+				wm.ToolCalls = append(wm.ToolCalls, wireToolCall{
+					ID: p.ToolCallID, Type: "function",
+					Function: wireToolCallFunc{Name: p.ToolName, Arguments: args},
+				})
+			case "tool_result":
+				wm.ToolCallID = p.ToolCallID
+				sb.WriteString(p.Text)
+			default: // "" or "text"
 				sb.WriteString(p.Text)
 			}
 		}
-		out = append(out, wireMessage{Role: m.Role, Content: sb.String()})
+		wm.Content = sb.String()
+		out = append(out, wm)
 	}
 	return out
 }
 
 func buildRequest(req ports.ChatRequest, stream bool) chatReq {
 	cr := chatReq{Model: req.Model, Messages: buildMessages(req.Messages), Stream: stream}
+	// Sampling controls and reasoning effort ride on ModelParams; omitempty keeps the body identical
+	// to before when they are unset, so non-reasoning models are unaffected.
+	cr.Temperature = req.Params.Temperature
+	cr.MaxTokens = req.Params.MaxTokens
+	if req.Params.Extra != nil {
+		if v, ok := req.Params.Extra["reasoning_effort"].(string); ok && v != "" {
+			cr.ReasoningEffort = v
+		}
+	}
 	for _, t := range req.Tools {
-		cr.Tools = append(cr.Tools, wireTool{
-			Type:     "function",
-			Function: wireFunction{Name: t.Name, Description: t.Description},
-		})
+		fn := wireFunction{Name: t.Name, Description: t.Description}
+		// Advertise the tool's input schema so the model produces well-formed arguments; without it
+		// the model is told a tool exists but not what to pass, and may skip or mis-call it.
+		if len(t.InputSchema) > 0 {
+			var params map[string]any
+			if err := json.Unmarshal(t.InputSchema, &params); err == nil {
+				fn.Parameters = params
+			}
+		}
+		cr.Tools = append(cr.Tools, wireTool{Type: "function", Function: fn})
 	}
 	return cr
 }
