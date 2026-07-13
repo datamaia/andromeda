@@ -19,6 +19,8 @@ const (
 	KindAnthropic
 	// KindOllama is a local Ollama daemon (no key).
 	KindOllama
+	// KindOpenAIChatGPT is a ChatGPT-subscription OAuth session against the Codex backend.
+	KindOpenAIChatGPT
 )
 
 // ProviderInfo describes one catalog entry.
@@ -56,6 +58,11 @@ var catalog = []ProviderInfo{
 		ID: "anthropic", Display: "Anthropic", Kind: KindAnthropic,
 		KeyEnv: "ANTHROPIC_API_KEY", KeyRequired: true, Reasoning: true,
 		Note: "Anthropic Messages API (API key)",
+	},
+	{
+		ID: "openai-chatgpt", Display: "ChatGPT (subscription)", Kind: KindOpenAIChatGPT,
+		Reasoning: true, DefaultModel: "gpt-5.1-codex",
+		Note: "sign in with your ChatGPT account: andromeda auth login openai-chatgpt",
 	},
 	{
 		ID: "gemini", Display: "Google AI Studio (Gemini)", Kind: KindOpenAICompat,

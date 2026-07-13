@@ -1,12 +1,16 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"os"
+	"time"
 
+	"github.com/datamaia/andromeda/internal/auth"
 	"github.com/datamaia/andromeda/internal/ports"
 	"github.com/datamaia/andromeda/internal/provider/anthropic"
 	"github.com/datamaia/andromeda/internal/provider/ollama"
+	"github.com/datamaia/andromeda/internal/provider/openaichatgpt"
 	"github.com/datamaia/andromeda/internal/provider/openaicompat"
 )
 
@@ -43,6 +47,9 @@ func BuildProvider(spec ProviderSpec) (ports.ProviderPort, error) {
 // buildFromCatalog resolves a catalog entry into a concrete adapter, filling in the endpoint and
 // reading the API key from the entry's environment variable when not overridden.
 func buildFromCatalog(info ProviderInfo, spec ProviderSpec) (ports.ProviderPort, error) {
+	if info.Kind == KindOpenAIChatGPT {
+		return openaichatgpt.New(openaichatgpt.Config{Token: chatGPTTokenSource()}), nil
+	}
 	baseURL := spec.BaseURL
 	if baseURL == "" {
 		baseURL = info.BaseURL
@@ -66,5 +73,32 @@ func buildFromCatalog(info ProviderInfo, spec ProviderSpec) (ports.ProviderPort,
 		return openaicompat.New(openaicompat.Config{BaseURL: baseURL, APIKey: apiKey}), nil
 	default:
 		return nil, fmt.Errorf("unknown provider kind for %q", info.ID)
+	}
+}
+
+// chatGPTTokenSource returns a token accessor for the ChatGPT backend that loads the stored OAuth
+// session and refreshes it when it is within five minutes of expiry, restoring the account id the
+// refresh response may omit. A missing session yields an actionable "sign in" error.
+func chatGPTTokenSource() openaichatgpt.TokenSource {
+	return func(ctx context.Context) (string, string, error) {
+		ss, err := SecretStore()
+		if err != nil {
+			return "", "", err
+		}
+		mgr := auth.New(ss)
+		tok, err := mgr.LoadOAuthToken(ctx, auth.OpenAIChatGPTProvider, "default")
+		if err != nil {
+			return "", "", fmt.Errorf("not signed in to ChatGPT — run: andromeda auth login openai-chatgpt")
+		}
+		if tok.Expired(5*time.Minute) && tok.RefreshToken != "" {
+			if refreshed, rerr := auth.RefreshBrowserToken(ctx, auth.OpenAIChatGPTFlow(), tok.RefreshToken); rerr == nil {
+				if refreshed.AccountID == "" {
+					refreshed.AccountID = tok.AccountID
+				}
+				_ = mgr.StoreOAuthToken(ctx, auth.OpenAIChatGPTProvider, "default", refreshed)
+				tok = refreshed
+			}
+		}
+		return tok.AccessToken, tok.AccountID, nil
 	}
 }
