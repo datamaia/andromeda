@@ -206,21 +206,7 @@ func cmdModel(m Model, args string) (tea.Model, tea.Cmd) {
 		m.model = args
 		return m.sys("model set to " + args), nil
 	}
-	if m.actions.Models == nil {
-		return m.sys("current model: " + m.model + "  (set with /model <name>)"), nil
-	}
-	models := m.actions.Models(context.Background())
-	if len(models) == 0 {
-		return m.sys("current model: " + m.model + "  (no models discovered — set with /model <name>)"), nil
-	}
-	items := make([]pickerItem, 0, len(models))
-	for _, id := range models {
-		items = append(items, pickerItem{id: id, display: id})
-	}
-	return m.openPicker("Select a model", items, m.model, func(mm Model, id string) (Model, error) {
-		mm.model = id
-		return mm, nil
-	})
+	return m.openModelPicker()
 }
 
 func cmdDoctor(m Model, _ string) (tea.Model, tea.Cmd) {

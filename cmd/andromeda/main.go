@@ -72,7 +72,9 @@ func newRootCommand() *cobra.Command {
 				fmt.Fprint(cmd.ErrOrStderr(), shortUsage(cmd))
 				return &usageError{} // already printed; exit 2
 			}
-			return launchTUI(cmd.Context(), defaultTUIConfig())
+			// Bare `andromeda` is first-run onboarding: choose a provider (sign in / paste key) and
+			// a model before the chat opens.
+			return launchTUI(cmd.Context(), defaultTUIConfig(), true)
 		},
 	}
 	// `andromeda --version` is the single sanctioned flag alias for `andromeda version`

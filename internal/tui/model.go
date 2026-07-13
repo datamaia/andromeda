@@ -50,11 +50,33 @@ type Model struct {
 
 	// modal selection list (provider or model): a generic overlay driven by menu.go.
 	pickerOpen   bool
+	pickerKind   string // "provider" | "model" — drives onboarding chaining and esc behaviour
 	pickerTitle  string
 	pickerItems  []pickerItem
 	pickerCursor int
 	pickerErr    string
 	pickerApply  func(Model, string) (Model, error)
+
+	// first-run onboarding: require a provider (and sign-in/key) then a model before chatting.
+	onboarding  bool
+	pendingAuth string // provider id awaiting a browser sign-in
+
+	// interactive provider sign-in (ChatGPT OAuth): async, streamed like an agent run.
+	providerAuth ProviderAuthFunc
+	authEvents   <-chan AuthEvent
+	authing      bool
+	authProvider string
+	authURL      string
+
+	// in-TUI API-key entry for providers whose key is missing.
+	providerKeyEnv     ProviderKeyEnvFunc
+	setProviderKey     ProviderSetKeyFunc
+	pendingKeyEnv      string // env var to prompt for once the picker closes
+	pendingKeyProvider string
+	keyEntry           bool
+	keyProvider        string
+	keyEnvName         string
+	keyInput           string
 
 	// slash-command palette ("/"): app-backed handlers and the highlighted row.
 	actions       Actions
@@ -114,10 +136,21 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tick()
 	case agentEventMsg:
 		return m.handleAgentEvent(msg)
+	case authEventMsg:
+		return m.handleAuthEvent(msg)
 	case tea.KeyPressMsg:
 		return m.handleKey(msg)
 	}
 	return m, nil
+}
+
+// WithOnboarding starts the session in first-run mode: the provider picker opens immediately and a
+// provider (plus sign-in/key) and model must be chosen before the chat is usable. Call it last, so
+// the provider menu is already configured.
+func (m Model) WithOnboarding() Model {
+	m.onboarding = true
+	nm, _ := m.openProviderPicker()
+	return nm.(Model)
 }
 
 func (m Model) handleKey(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
@@ -131,9 +164,17 @@ func (m Model) handleKey(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 	if m.approval != nil {
 		return m.handleApprovalKey(msg)
 	}
+	// The API-key prompt captures keys while the user pastes a credential.
+	if m.keyEntry {
+		return m.handleKeyEntryKey(msg)
+	}
 	// A modal picker (provider/model) captures all keys while open (esc there means "back").
 	if m.pickerOpen {
 		return m.handlePickerKey(msg)
+	}
+	// While a browser sign-in is in flight, ignore input (ctrl+c above still quits).
+	if m.authing {
+		return m, nil
 	}
 	// While a slash-command name is being typed, the palette owns navigation keys (arrows/tab/enter
 	// select a command; esc closes the palette). Other keys fall through to normal text editing so
@@ -214,13 +255,17 @@ func (m Model) render() string {
 	if m.approval != nil {
 		return m.renderApproval() + m.statusBar()
 	}
+	if m.keyEntry {
+		return m.renderKeyEntry() + m.statusBar()
+	}
 	if m.pickerOpen {
 		return m.renderPicker() + m.statusBar()
 	}
 	var b strings.Builder
-	// The splash is the start-screen greeting; hide it while the command palette is open so the
-	// command list and prompt stay on screen even on short terminals.
-	if m.atStart() && !m.paletteActive() {
+	// The splash is the start-screen greeting; hide it while the command palette is open or a
+	// sign-in is in flight, so the command list / progress messages and the prompt stay on screen.
+	showSplash := m.atStart() && !m.paletteActive() && !m.authing
+	if showSplash {
 		b.WriteString(m.Splash(m.width))
 	}
 	for _, e := range m.transcript {
@@ -230,8 +275,9 @@ func (m Model) render() string {
 		case "agent":
 			b.WriteString(m.styles.Agent.Render("andromeda ▸ ") + e.text + "\n")
 		default:
-			// The initial system line is folded into the splash on the start screen.
-			if !m.atStart() {
+			// System lines are folded into the splash on the pure start screen, but shown whenever
+			// the splash is hidden (e.g. during sign-in, so the browser URL is visible).
+			if !showSplash {
 				b.WriteString(m.styles.Muted.Render(e.text) + "\n")
 			}
 		}

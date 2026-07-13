@@ -135,8 +135,10 @@ func providerChoices() []tui.ProviderChoice {
 	return choices
 }
 
-// launchTUI builds the session and hands control to the TUI shell with the provider menu wired.
-func launchTUI(ctx context.Context, cfg tuiConfig) error {
+// launchTUI builds the session and hands control to the TUI shell with the provider menu, agent
+// runner, interactive sign-in, and API-key entry wired. When onboard is true the session opens in
+// first-run mode: a provider (with sign-in/key) and a model must be chosen before chatting.
+func launchTUI(ctx context.Context, cfg tuiConfig, onboard bool) error {
 	wd, err := os.Getwd()
 	if err != nil {
 		return err
@@ -148,7 +150,12 @@ func launchTUI(ctx context.Context, cfg tuiConfig) error {
 	m := tui.New(sess.cfg.provider, sess.cfg.model, sess.respond).
 		WithProviderMenu(providerChoices(), sess.selectProvider).
 		WithActions(sess.sessionActions()).
-		WithAgentRunner(sess.startAgentRun)
+		WithAgentRunner(sess.startAgentRun).
+		WithProviderAuth(sess.startProviderAuth).
+		WithProviderKeyEntry(providerKeyEnvFor, setProviderKey)
+	if onboard {
+		m = m.WithOnboarding()
+	}
 	return tui.RunModel(ctx, m)
 }
 
@@ -159,7 +166,8 @@ func newTUICommand() *cobra.Command {
 		Short: "Launch the interactive terminal UI",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			return launchTUI(cmd.Context(), cfg)
+			// Onboard (pick provider + model) unless the caller pinned a provider with --provider.
+			return launchTUI(cmd.Context(), cfg, !cmd.Flags().Changed("provider"))
 		},
 	}
 	c.Flags().StringVar(&cfg.provider, "provider", cfg.provider, "provider name")

@@ -12,11 +12,12 @@ import (
 // wordmark on terminals too narrow for the block letters, and to monochrome under no-color. The
 // large detailed cat is reserved for the `about` easter egg (see bigcat.go).
 
-// smallCat is the minimalist mascot shown on every start screen.
+// smallCat is the minimalist mascot shown on every start screen. All three lines are the same
+// visible width so they stay vertically aligned when each is centered (the ears sit over the face).
 var smallCat = []string{
-	`  /\_/\`,
-	` ( o.o )`,
-	`  > ^ <`,
+	` /\_/\ `,
+	`( o.o )`,
+	` > ^ < `,
 }
 
 // wordmark is "ANDROMEDA" as block letters (figlet "standard").
@@ -36,18 +37,13 @@ func (m Model) Splash(width int) string {
 	if width <= 0 {
 		width = m.width
 	}
-	sparkle := lipgloss.NewStyle().Foreground(lipgloss.Color(ColorTertiary)).Render("✦")
 	cat := m.styles.Agent // violet
 
 	var b strings.Builder
 	b.WriteString("\n")
-	// minimalist cat, centered, with a sparkle beside its ear
-	for i, line := range smallCat {
-		row := cat.Render(line)
-		if i == 0 {
-			row += "   " + sparkle
-		}
-		b.WriteString(center(row, width) + "\n")
+	// minimalist cat, centered as a block (equal-width lines keep the ears over the face)
+	for _, line := range smallCat {
+		b.WriteString(center(cat.Render(line), width) + "\n")
 	}
 	b.WriteString("\n")
 	// ANDROMEDA wordmark (block letters, or a plain fallback when the terminal is too narrow)
@@ -60,7 +56,7 @@ func (m Model) Splash(width int) string {
 		}
 	}
 	b.WriteString("\n")
-	b.WriteString(center(m.styles.Muted.Render(Tagline)+" "+sparkle, width) + "\n")
+	b.WriteString(center(m.styles.Muted.Render(Tagline), width) + "\n")
 	return b.String()
 }
 
