@@ -73,8 +73,8 @@ func TestMessageTextAndHistoryEntries(t *testing.T) {
 	msgs := []ports.Message{
 		{Role: "system", Parts: []ports.ContentPart{{Type: "text", Text: "sys"}}},
 		{Role: "user", Parts: []ports.ContentPart{{Type: "text", Text: "hello"}, {Type: "text", Text: " there"}}},
-		{Role: "assistant", Parts: []ports.ContentPart{{Text: "hi"}}}, // empty Type counts as text
-		{Role: "user", Parts: []ports.ContentPart{{Type: "text", Text: "   "}}},   // whitespace-only is dropped
+		{Role: "assistant", Parts: []ports.ContentPart{{Text: "hi"}}},               // empty Type counts as text
+		{Role: "user", Parts: []ports.ContentPart{{Type: "text", Text: "   "}}},     // whitespace-only is dropped
 		{Role: "tool", Parts: []ports.ContentPart{{Type: "text", Text: "ignored"}}}, // non-user/assistant dropped
 	}
 	if got := messageText(msgs[1]); got != "hello there" {
