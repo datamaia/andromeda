@@ -95,16 +95,31 @@ func (m Model) openProviderPicker() (tea.Model, tea.Cmd) {
 	})
 }
 
-// openModelPicker opens the model list for the current provider, discovering models when possible
-// and always offering at least the current model so a choice can be made (used during onboarding
-// and by "/model").
+// openModelPicker discovers the provider's models off the UI thread (a slow or hanging provider
+// must never freeze the interface) and opens the picker when they arrive. It always offers at least
+// the current model so a choice can be made. Used during onboarding and by "/model".
 func (m Model) openModelPicker() (tea.Model, tea.Cmd) {
-	var models []string
-	if m.actions.Models != nil {
-		models = m.actions.Models(context.Background())
+	m.discovering = true
+	m.state = "discovering models"
+	act := m.actions.Models
+	current := m.model
+	return m, func() tea.Msg {
+		var models []string
+		if act != nil {
+			models = act(context.Background())
+		}
+		if len(models) == 0 && current != "" {
+			models = []string{current}
+		}
+		return modelsMsg{models: models}
 	}
-	if len(models) == 0 && m.model != "" {
-		models = []string{m.model}
+}
+
+// showModelPicker opens the model list once discovery has returned.
+func (m Model) showModelPicker(models []string) (tea.Model, tea.Cmd) {
+	m.discovering = false
+	if m.state == "discovering models" {
+		m.state = "ready"
 	}
 	items := make([]pickerItem, 0, len(models))
 	for _, id := range models {
@@ -162,10 +177,9 @@ func (m Model) handlePickerKey(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 	case msg.Code == tea.KeyEscape:
 		if m.onboarding {
 			if m.pickerKind == "model" {
-				return m.openProviderPicker()
+				return m.openProviderPicker() // step back to provider choice
 			}
-			m.quitting = true
-			return m, tea.Quit
+			return m, nil // a provider is required; exit is ctrl+c twice
 		}
 		m.pickerOpen = false
 		m.pickerErr = ""

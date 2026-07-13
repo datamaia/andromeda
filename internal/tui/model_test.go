@@ -61,19 +61,45 @@ func TestEmptySubmitIsNoop(t *testing.T) {
 	}
 }
 
-func TestEscQuits(t *testing.T) {
+func TestEscClearsInputNotQuit(t *testing.T) {
 	m := tea.Model(New("p", "m", nil))
-	_, cmd := m.Update(key(tea.KeyEscape))
-	if cmd == nil {
-		t.Fatal("esc should return a quit command")
+	m = typeString(m, "hello")
+	m, cmd := m.Update(key(tea.KeyEscape))
+	if cmd != nil {
+		t.Error("esc must not quit the app")
+	}
+	if got := m.(Model); got.input != "" || got.quitting {
+		t.Errorf("esc should clear input without quitting: input=%q quitting=%v", got.input, got.quitting)
 	}
 }
 
-func TestCtrlCQuits(t *testing.T) {
+func TestDoubleCtrlCQuits(t *testing.T) {
+	ctrlC := tea.KeyPressMsg{Code: 'c', Mod: tea.ModCtrl}
 	m := tea.Model(New("p", "m", nil))
-	_, cmd := m.Update(tea.KeyPressMsg{Code: 'c', Mod: tea.ModCtrl})
+	m, cmd := m.Update(ctrlC)
+	if cmd != nil {
+		t.Fatal("first ctrl+c should arm, not quit")
+	}
+	if !m.(Model).quitArmed {
+		t.Error("first ctrl+c should arm the pending quit")
+	}
+	_, cmd = m.Update(ctrlC)
 	if cmd == nil {
-		t.Fatal("ctrl+c should return a quit command")
+		t.Fatal("second ctrl+c should quit")
+	}
+}
+
+func TestCtrlCDisarmedByOtherKey(t *testing.T) {
+	ctrlC := tea.KeyPressMsg{Code: 'c', Mod: tea.ModCtrl}
+	m := tea.Model(New("p", "m", nil))
+	m, _ = m.Update(ctrlC) // arm
+	m = typeString(m, "x") // any other key disarms
+	if m.(Model).quitArmed {
+		t.Error("a keypress should disarm the pending quit")
+	}
+	_, cmd := m.Update(ctrlC) // fresh first press again
+	if cmd != nil {
+		t.Error("ctrl+c after disarm should re-arm, not quit")
 	}
 }
 

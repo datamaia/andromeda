@@ -8,6 +8,37 @@ import (
 	tea "charm.land/bubbletea/v2"
 )
 
+// Pasting a long API key fills the key-entry field (bracketed paste, not one keystroke at a time).
+func TestPasteIntoKeyEntry(t *testing.T) {
+	m := onboardModel(t, func(id string) (string, error) { return "m", nil }, func(string, string) {})
+	m, _ = m.Update(key(tea.KeyDown))  // groq
+	m, _ = m.Update(key(tea.KeyEnter)) // → key entry
+	m, _ = m.Update(tea.PasteMsg{Content: "sk-a-very-long-pasted-api-key-0123456789"})
+	if got := m.(Model).keyInput; got != "sk-a-very-long-pasted-api-key-0123456789" {
+		t.Errorf("paste into key entry = %q", got)
+	}
+}
+
+// Pasting into the chat appends to the input line.
+func TestPasteIntoInput(t *testing.T) {
+	var m tea.Model = New("p", "m", nil)
+	m, _ = m.Update(tea.PasteMsg{Content: "hello world"})
+	if got := m.(Model).input; got != "hello world" {
+		t.Errorf("paste into input = %q", got)
+	}
+}
+
+// stepCmd runs a command and feeds its message back into Update once (used to drive the async
+// model-discovery step that precedes the model picker).
+func stepCmd(m tea.Model, cmd tea.Cmd) tea.Model {
+	if cmd == nil {
+		return m
+	}
+	msg := cmd()
+	m2, _ := m.Update(msg)
+	return m2
+}
+
 func onboardChoices() []ProviderChoice {
 	return []ProviderChoice{
 		{"ollama", "Ollama", "no key", ""},
@@ -59,8 +90,9 @@ func TestOnboardingOpensProviderPicker(t *testing.T) {
 // Picking a local provider advances to the model picker, and picking a model finishes onboarding.
 func TestOnboardingProviderThenModel(t *testing.T) {
 	m := onboardModel(t, func(id string) (string, error) { return "model-for-" + id, nil }, nil)
-	// cursor starts on ollama (index 0); enter selects it
-	m, _ = m.Update(key(tea.KeyEnter))
+	// cursor starts on ollama (index 0); enter selects it → async model discovery → model picker
+	m, cmd := m.Update(key(tea.KeyEnter))
+	m = stepCmd(m, cmd)
 	got := m.(Model)
 	if !got.pickerOpen || got.pickerKind != "model" {
 		t.Fatalf("after choosing a provider onboarding should show the model picker, kind=%q", got.pickerKind)
@@ -82,19 +114,24 @@ func TestOnboardingProviderThenModel(t *testing.T) {
 	}
 }
 
-// Esc on the provider picker during onboarding quits (a provider is required).
-func TestOnboardingEscOnProviderQuits(t *testing.T) {
+// Esc on the provider picker during onboarding does NOT quit (a provider is required; exit is
+// ctrl+c twice) — it keeps the picker open.
+func TestOnboardingEscOnProviderStays(t *testing.T) {
 	m := onboardModel(t, func(id string) (string, error) { return "x", nil }, nil)
-	_, cmd := m.Update(key(tea.KeyEscape))
-	if cmd == nil {
-		t.Fatal("esc on the onboarding provider picker should quit")
+	m, cmd := m.Update(key(tea.KeyEscape))
+	if cmd != nil {
+		t.Error("esc on the onboarding provider picker must not quit")
+	}
+	if got := m.(Model); !got.pickerOpen || got.quitting {
+		t.Errorf("provider picker should stay open: open=%v quitting=%v", got.pickerOpen, got.quitting)
 	}
 }
 
 // Esc on the model picker during onboarding steps back to the provider picker.
 func TestOnboardingEscOnModelGoesBack(t *testing.T) {
 	m := onboardModel(t, func(id string) (string, error) { return "model-for-" + id, nil }, nil)
-	m, _ = m.Update(key(tea.KeyEnter)) // provider → model picker
+	m, cmd := m.Update(key(tea.KeyEnter)) // provider → discovery → model picker
+	m = stepCmd(m, cmd)
 	m, _ = m.Update(key(tea.KeyEscape))
 	got := m.(Model)
 	if got.pickerKind != "provider" {
@@ -119,13 +156,14 @@ func TestOnboardingKeyEntry(t *testing.T) {
 		t.Fatalf("selecting groq should open the key prompt for GROQ_API_KEY, keyEntry=%v env=%q",
 			got.keyEntry, got.keyEnvName)
 	}
-	// type a key and submit
+	// type a key and submit → stores the key, activates groq, discovers models → model picker
 	m = typeString(m, "sk-abc123")
-	m, _ = m.Update(key(tea.KeyEnter))
-	got = m.(Model)
+	m, cmd := m.Update(key(tea.KeyEnter))
 	if storedID != "groq" || storedKey != "sk-abc123" {
 		t.Errorf("setProviderKey got (%q,%q), want (groq, sk-abc123)", storedID, storedKey)
 	}
+	m = stepCmd(m, cmd)
+	got = m.(Model)
 	if got.provider != "groq" {
 		t.Errorf("provider = %q, want groq after key entry", got.provider)
 	}
@@ -151,8 +189,9 @@ func TestOnboardingOAuthFlow(t *testing.T) {
 	if !strings.Contains(m.(Model).View().Content, "auth.example/login") {
 		t.Error("the sign-in URL should be shown to the user")
 	}
-	// second event: completion → activate + advance
-	m, _ = m.Update(cmd())
+	// second event: completion → activate provider → async model discovery
+	m, cmd = m.Update(cmd())
+	m = stepCmd(m, cmd) // discovery → model picker
 	got := m.(Model)
 	if activated != "openai-chatgpt" || got.provider != "openai-chatgpt" {
 		t.Errorf("after sign-in the provider should be openai-chatgpt, got %q", got.provider)

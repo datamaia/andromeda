@@ -172,7 +172,8 @@ func TestModelCommandOpensPicker(t *testing.T) {
 	})
 	var tm tea.Model = m
 	tm = typeString(tm, "/model")
-	tm, _ = tm.Update(key(tea.KeyEnter)) // run the highlighted /model command
+	tm, cmd := tm.Update(key(tea.KeyEnter)) // run /model → async discovery
+	tm = stepCmd(tm, cmd)                   // discovery → model picker
 	got := tm.(Model)
 	if !got.pickerOpen || got.pickerTitle != "Select a model" {
 		t.Fatalf("/model should open the model picker, got open=%v title=%q", got.pickerOpen, got.pickerTitle)

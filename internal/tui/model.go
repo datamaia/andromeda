@@ -44,6 +44,9 @@ type Model struct {
 	mode string
 	loop bool // loop mode (keep iterating on the last goal) — toggled by /loop
 
+	quitArmed   bool // a single ctrl+c was pressed; a second one quits (esc never quits the app)
+	discovering bool // discovering models off the UI thread before opening the model picker
+
 	// provider picker (ctrl+p / "/provider"), configured via WithProviderMenu
 	providers        []ProviderChoice
 	onSelectProvider ProviderSelectFunc
@@ -138,8 +141,31 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.handleAgentEvent(msg)
 	case authEventMsg:
 		return m.handleAuthEvent(msg)
+	case modelsMsg:
+		return m.showModelPicker(msg.models)
+	case tea.PasteMsg:
+		return m.handlePaste(msg.Content)
 	case tea.KeyPressMsg:
 		return m.handleKey(msg)
+	}
+	return m, nil
+}
+
+// modelsMsg carries the result of asynchronous model discovery.
+type modelsMsg struct{ models []string }
+
+// handlePaste appends pasted text (bracketed paste) to whatever field is focused — the API-key
+// prompt or the input line — so long keys and multi-line goals can be pasted, not just typed.
+func (m Model) handlePaste(text string) (tea.Model, tea.Cmd) {
+	text = strings.ReplaceAll(text, "\r", "")
+	text = strings.ReplaceAll(text, "\n", " ")
+	switch {
+	case m.keyEntry:
+		m.keyInput += strings.TrimSpace(text)
+	case m.approval != nil || m.pickerOpen || m.authing:
+		// ignore paste while these overlays are focused
+	default:
+		m.input += text
 	}
 	return m, nil
 }
@@ -154,11 +180,19 @@ func (m Model) WithOnboarding() Model {
 }
 
 func (m Model) handleKey(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
-	// Ctrl+C always quits, even mid-overlay; cancelling the program context unblocks any pending
-	// approver so a running agent tears down cleanly.
+	// Quit requires two ctrl+c presses (a single press arms; any other key disarms), so the session
+	// is never torn down by a stray keypress. Esc never quits — it only cancels overlays or clears
+	// the input. Ctrl+C works mid-overlay; cancelling the context unblocks any pending approver.
 	if msg.Mod&tea.ModCtrl != 0 && msg.Code == 'c' {
-		m.quitting = true
-		return m, tea.Quit
+		if m.quitArmed {
+			m.quitting = true
+			return m, tea.Quit
+		}
+		m.quitArmed = true
+		return m, nil
+	}
+	if m.quitArmed {
+		m.quitArmed = false // any other key cancels the pending quit
 	}
 	// The approval overlay captures all other keys while a run is paused awaiting a decision.
 	if m.approval != nil {
@@ -193,8 +227,8 @@ func (m Model) handleKey(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 	case msg.Mod&tea.ModCtrl != 0 && msg.Code == 'p' && len(m.providers) > 0:
 		return m.openProviderPicker()
 	case msg.Code == tea.KeyEscape:
-		m.quitting = true
-		return m, tea.Quit
+		m.input = "" // esc clears the line; it never quits the app
+		return m, nil
 	case msg.Code == tea.KeyEnter:
 		return m.submit()
 	case msg.Code == tea.KeyBackspace:
@@ -265,6 +299,9 @@ func (m Model) render() string {
 	}
 	if m.pickerOpen {
 		return m.renderPicker() + m.statusBar()
+	}
+	if m.discovering {
+		return "\n  " + m.styles.Muted.Render("discovering models…") + "\n\n" + m.statusBar()
 	}
 	var b strings.Builder
 	// The splash is the start-screen greeting; hide it while the command palette is open or a
@@ -343,7 +380,10 @@ func (m Model) statusBar() string {
 	}
 	parts = append(parts, m.uptime(), m.state)
 	left := " " + strings.Join(parts, " · ") + " "
-	hint := "  / commands · shift+tab: mode · esc: quit"
+	hint := "  / commands · shift+tab: mode · ctrl+c ctrl+c: exit"
+	if m.quitArmed {
+		hint = "  press ctrl+c again to exit"
+	}
 	help := m.styles.Muted.Render(hint)
 	bar := m.styles.StatusBar.Render(left)
 	return lipgloss.JoinHorizontal(lipgloss.Left, bar, help)

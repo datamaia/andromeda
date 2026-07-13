@@ -222,6 +222,9 @@ func (s *tuiSession) modelsAction(ctx context.Context) []string {
 	if s.prov == nil {
 		return nil
 	}
+	// Bound discovery so a slow or unresponsive provider can't stall model selection.
+	ctx, cancel := context.WithTimeout(ctx, 8*time.Second)
+	defer cancel()
 	descs, err := s.prov.DiscoverModels(ctx)
 	if err != nil {
 		return nil
