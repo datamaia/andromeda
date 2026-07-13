@@ -84,8 +84,8 @@ func TestViewRendersSplashAndStatus(t *testing.T) {
 	if !strings.Contains(view, Tagline) {
 		t.Error("start-screen view missing the tagline")
 	}
-	if !strings.Contains(view, "andromeda") {
-		t.Error("start-screen view missing the wordmark")
+	if !strings.Contains(view, "_____") {
+		t.Error("start-screen view missing the ANDROMEDA wordmark art")
 	}
 	if !strings.Contains(view, "anthropic") || !strings.Contains(view, "ready") {
 		t.Error("view missing status bar content")

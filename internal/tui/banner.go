@@ -6,85 +6,61 @@ import (
 	"charm.land/lipgloss/v2"
 )
 
-// The start-screen splash is the terminal-native rendering of the brand banner
-// (docs/brand/banner-sketch.png, ADR-026): a front-facing sitting cat mascot with sparkle
-// accents, the lowercase wordmark, and the tagline. The mascot art is pure ASCII so it
-// renders in any terminal; the violet coloring and the four-pointed sparkles degrade to
-// plain monochrome under the no-color tier (Volume 8 degradation tiers).
+// The start-screen splash (ADR-026) is the small minimalist cat mascot above the ANDROMEDA
+// wordmark and the tagline, in the brand palette (violet mascot + letters, off-white sparkles,
+// taupe tagline). The art is pure ASCII so it renders anywhere; it degrades to a plain centered
+// wordmark on terminals too narrow for the block letters, and to monochrome under no-color. The
+// large detailed cat is reserved for the `about` easter egg (see bigcat.go).
 
-// mascot is the ASCII-art cat evoking the sketch: tall pointed ears, large round eyes,
-// whiskers, and a seated body with two front paws. It is centered as a block (one shared
-// indent) so the cat keeps its shape regardless of per-line width.
-var mascot = []string{
-	`     /\     /\`,
-	`    /  \___/  \`,
-	`   (           )`,
-	`   (  (O) (O)  )`,
-	` ~~(     Y     )~~`,
-	`   (    \_/    )`,
-	`    \         /`,
-	`     \_______/`,
-	`     /       \`,
-	`    |  |   |  |`,
-	`     \_|   |_/`,
-	`     (_)   (_)`,
+// smallCat is the minimalist mascot shown on every start screen.
+var smallCat = []string{
+	`  /\_/\`,
+	` ( o.o )`,
+	`  > ^ <`,
 }
 
-// scattered sparkles echo the sketch's stars: a few small ones around the cat, in the side
-// gutters, plus the large one beside the wordmark. Keyed by mascot row index.
-var (
-	leftSparkleRow  = map[int]bool{1: true, 6: true, 9: true}
-	rightSparkleRow = map[int]bool{3: true, 10: true}
-)
+// wordmark is "ANDROMEDA" as block letters (figlet "standard").
+var wordmark = []string{
+	`    _    _   _ ____  ____   ___  __  __ _____ ____    _`,
+	`   / \  | \ | |  _ \|  _ \ / _ \|  \/  | ____|  _ \  / \`,
+	`  / _ \ |  \| | | | | |_) | | | | |\/| |  _| | | | |/ _ \`,
+	` / ___ \| |\  | |_| |  _ <| |_| | |  | | |___| |_| / ___ \`,
+	`/_/   \_\_| \_|____/|_| \_\\___/|_|  |_|_____|____/_/   \_\`,
+}
 
-// gutter is the blank margin reserved on each side of the mascot for scattered sparkles, so
-// the cat itself stays centered on the given width.
-const gutter = 6
+// wordmarkWidth is the width of the widest wordmark line.
+const wordmarkWidth = 59
 
-// Splash renders the start-screen banner: the sparkled mascot, the wordmark, and the tagline,
-// centered within width. It is shown while the session has no exchanges yet.
+// Splash renders the start-screen banner centered within width.
 func (m Model) Splash(width int) string {
 	if width <= 0 {
 		width = m.width
 	}
-	big := m.styles.Title.Render("✦")
-	small := m.styles.Muted.Render("✧")
+	sparkle := lipgloss.NewStyle().Foreground(lipgloss.Color(ColorTertiary)).Render("✦")
 	cat := m.styles.Agent // violet
-
-	widest := 0
-	for _, line := range mascot {
-		if w := lipgloss.Width(line); w > widest {
-			widest = w
-		}
-	}
-	block := widest + gutter*2
-	indent := 0
-	if width > block {
-		indent = (width - block) / 2
-	}
-	pad := strings.Repeat(" ", indent)
 
 	var b strings.Builder
 	b.WriteString("\n")
-	for i, line := range mascot {
-		var row strings.Builder
-		row.WriteString(pad)
-		// left gutter, optionally holding a small sparkle
-		if leftSparkleRow[i] {
-			row.WriteString(strings.Repeat(" ", gutter-2) + small + " ")
-		} else {
-			row.WriteString(strings.Repeat(" ", gutter))
+	// minimalist cat, centered, with a sparkle beside its ear
+	for i, line := range smallCat {
+		row := cat.Render(line)
+		if i == 0 {
+			row += "   " + sparkle
 		}
-		row.WriteString(cat.Render(line))
-		// right gutter, optionally holding a sparkle aligned past the widest line
-		if rightSparkleRow[i] {
-			row.WriteString(strings.Repeat(" ", widest-lipgloss.Width(line)+2) + small)
-		}
-		b.WriteString(strings.TrimRight(row.String(), " ") + "\n")
+		b.WriteString(center(row, width) + "\n")
 	}
 	b.WriteString("\n")
-	b.WriteString(center(m.styles.Title.Render("andromeda")+"  "+big, width) + "\n")
-	b.WriteString(center(m.styles.Muted.Render(Tagline), width) + "\n")
+	// ANDROMEDA wordmark (block letters, or a plain fallback when the terminal is too narrow)
+	if width < wordmarkWidth+2 {
+		b.WriteString(center(m.styles.Title.Render("a n d r o m e d a"), width) + "\n")
+	} else {
+		indent := strings.Repeat(" ", (width-wordmarkWidth)/2)
+		for _, line := range wordmark {
+			b.WriteString(indent + m.styles.Title.Render(line) + "\n")
+		}
+	}
+	b.WriteString("\n")
+	b.WriteString(center(m.styles.Muted.Render(Tagline)+" "+sparkle, width) + "\n")
 	return b.String()
 }
 
