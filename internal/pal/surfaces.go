@@ -2,6 +2,7 @@ package pal
 
 import (
 	"context"
+	"errors"
 	"io"
 	"time"
 )
@@ -96,7 +97,13 @@ type Shell interface {
 	Quote(arg string) string
 }
 
+// ErrCredentialNotFound is returned by a CredentialStore's Get/Delete when the service/account
+// pair has no stored material. It is the platform-neutral not-found signal the Secret Store maps
+// onto its own sentinel, so callers never depend on a specific OS keychain's error text.
+var ErrCredentialNotFound = errors.New("pal: credential not found")
+
 // CredentialStore is the platform keychain backend used by the Secret Store (ADR-014).
+// Get and Delete report a missing item as ErrCredentialNotFound.
 type CredentialStore interface {
 	Get(service, account string) ([]byte, error)
 	Set(service, account string, secret []byte) error

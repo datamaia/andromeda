@@ -22,9 +22,13 @@ type unixCredentialStore struct{}
 // NewCredentialStore returns the OS-keychain CredentialStore (ADR-014).
 func NewCredentialStore() CredentialStore { return unixCredentialStore{} }
 
-// chunkSize is the max base64 characters stored per keychain item, leaving headroom under the
-// backend's ~4 KB per-item command limit for the service/account and command overhead.
-const chunkSize = 3000
+// chunkSize is the max base64 characters stored per keychain item. It is deliberately small
+// because go-keyring's macOS backend caps the *entire* `security add-generic-password … -w <val>`
+// command at 4096 bytes AND base64-encodes the value a second time itself (≈ ×1.34). So one chunk
+// costs ~18 + chunkSize×1.34 command bytes; at 2000 that is ~2700, leaving well over a kilobyte of
+// headroom for the service name, account name, chunk suffix, and shell quoting — enough that even
+// long provider/profile references never push a single item over the limit.
+const chunkSize = 2000
 
 // chunkHeaderPrefix marks an item whose value is a chunk count rather than base64 data. A ":" never
 // appears in base64, so the prefix is unambiguous.
@@ -35,20 +39,29 @@ func chunkAccount(account string, i int) string { return fmt.Sprintf("%s#chunk%d
 func (unixCredentialStore) Get(service, account string) ([]byte, error) {
 	head, err := keyring.Get(service, account)
 	if err != nil {
-		return nil, err
+		return nil, mapNotFound(err)
 	}
 	if n, ok := parseChunkHeader(head); ok {
 		var b strings.Builder
 		for i := 0; i < n; i++ {
 			part, err := keyring.Get(service, chunkAccount(account, i))
 			if err != nil {
-				return nil, err
+				return nil, mapNotFound(err)
 			}
 			b.WriteString(part)
 		}
 		return base64.StdEncoding.DecodeString(b.String())
 	}
 	return base64.StdEncoding.DecodeString(head)
+}
+
+// mapNotFound normalizes the backend's missing-item error to the platform-neutral sentinel so the
+// Secret Store's not-found handling works regardless of which OS keychain reported it.
+func mapNotFound(err error) error {
+	if errors.Is(err, keyring.ErrNotFound) {
+		return ErrCredentialNotFound
+	}
+	return err
 }
 
 func (unixCredentialStore) Set(service, account string, secret []byte) error {
@@ -86,7 +99,7 @@ func (unixCredentialStore) Delete(service, account string) error {
 			}
 		}
 	}
-	return keyring.Delete(service, account)
+	return mapNotFound(keyring.Delete(service, account))
 }
 
 // Available probes the backend: a missing item (ErrNotFound) means the backend works; any
