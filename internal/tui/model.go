@@ -12,9 +12,11 @@ import (
 // Tagline is the brand tagline shown on the start screen (ADR-026).
 const Tagline = "Your terminal companion for shipping great software."
 
-// Responder produces the agent's reply to a user goal. Injected so the Model is testable and
-// so the driver can wire it to the real agent.
-type Responder func(goal string) string
+// Responder produces the reply to a submitted line. mode is the active interaction mode
+// (agent | plan | shell) so the driver can enforce it: plan proposes without changing anything,
+// shell runs the line as a command, agent runs the full tool-using loop. Injected so the Model is
+// testable and so the driver can wire it to the real agent.
+type Responder func(goal, mode string) string
 
 // entry is one transcript line.
 type entry struct {
@@ -160,7 +162,7 @@ func (m Model) submit() (tea.Model, tea.Cmd) {
 	reply := "(no responder configured)"
 	if m.respond != nil {
 		m.state = "running"
-		reply = m.respond(goal)
+		reply = m.respond(goal, m.modeOrDefault())
 		m.state = "ready"
 	}
 	m.transcript = append(m.transcript, entry{"agent", reply})
@@ -206,9 +208,22 @@ func (m Model) render() string {
 	if m.paletteActive() {
 		b.WriteString(m.renderPalette())
 	}
-	b.WriteString(m.styles.Prompt.Render("❯ ") + m.input + "▏\n")
+	b.WriteString(m.styles.Prompt.Render(m.promptSymbol()) + m.input + "▏\n")
 	b.WriteString(m.statusBar())
 	return b.String()
+}
+
+// promptSymbol reflects the active mode at the input line: "$" for shell, a "plan" cue for plan
+// mode, and the default caret for agent mode.
+func (m Model) promptSymbol() string {
+	switch m.mode {
+	case "shell":
+		return "$ "
+	case "plan":
+		return "plan ❯ "
+	default:
+		return "❯ "
+	}
 }
 
 // atStart reports whether the session has no user/agent exchanges yet (only the system banner).

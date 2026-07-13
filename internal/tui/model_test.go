@@ -23,7 +23,7 @@ func typeString(m tea.Model, s string) tea.Model {
 
 func TestSubmitCallsResponderAndAppends(t *testing.T) {
 	var got string
-	m := tea.Model(New("ollama", "llama3", func(goal string) string {
+	m := tea.Model(New("ollama", "llama3", func(goal, _ string) string {
 		got = goal
 		return "reply to: " + goal
 	}))
@@ -54,7 +54,7 @@ func TestBackspaceEditsInput(t *testing.T) {
 }
 
 func TestEmptySubmitIsNoop(t *testing.T) {
-	m := tea.Model(New("p", "m", func(string) string { t.Fatal("responder should not run"); return "" }))
+	m := tea.Model(New("p", "m", func(string, string) string { t.Fatal("responder should not run"); return "" }))
 	m, _ = m.Update(key(tea.KeyEnter))
 	if len(m.(Model).Transcript()) != 1 { // only the banner
 		t.Errorf("empty submit changed transcript")
@@ -131,7 +131,7 @@ func TestTickAdvancesClock(t *testing.T) {
 }
 
 func TestSplashHiddenAfterExchange(t *testing.T) {
-	m := tea.Model(New("p", "m", func(string) string { return "ok" }))
+	m := tea.Model(New("p", "m", func(string, string) string { return "ok" }))
 	m = typeString(m, "hi")
 	m, _ = m.Update(key(tea.KeyEnter))
 	// After an exchange the mascot splash is no longer shown.

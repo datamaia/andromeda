@@ -36,7 +36,7 @@ func TestPaletteFilters(t *testing.T) {
 
 // Arrow navigation + Enter runs the highlighted command (here /clear resets the transcript).
 func TestPaletteNavigateAndRun(t *testing.T) {
-	m := tea.Model(New("ollama", "llama3", func(string) string { return "ok" }))
+	m := tea.Model(New("ollama", "llama3", func(string, string) string { return "ok" }))
 	// seed an exchange so we can observe /clear
 	m = typeString(m, "hi")
 	m, _ = m.Update(key(tea.KeyEnter))
@@ -87,10 +87,24 @@ func TestSlashCommandSwitchesMode(t *testing.T) {
 	}
 }
 
+// The active interaction mode is passed to the responder so the driver can enforce it.
+func TestResponderReceivesActiveMode(t *testing.T) {
+	var gotMode string
+	m := tea.Model(New("ollama", "llama3", func(_, mode string) string { gotMode = mode; return "ok" }))
+	// switch to shell mode, then submit a line
+	m = typeString(m, "/shell")
+	m, _ = m.Update(key(tea.KeyEnter))
+	m = typeString(m, "ls -la")
+	m, _ = m.Update(key(tea.KeyEnter))
+	if gotMode != "shell" {
+		t.Fatalf("responder received mode %q, want shell", gotMode)
+	}
+}
+
 // /goal <text> runs the responder just like a typed goal.
 func TestGoalCommandRunsResponder(t *testing.T) {
 	var seen string
-	m := tea.Model(New("ollama", "llama3", func(g string) string { seen = g; return "done" }))
+	m := tea.Model(New("ollama", "llama3", func(g, _ string) string { seen = g; return "done" }))
 	m = typeString(m, "/goal ship it")
 	m, _ = m.Update(key(tea.KeyEnter))
 	if seen != "ship it" {
@@ -100,7 +114,7 @@ func TestGoalCommandRunsResponder(t *testing.T) {
 
 // An unknown slash command reports itself instead of being sent to the model.
 func TestUnknownSlashCommand(t *testing.T) {
-	m := tea.Model(New("ollama", "llama3", func(string) string {
+	m := tea.Model(New("ollama", "llama3", func(string, string) string {
 		t.Fatal("unknown command must not reach the responder")
 		return ""
 	}))

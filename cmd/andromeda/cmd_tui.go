@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"os/exec"
+	"strings"
 
 	"github.com/datamaia/andromeda/internal/app"
 	"github.com/datamaia/andromeda/internal/ports"
@@ -44,16 +46,58 @@ func (s *tuiSession) build() error {
 	return nil
 }
 
-// respond drives the real agent for each submitted goal, using whatever provider is current.
-func (s *tuiSession) respond(goal string) string {
+// planModeSystem constrains the agent to proposing a plan without touching anything.
+const planModeSystem = "You are in PLAN MODE. Analyze the request and propose a concise, numbered " +
+	"plan of the steps you would take. You have read-only access: do NOT create, edit, delete, or " +
+	"run anything. End by asking the user to switch to agent mode (/agent) to execute."
+
+// respond handles a submitted line according to the active interaction mode: shell runs it as a
+// command, plan drives the agent read-only with a planning prompt, agent runs the full loop with
+// whatever capabilities the session was granted.
+func (s *tuiSession) respond(goal, mode string) string {
+	switch mode {
+	case "shell":
+		return s.runShell(goal)
+	case "plan":
+		return s.runAgent(goal, planModeSystem, false, false)
+	default:
+		return s.runAgent(goal, "", s.cfg.allowWrite, s.cfg.allowExec)
+	}
+}
+
+// runAgent drives the real agent for a goal with explicit capability grants.
+func (s *tuiSession) runAgent(goal, system string, allowWrite, allowExec bool) string {
 	res, err := app.RunAgent(context.Background(), app.RunAgentOptions{
-		WorkspaceRoot: s.wd, Goal: goal, Model: s.cfg.model, Provider: s.prov,
-		AllowWrite: s.cfg.allowWrite, AllowExec: s.cfg.allowExec,
+		WorkspaceRoot: s.wd, Goal: goal, System: system, Model: s.cfg.model, Provider: s.prov,
+		AllowWrite: allowWrite, AllowExec: allowExec,
 	})
 	if err != nil {
 		return "error: " + err.Error()
 	}
 	return res.FinalText
+}
+
+// runShell runs the line as a command in the workspace directory (shell mode is the user's own
+// command, not the agent's, so it is not gated by the agent permission model).
+func (s *tuiSession) runShell(line string) string {
+	shell := os.Getenv("SHELL")
+	if shell == "" {
+		shell = "/bin/sh"
+	}
+	cmd := exec.CommandContext(context.Background(), shell, "-c", line)
+	cmd.Dir = s.wd
+	out, err := cmd.CombinedOutput()
+	text := strings.TrimRight(string(out), "\n")
+	if err != nil {
+		if text != "" {
+			return text + "\n[" + err.Error() + "]"
+		}
+		return "[" + err.Error() + "]"
+	}
+	if text == "" {
+		return "[no output]"
+	}
+	return text
 }
 
 // selectProvider rebuilds the live provider from a catalog ID (menu selection), adopting the
