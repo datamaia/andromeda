@@ -110,7 +110,7 @@ func TestViewRendersSplashAndStatus(t *testing.T) {
 	if !strings.Contains(view, Tagline) {
 		t.Error("start-screen view missing the tagline")
 	}
-	if !strings.Contains(view, "_____") {
+	if !strings.Contains(view, "██████") {
 		t.Error("start-screen view missing the ANDROMEDA wordmark art")
 	}
 	if !strings.Contains(view, "anthropic") || !strings.Contains(view, "ready") {
@@ -118,23 +118,23 @@ func TestViewRendersSplashAndStatus(t *testing.T) {
 	}
 }
 
-// The status bar reports, live, the provider/model/effort, elapsed session time, and state.
-func TestStatusBarShowsSessionInfo(t *testing.T) {
+// The top header reports, live, the provider/model/effort, elapsed session time, and state.
+func TestHeaderShowsSessionInfo(t *testing.T) {
 	m := New("groq", "llama-3.3-70b", nil)
 	m.effort = "medium"
 	m.now = m.started.Add(75 * time.Second)
-	bar := m.statusBar()
-	for _, want := range []string{"groq", "llama-3.3-70b", "effort medium", "1:15", "ready"} {
-		if !strings.Contains(bar, want) {
-			t.Errorf("status bar missing %q: %q", want, bar)
+	head := m.headerString()
+	for _, want := range []string{"Andromeda", "groq", "llama-3.3-70b", "effort medium", "1:15", "ready"} {
+		if !strings.Contains(head, want) {
+			t.Errorf("header missing %q: %q", want, head)
 		}
 	}
 }
 
-// Effort is hidden until set; uptime rolls over to H:MM:SS past an hour.
-func TestStatusBarEffortHiddenAndHourFormat(t *testing.T) {
+// Effort is hidden in the header until set; uptime rolls over to H:MM:SS past an hour.
+func TestHeaderEffortHiddenAndHourFormat(t *testing.T) {
 	m := New("ollama", "llama3", nil)
-	if strings.Contains(m.statusBar(), "effort") {
+	if strings.Contains(m.headerString(), "effort") {
 		t.Error("effort should be hidden when unset")
 	}
 	m.now = m.started.Add(3725 * time.Second) // 1h 02m 05s

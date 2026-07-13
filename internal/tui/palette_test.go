@@ -17,20 +17,25 @@ func TestSlashOpensPalette(t *testing.T) {
 		t.Fatal(`typing "/" should activate the palette`)
 	}
 	view := got.View().Content
-	for _, want := range []string{"/help", "/provider", "/quit"} {
+	// The list is bounded to a scrolling window; the first commands and a "more" marker are shown.
+	for _, want := range []string{"/help", "/provider", "↓"} {
 		if !strings.Contains(view, want) {
 			t.Errorf("palette view missing %q", want)
 		}
 	}
+	// Every built-in is still reachable via the (unbounded) filter, e.g. quit.
+	if resolveCommand("quit", got.mergedCommands()) == nil {
+		t.Error("quit command missing from the registry")
+	}
 }
 
-// Typing narrows the palette to matching commands.
+// Typing narrows and ranks the palette: prefix matches lead, then substring matches.
 func TestPaletteFilters(t *testing.T) {
 	var m tea.Model = New("ollama", "llama3", nil)
 	m = typeString(m, "/mo")
 	cmds := m.(Model).filteredCommands()
-	if len(cmds) != 1 || cmds[0].name != "model" {
-		t.Fatalf("filter /mo = %v, want [model]", names(cmds))
+	if len(cmds) == 0 || cmds[0].name != "model" {
+		t.Fatalf("filter /mo = %v, want model ranked first", names(cmds))
 	}
 }
 
@@ -82,8 +87,8 @@ func TestSlashCommandSwitchesMode(t *testing.T) {
 	if got.mode != "plan" {
 		t.Fatalf("mode = %q, want plan", got.mode)
 	}
-	if !strings.Contains(got.statusBar(), "plan") {
-		t.Error("status bar should show the active mode")
+	if !strings.Contains(got.headerString(), "plan") {
+		t.Error("header should show the active mode")
 	}
 }
 
@@ -95,7 +100,7 @@ func TestResponderReceivesActiveMode(t *testing.T) {
 	m = typeString(m, "/shell")
 	m, _ = m.Update(key(tea.KeyEnter))
 	m = typeString(m, "ls -la")
-	m, _ = m.Update(key(tea.KeyEnter))
+	_, _ = m.Update(key(tea.KeyEnter))
 	if gotMode != "shell" {
 		t.Fatalf("responder received mode %q, want shell", gotMode)
 	}
@@ -121,7 +126,7 @@ func TestGoalCommandRunsResponder(t *testing.T) {
 	var seen string
 	m := tea.Model(New("ollama", "llama3", func(g, _ string) string { seen = g; return "done" }))
 	m = typeString(m, "/goal ship it")
-	m, _ = m.Update(key(tea.KeyEnter))
+	_, _ = m.Update(key(tea.KeyEnter))
 	if seen != "ship it" {
 		t.Fatalf("responder got %q, want 'ship it'", seen)
 	}
@@ -216,7 +221,7 @@ func TestModelArgPropagatesToDriver(t *testing.T) {
 	var driverModel string
 	var m tea.Model = New("groq", "x", nil).WithModelSelect(func(id string) { driverModel = id })
 	m = typeString(m, "/model llama-3.3-70b-versatile")
-	m, _ = m.Update(key(tea.KeyEnter))
+	_, _ = m.Update(key(tea.KeyEnter))
 	if driverModel != "llama-3.3-70b-versatile" {
 		t.Errorf("driver model = %q", driverModel)
 	}
@@ -236,10 +241,93 @@ func TestModelCommandWithArgSetsDirectly(t *testing.T) {
 	}
 }
 
+// A line that is really a filesystem path must reach the responder as a goal, not be rejected as an
+// unknown slash command (regression: "/Users/me/project" printed "unknown command").
+func TestPathIsAGoalNotACommand(t *testing.T) {
+	var seen string
+	m := tea.Model(New("ollama", "llama3", func(g, _ string) string { seen = g; return "ok" }))
+	m = typeString(m, "/Users/maia/Documents/lyra/andromeda")
+	m, _ = m.Update(key(tea.KeyEnter))
+	if seen != "/Users/maia/Documents/lyra/andromeda" {
+		t.Fatalf("path should reach the responder as a goal, got %q", seen)
+	}
+	tr := m.(Model).Transcript()
+	if strings.Contains(tr[len(tr)-1], "unknown command") {
+		t.Error("a path must not be reported as an unknown command")
+	}
+}
+
+func TestLooksLikeSlashCommand(t *testing.T) {
+	cases := map[string]bool{
+		"/help":               true,
+		"/model gpt-4":        true,
+		"/goal do the thing":  true,
+		"/Users/maia/project": false,
+		"/tmp/out.md":         false,
+		"/home/x/.config":     false,
+		"~/notes":             false,
+		"hello world":         false,
+	}
+	for line, want := range cases {
+		if got := looksLikeSlashCommand(line); got != want {
+			t.Errorf("looksLikeSlashCommand(%q) = %v, want %v", line, got, want)
+		}
+	}
+}
+
 func names(cmds []slashCommand) []string {
 	out := make([]string, len(cmds))
 	for i, c := range cmds {
 		out[i] = c.name
 	}
 	return out
+}
+
+// /effort <level> sets the reasoning effort and propagates it to the driver.
+func TestEffortCommandPropagates(t *testing.T) {
+	var got string
+	m := tea.Model(New("p", "m", nil).WithEffortSelect(func(e string) { got = e }))
+	m = typeString(m, "/effort high")
+	m, _ = m.Update(key(tea.KeyEnter))
+	if got != "high" {
+		t.Fatalf("driver effort = %q, want high", got)
+	}
+	if m.(Model).effort != "high" {
+		t.Fatalf("view effort = %q, want high", m.(Model).effort)
+	}
+}
+
+// /theme light switches the live style set.
+func TestThemeCommandSwitches(t *testing.T) {
+	var m tea.Model = New("p", "m", nil)
+	m = typeString(m, "/theme light")
+	m, _ = m.Update(key(tea.KeyEnter))
+	if got := m.(Model).theme; got != "light" {
+		t.Fatalf("theme = %q, want light", got)
+	}
+}
+
+// Typing an argument after a command enters argument-completion mode and ranks candidates.
+func TestArgCompletionRanks(t *testing.T) {
+	var m tea.Model = New("p", "m", nil)
+	m = typeString(m, "/effort me")
+	if got := m.(Model).menuKind(); got != "arg" {
+		t.Fatalf("menuKind = %q, want arg", got)
+	}
+	if args := filteredArgs("effort", "me"); len(args) != 1 || args[0] != "medium" {
+		t.Fatalf("filteredArgs = %v, want [medium]", args)
+	}
+}
+
+// A custom command expands its template ($ARGUMENTS/$1) and reaches the responder as a goal.
+func TestCustomCommandExpands(t *testing.T) {
+	var seen string
+	m := New("p", "m", func(g, _ string) string { seen = g; return "ok" }).
+		WithCustomCommands([]CustomCommand{{Name: "greet", Desc: "greet", Template: "Say hi to $1 in $ARGUMENTS"}})
+	var tm tea.Model = m
+	tm = typeString(tm, "/greet world over")
+	_, _ = tm.Update(key(tea.KeyEnter))
+	if seen != "Say hi to world in world over" {
+		t.Fatalf("expanded goal = %q", seen)
+	}
 }

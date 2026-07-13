@@ -36,7 +36,18 @@ func (s *tuiSession) sessionActions() tui.Actions {
 		Config:    s.configAction,
 		Logout:    s.logoutAction,
 		Export:    s.exportAction,
+		Init:      s.initAction,
+		Files:     s.listFiles,
+		Context:   s.contextAction,
 	}
+}
+
+// initAction scaffolds the project layout — AGENTS.md, andromeda.toml, .agents/, and .andromeda/ —
+// in the workspace root, seeding andromeda.toml with the session's current provider and model. It is
+// idempotent: missing pieces are created, an existing andromeda.toml is augmented with any config
+// sections it lacks, and existing files are never overwritten. See scaffoldProject.
+func (s *tuiSession) initAction(_ context.Context, provider, model string) string {
+	return scaffoldProject(s.wd, provider, model)
 }
 
 func (s *tuiSession) configAction(ctx context.Context) string {
@@ -185,16 +196,16 @@ func (s *tuiSession) workflowsAction(context.Context) string {
 }
 
 func (s *tuiSession) mcpAction(context.Context) string {
-	// MCP servers are declared in andromeda.toml under [mcp.servers] and connected at agent start;
-	// none are wired into this session shell yet.
-	return "mcp · no servers connected in this session — declare them under [mcp.servers] in andromeda.toml"
+	// MCP servers are declared under [mcp.servers] in andromeda.toml (or as files under .agents/mcp/)
+	// and connected at agent start; none are wired into this session shell yet.
+	return "mcp · no servers connected in this session — declare them under [mcp.servers] in andromeda.toml or .agents/mcp/"
 }
 
 func (s *tuiSession) skillsAction(context.Context) string {
-	dir := filepath.Join(s.wd, ".andromeda", "skills")
+	dir := filepath.Join(s.wd, ".agents", "skills")
 	ents, err := os.ReadDir(dir)
 	if err != nil {
-		return "skills · none found — add one under .andromeda/skills/<name>/skill.toml"
+		return "skills · none found — add one under .agents/skills/<name>/skill.toml"
 	}
 	var found []string
 	for _, e := range ents {
@@ -212,7 +223,7 @@ func (s *tuiSession) skillsAction(context.Context) string {
 		found = append(found, fmt.Sprintf("%s@%s%s", sk.Manifest.Name, sk.Manifest.Version, desc))
 	}
 	if len(found) == 0 {
-		return "skills · none found — add one under .andromeda/skills/<name>/skill.toml"
+		return "skills · none found — add one under .agents/skills/<name>/skill.toml"
 	}
 	sort.Strings(found)
 	return "skills · " + fmt.Sprint(len(found)) + " available\n  " + strings.Join(found, "\n  ")

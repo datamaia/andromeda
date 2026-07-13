@@ -20,17 +20,30 @@ var smallCat = []string{
 	` > ^ < `,
 }
 
-// wordmark is "ANDROMEDA" as block letters (figlet "standard").
+// wordmark is "ANDROMEDA" as bold block letters (the "ANSI Shadow" style: solid blocks with
+// box-drawing edges). Every row is padded to the same width so it renders as a clean rectangle.
 var wordmark = []string{
-	`    _    _   _ ____  ____   ___  __  __ _____ ____    _`,
-	`   / \  | \ | |  _ \|  _ \ / _ \|  \/  | ____|  _ \  / \`,
-	`  / _ \ |  \| | | | | |_) | | | | |\/| |  _| | | | |/ _ \`,
-	` / ___ \| |\  | |_| |  _ <| |_| | |  | | |___| |_| / ___ \`,
-	`/_/   \_\_| \_|____/|_| \_\\___/|_|  |_|_____|____/_/   \_\`,
+	` █████╗ ███╗   ██╗██████╗ ██████╗  ██████╗ ███╗   ███╗███████╗██████╗  █████╗ `,
+	`██╔══██╗████╗  ██║██╔══██╗██╔══██╗██╔═══██╗████╗ ████║██╔════╝██╔══██╗██╔══██╗`,
+	`███████║██╔██╗ ██║██║  ██║██████╔╝██║   ██║██╔████╔██║█████╗  ██║  ██║███████║`,
+	`██╔══██║██║╚██╗██║██║  ██║██╔══██╗██║   ██║██║╚██╔╝██║██╔══╝  ██║  ██║██╔══██║`,
+	`██║  ██║██║ ╚████║██████╔╝██║  ██║╚██████╔╝██║ ╚═╝ ██║███████╗██████╔╝██║  ██║`,
+	`╚═╝  ╚═╝╚═╝  ╚═══╝╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚═╝╚══════╝╚═════╝ ╚═╝  ╚═╝`,
 }
 
 // wordmarkWidth is the width of the widest wordmark line.
-const wordmarkWidth = 59
+const wordmarkWidth = 78
+
+// wordmarkGradient is the top-to-bottom violet ramp painted per wordmark row, all within the brand
+// family (a light tint above fading to a deeper shade below). One hex color per wordmark line.
+var wordmarkGradient = []string{
+	"#A78BFF",
+	"#9575FF",
+	ColorPrimary, // #7C5CFF, the brand violet
+	"#6B4BF5",
+	"#5B3DE0",
+	"#4E33C7",
+}
 
 // Splash renders the start-screen banner centered within width.
 func (m Model) Splash(width int) string {
@@ -46,13 +59,15 @@ func (m Model) Splash(width int) string {
 		b.WriteString(center(cat.Render(line), width) + "\n")
 	}
 	b.WriteString("\n")
-	// ANDROMEDA wordmark (block letters, or a plain fallback when the terminal is too narrow)
+	// ANDROMEDA wordmark (block letters with a violet gradient, or a plain fallback when the
+	// terminal is too narrow for the art).
 	if width < wordmarkWidth+2 {
 		b.WriteString(center(m.styles.Title.Render("a n d r o m e d a"), width) + "\n")
 	} else {
 		indent := strings.Repeat(" ", (width-wordmarkWidth)/2)
-		for _, line := range wordmark {
-			b.WriteString(indent + m.styles.Title.Render(line) + "\n")
+		for i, line := range wordmark {
+			c := lipgloss.Color(wordmarkGradient[i%len(wordmarkGradient)])
+			b.WriteString(indent + lipgloss.NewStyle().Foreground(c).Render(line) + "\n")
 		}
 	}
 	b.WriteString("\n")

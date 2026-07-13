@@ -9,7 +9,7 @@ import (
 
 // fakeRunner emits one approval request, then a final message naming the choice the user made.
 func fakeRunner(captured *ApprovalChoice) AgentRunner {
-	return func(goal, mode string) <-chan AgentEvent {
+	return func(_, _ string) (<-chan AgentEvent, func()) {
 		ch := make(chan AgentEvent, 1)
 		reply := make(chan ApprovalDecision, 1)
 		go func() {
@@ -21,7 +21,7 @@ func fakeRunner(captured *ApprovalChoice) AgentRunner {
 			ch <- AgentEvent{Final: "run complete"}
 			close(ch)
 		}()
-		return ch
+		return ch, func() {}
 	}
 }
 
@@ -37,7 +37,7 @@ func TestApprovalOverlayApprove(t *testing.T) {
 		t.Fatal("submitting a goal should start a run")
 	}
 	// drain the first event (the approval pause)
-	m, cmd = m.Update(cmd())
+	m, _ = m.Update(cmd())
 	got := m.(Model)
 	if got.approval == nil {
 		t.Fatal("expected the approval overlay to open")
@@ -71,13 +71,13 @@ func TestApprovalOverlayAlwaysDeny(t *testing.T) {
 	var m tea.Model = New("ollama", "llama3", nil).WithAgentRunner(fakeRunner(&chosen))
 	m = typeString(m, "rm everything")
 	m, cmd := m.Update(key(tea.KeyEnter))
-	m, cmd = m.Update(cmd()) // approval pause
+	m, _ = m.Update(cmd()) // approval pause
 	// Always deny is index 4 (Approve once/session/workspace, Reject, Always deny)
 	for i := 0; i < 4; i++ {
 		m, _ = m.Update(key(tea.KeyDown))
 	}
 	m, cmd = m.Update(key(tea.KeyEnter))
-	m, _ = m.Update(cmd())
+	_, _ = m.Update(cmd())
 	if chosen != AlwaysDeny {
 		t.Errorf("runner received choice %d, want AlwaysDeny", chosen)
 	}
@@ -89,12 +89,12 @@ func TestApprovalEscRejects(t *testing.T) {
 	var m tea.Model = New("ollama", "llama3", nil).WithAgentRunner(fakeRunner(&chosen))
 	m = typeString(m, "touch a file")
 	m, cmd := m.Update(key(tea.KeyEnter))
-	m, cmd = m.Update(cmd()) // approval pause
+	m, _ = m.Update(cmd()) // approval pause
 	m, cmd = m.Update(key(tea.KeyEscape))
 	if m.(Model).quitting {
 		t.Error("esc on the approval overlay must not quit")
 	}
-	m, _ = m.Update(cmd())
+	_, _ = m.Update(cmd())
 	if chosen != RejectOnce {
 		t.Errorf("esc should reject once, got choice %d", chosen)
 	}

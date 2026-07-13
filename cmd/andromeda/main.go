@@ -54,6 +54,8 @@ func run(args []string) int {
 }
 
 func newRootCommand() *cobra.Command {
+	var resumeID string
+	var continueLast bool
 	root := &cobra.Command{
 		Use:           "andromeda",
 		Short:         "Andromeda — your terminal companion for shipping great software.",
@@ -69,14 +71,21 @@ func newRootCommand() *cobra.Command {
 				return &usageError{fmt.Sprintf("andromeda: unknown command %q\nRun 'andromeda --help' for usage.", args[0])}
 			}
 			if !interactive() {
-				fmt.Fprint(cmd.ErrOrStderr(), shortUsage(cmd))
+				_, _ = fmt.Fprint(cmd.ErrOrStderr(), shortUsage(cmd))
 				return &usageError{} // already printed; exit 2
 			}
-			// Bare `andromeda` is first-run onboarding: choose a provider (sign in / paste key) and
-			// a model before the chat opens.
-			return launchTUI(cmd.Context(), defaultTUIConfig(), true)
+			// --continue reopens the most recent session; --resume <id> a specific one. A resumed
+			// session already has a provider/model, so onboarding is skipped; a bare launch with no
+			// resume is first-run onboarding (choose a provider — sign in / paste key — and a model).
+			resume := resumeID
+			if continueLast && resume == "" {
+				resume = app.LatestSessionID()
+			}
+			return launchTUIResume(cmd.Context(), defaultTUIConfig(), resume == "", resume)
 		},
 	}
+	root.Flags().StringVar(&resumeID, "resume", "", "resume a saved session by id")
+	root.Flags().BoolVar(&continueLast, "continue", false, "resume the most recent session")
 	// `andromeda --version` is the single sanctioned flag alias for `andromeda version`
 	// (FR-CLI-003), byte-for-byte identical via the shared version line.
 	root.Version = versionLine()
@@ -97,6 +106,7 @@ func newRootCommand() *cobra.Command {
 		newModelCommand(),
 		newUpdateCommand(),
 		newTUICommand(),
+		newSessionsCommand(),
 		newLogsCommand(),
 		newExportCommand(),
 		newContextCommand(),
@@ -226,7 +236,7 @@ func shortUsage(root *cobra.Command) string {
 		if c.Hidden || c.Name() == "help" || c.Name() == "completion" {
 			continue
 		}
-		b.WriteString(fmt.Sprintf("  %-11s %s\n", c.Name(), c.Short))
+		_, _ = fmt.Fprintf(&b, "  %-11s %s\n", c.Name(), c.Short)
 	}
 	b.WriteString("\nRun 'andromeda --help' for full help.\n")
 	return b.String()

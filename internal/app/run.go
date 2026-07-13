@@ -23,6 +23,8 @@ type RunAgentOptions struct {
 	Goal          string
 	System        string
 	Model         string
+	Effort        string          // reasoning effort (minimal|low|medium|high); empty leaves it to the provider
+	History       []ports.Message // prior conversation turns to continue (empty starts fresh)
 	Provider      ports.ProviderPort
 	AllowWrite    bool // grant write within the workspace (safe-by-default is read-only)
 	AllowExec     bool // grant command execution (terminal_run)
@@ -36,6 +38,10 @@ type RunAgentOptions struct {
 	// deny-lists. A nil Approver makes "ask" fail closed (deny), same as a non-interactive run.
 	Interactive bool
 	Approver    permission.Approver
+
+	// Sink, when non-null, receives streamed run events (content deltas, tool calls, tool results)
+	// as the run proceeds, for a live transcript. See agent.RunEvent.
+	Sink func(agent.RunEvent)
 }
 
 // RunAgent composes the workspace, permission manager (with safe-by-default grants scoped to
@@ -152,14 +158,21 @@ func RunAgent(ctx context.Context, opts RunAgentOptions) (agent.RunResult, error
 		}
 	}
 
+	// AGENTS.md is active: its content is folded into the system prompt on every run so project
+	// guidance steers the agent (the file is read here, in the composition layer).
+	system := composeSystem(opts.System, projectInstructions(root))
+
 	eng := agent.New(opts.Provider, rt, sessions, nil)
 	return eng.Run(ctx, agent.RunInput{
 		SessionID:     sessionID,
 		Goal:          opts.Goal,
-		System:        opts.System,
+		System:        system,
 		Model:         opts.Model,
+		Effort:        opts.Effort,
+		History:       opts.History,
 		ToolNames:     toolNames,
 		MaxIterations: maxIter,
+		Sink:          opts.Sink,
 	})
 }
 

@@ -58,6 +58,8 @@ func (m Model) openPicker(title string, items []pickerItem, current string, appl
 	m.pickerTitle = title
 	m.pickerItems = items
 	m.pickerErr = ""
+	m.pickerFilter = ""
+	m.pickerTop = 0
 	m.pickerCursor = 0
 	for i, it := range items {
 		if it.id == current {
@@ -67,6 +69,35 @@ func (m Model) openPicker(title string, items []pickerItem, current string, appl
 	}
 	m.pickerApply = apply
 	return m, nil
+}
+
+// filteredItems returns the items matching the current type-to-filter query (case-insensitive
+// substring over id and display). An empty query returns every item.
+func (m Model) filteredItems() []pickerItem {
+	if m.pickerFilter == "" {
+		return m.pickerItems
+	}
+	q := strings.ToLower(m.pickerFilter)
+	out := make([]pickerItem, 0, len(m.pickerItems))
+	for _, it := range m.pickerItems {
+		if strings.Contains(strings.ToLower(it.id), q) || strings.Contains(strings.ToLower(it.display), q) {
+			out = append(out, it)
+		}
+	}
+	return out
+}
+
+// pickerViewport is the number of item rows shown at once; the list scrolls within it so a huge
+// catalogue (OpenRouter lists 400+ models) never overflows the screen or hides the cursor.
+func (m Model) pickerViewport() int {
+	h := m.height - 9 // title, filter line, error, help, status bar, padding
+	if h < 5 {
+		return 5
+	}
+	if h > 15 {
+		return 15
+	}
+	return h
 }
 
 // openProviderPicker opens the provider list (ctrl+p / "/provider"). Selecting a provider either
@@ -167,19 +198,24 @@ func (m Model) activateProvider(id string) (tea.Model, tea.Cmd) {
 	return m.afterPick()
 }
 
-// afterPick advances the onboarding sequence: after a provider comes the model picker; after a
-// model, onboarding is complete. Outside onboarding it is a no-op (a plain switch).
+// afterPick advances the selection sequence: choosing a provider always leads to the live model
+// picker (during onboarding AND a mid-session /provider switch), so the user picks a currently
+// available model instead of silently inheriting a possibly-retired catalog default. Choosing a
+// model finishes onboarding or confirms the mid-session switch.
 func (m Model) afterPick() (tea.Model, tea.Cmd) {
-	if !m.onboarding {
-		return m, nil
-	}
 	switch m.pickerKind {
 	case "provider":
 		return m.openModelPicker()
-	default: // "model"
-		m.onboarding = false
-		m.transcript = append(m.transcript, entry{"system",
-			"ready · " + m.provider + " · " + m.model + " — type a goal, enter to send"})
+	case "model":
+		if m.onboarding {
+			m.onboarding = false
+			m.transcript = append(m.transcript, entry{"system",
+				"ready · " + m.provider + " · " + m.model + " — type a goal, enter to send"})
+			return m, nil
+		}
+		m.transcript = append(m.transcript, entry{"system", "now using " + m.provider + " · " + m.model})
+		return m, nil
+	default: // effort / theme / other one-shot pickers — the apply closure already applied + messaged
 		return m, nil
 	}
 }
@@ -188,8 +224,14 @@ func (m Model) afterPick() (tea.Model, tea.Cmd) {
 // onboarding esc on the provider list quits (a provider is required); esc on the model list steps
 // back to provider choice.
 func (m Model) handlePickerKey(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
+	items := m.filteredItems()
 	switch {
 	case msg.Code == tea.KeyEscape:
+		if m.pickerFilter != "" {
+			m.pickerFilter = "" // first esc clears the filter, revealing the full list again
+			m.pickerCursor, m.pickerTop = 0, 0
+			return m, nil
+		}
 		if m.onboarding {
 			if m.pickerKind == "model" {
 				return m.openProviderPicker() // step back to provider choice
@@ -199,18 +241,21 @@ func (m Model) handlePickerKey(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 		m.pickerOpen = false
 		m.pickerErr = ""
 		return m, nil
-	case msg.Code == tea.KeyUp || msg.Text == "k":
+	case msg.Code == tea.KeyUp:
 		if m.pickerCursor > 0 {
 			m.pickerCursor--
 		}
-		return m, nil
-	case msg.Code == tea.KeyDown || msg.Text == "j":
-		if m.pickerCursor < len(m.pickerItems)-1 {
+		return m.clampViewport(), nil
+	case msg.Code == tea.KeyDown:
+		if m.pickerCursor < len(items)-1 {
 			m.pickerCursor++
 		}
-		return m, nil
+		return m.clampViewport(), nil
 	case msg.Code == tea.KeyEnter:
-		if len(m.pickerItems) == 0 {
+		if len(items) == 0 {
+			if m.pickerFilter != "" { // no matches for the query — let the user edit it
+				return m, nil
+			}
 			if m.onboarding && m.pickerKind == "model" {
 				m.transcript = append(m.transcript, entry{"system",
 					"no models available for " + m.provider + " — choose another provider"})
@@ -223,15 +268,41 @@ func (m Model) handlePickerKey(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 			m.pickerOpen = false
 			return m, nil
 		}
-		id := m.pickerItems[m.pickerCursor].id
+		id := items[m.pickerCursor].id
 		nm, err := m.pickerApply(m, id)
 		if err != nil {
 			m.pickerErr = err.Error() // stay open so the user can pick another
 			return m, nil
 		}
 		return nm.afterPickerApply()
+	case msg.Code == tea.KeyBackspace:
+		if n := len(m.pickerFilter); n > 0 {
+			m.pickerFilter = m.pickerFilter[:n-1]
+			m.pickerCursor, m.pickerTop = 0, 0
+		}
+		return m, nil
+	case msg.Text != "":
+		// Any printable key narrows the list (type-to-filter), so long catalogues stay navigable.
+		m.pickerFilter += msg.Text
+		m.pickerCursor, m.pickerTop = 0, 0
+		return m, nil
 	}
 	return m, nil
+}
+
+// clampViewport keeps the cursor within the visible window, scrolling the viewport as needed.
+func (m Model) clampViewport() Model {
+	vp := m.pickerViewport()
+	if m.pickerCursor < m.pickerTop {
+		m.pickerTop = m.pickerCursor
+	}
+	if m.pickerCursor >= m.pickerTop+vp {
+		m.pickerTop = m.pickerCursor - vp + 1
+	}
+	if m.pickerTop < 0 {
+		m.pickerTop = 0
+	}
+	return m
 }
 
 // afterPickerApply closes the picker and dispatches whatever the selection deferred: a browser
@@ -261,14 +332,51 @@ func (m Model) afterPickerApply() (tea.Model, tea.Cmd) {
 	}
 }
 
-// renderPicker draws the active modal list with the cursor highlighted and any selection error.
+// renderPicker draws the active modal list: title, a type-to-filter line, a scrolling viewport of
+// items with the cursor highlighted, scroll hints, and any selection error.
 func (m Model) renderPicker() string {
+	items := m.filteredItems()
 	var b strings.Builder
-	b.WriteString("\n  " + m.styles.Title.Render(m.pickerTitle) + "\n\n")
-	if len(m.pickerItems) == 0 {
-		b.WriteString("    " + m.styles.Muted.Render("(nothing to choose)") + "\n\n")
+	b.WriteString("\n  " + m.styles.Title.Render(m.pickerTitle) + "\n")
+
+	// Filter line: show what's typed, plus the match count for context on long lists.
+	filter := m.pickerFilter
+	if filter == "" {
+		filter = m.styles.Muted.Render("type to filter")
 	}
-	for i, it := range m.pickerItems {
+	count := fmt.Sprintf("%d", len(items))
+	if len(items) != len(m.pickerItems) {
+		count = fmt.Sprintf("%d/%d", len(items), len(m.pickerItems))
+	}
+	b.WriteString("  " + m.styles.Muted.Render("search: ") + filter +
+		m.styles.Muted.Render("   ("+count+")") + "\n\n")
+
+	if len(items) == 0 {
+		msg := "(nothing to choose)"
+		if m.pickerFilter != "" {
+			msg = "(no matches — backspace to widen)"
+		}
+		b.WriteString("    " + m.styles.Muted.Render(msg) + "\n")
+	}
+
+	// Viewport window around the cursor.
+	vp := m.pickerViewport()
+	top := m.pickerTop
+	if top > len(items)-vp {
+		top = len(items) - vp
+	}
+	if top < 0 {
+		top = 0
+	}
+	end := top + vp
+	if end > len(items) {
+		end = len(items)
+	}
+	if top > 0 {
+		b.WriteString("    " + m.styles.Muted.Render(fmt.Sprintf("↑ %d more", top)) + "\n")
+	}
+	for i := top; i < end; i++ {
+		it := items[i]
 		label := it.display
 		if it.note != "" {
 			label = fmt.Sprintf("%-30s %s", it.display, it.note)
@@ -279,10 +387,14 @@ func (m Model) renderPicker() string {
 			b.WriteString("    " + m.styles.Muted.Render(label) + "\n")
 		}
 	}
+	if end < len(items) {
+		b.WriteString("    " + m.styles.Muted.Render(fmt.Sprintf("↓ %d more", len(items)-end)) + "\n")
+	}
+
 	b.WriteString("\n")
 	if m.pickerErr != "" {
 		b.WriteString("  " + m.styles.User.Render("⚠ "+m.pickerErr) + "\n\n")
 	}
-	b.WriteString("  " + m.styles.Muted.Render("↑/↓ move · enter select · esc back") + "\n")
+	b.WriteString("  " + m.styles.Muted.Render("↑/↓ move · type to filter · enter select · esc back") + "\n")
 	return b.String()
 }

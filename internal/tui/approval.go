@@ -1,22 +1,38 @@
 package tui
 
 import (
+	"encoding/json"
+	"fmt"
 	"strings"
 
 	tea "charm.land/bubbletea/v2"
 )
 
 // AgentRunner starts an agent run for a submitted line and returns the stream of events the Model
-// consumes. It is injected by the driver so the TUI keeps no agent/permission imports. A run emits
+// consumes plus a cancel func the Model calls to interrupt the run (Esc). It is injected by the
+// driver so the TUI keeps no agent/permission imports. A run emits streamed Delta/Tool events and
 // zero or more ApprovalRequest pauses, then exactly one terminal event (Final or Err); the channel
 // is closed afterwards. When no runner is wired the Model falls back to the synchronous Responder.
-type AgentRunner func(goal, mode string) <-chan AgentEvent
+type AgentRunner func(goal, mode string) (<-chan AgentEvent, func())
 
-// AgentEvent is one step of a running agent: a pause awaiting approval, or the terminal result.
+// AgentEvent is one step of a running agent: a streamed content delta, a tool step, a pause awaiting
+// approval, or the terminal result.
 type AgentEvent struct {
-	Approval *ApprovalRequest // non-nil: the run is paused until the user answers
-	Final    string           // the run's final text (terminal, when Approval == nil && Err == nil)
-	Err      error            // the run failed (terminal)
+	Delta     string           // a streamed chunk of assistant text (non-terminal)
+	Tool      *ToolStep        // a tool call starting or its result (non-terminal)
+	Approval  *ApprovalRequest // non-nil: the run is paused until the user answers
+	Final     string           // the run's final text (terminal, when the others are unset)
+	Err       error            // the run failed (terminal)
+	InTokens  int              // input tokens consumed by the run (reported on the terminal event)
+	OutTokens int              // output tokens produced by the run
+}
+
+// ToolStep is a tool call starting ("call") or completing ("result"), rendered inline as a card.
+type ToolStep struct {
+	Phase  string // "call" | "result"
+	Name   string
+	Input  string
+	Result string
 }
 
 // ApprovalRequest describes a state-changing action awaiting the user's decision. The Model sends
@@ -93,32 +109,181 @@ func waitAgent(ch <-chan AgentEvent) tea.Cmd {
 	}
 }
 
-// handleAgentEvent advances a running agent: it opens the approval overlay on a pause, or finishes
-// the run on a terminal event.
+// handleAgentEvent advances a running agent: it streams content into the live agent line, renders
+// tool steps as inline cards, opens the approval overlay on a pause, or finishes on a terminal event.
 func (m Model) handleAgentEvent(msg agentEventMsg) (tea.Model, tea.Cmd) {
 	if msg.closed {
 		// Stream ended without a separate terminal event; settle to ready.
-		m.running = false
-		m.agentEvents = nil
-		m.state = "ready"
-		return m, nil
+		return m.settleRun(), nil
 	}
-	if msg.ev.Approval != nil {
+	switch {
+	case msg.ev.Delta != "":
+		m = m.appendDelta(msg.ev.Delta)
+		return m, waitAgent(m.agentEvents)
+	case msg.ev.Tool != nil:
+		m = m.appendToolStep(msg.ev.Tool)
+		return m, waitAgent(m.agentEvents)
+	case msg.ev.Approval != nil:
 		m.approval = msg.ev.Approval
 		m.approvalCursor = 0
 		m.state = "awaiting approval"
 		return m, nil // wait for the user; do not re-subscribe yet
 	}
-	// terminal event: append the result and settle
-	m.running = false
-	m.agentEvents = nil
-	m.state = "ready"
+	// terminal event: canonicalize the streamed line (or append the result), then settle.
 	if msg.ev.Err != nil {
-		m.transcript = append(m.transcript, entry{"agent", "error: " + msg.ev.Err.Error()})
-	} else {
-		m.transcript = append(m.transcript, entry{"agent", msg.ev.Final})
+		if m.interrupted {
+			m.transcript = append(m.transcript, entry{"system", "interrupted"})
+		} else {
+			m.transcript = append(m.transcript, entry{"agent", "error: " + msg.ev.Err.Error()})
+		}
+	} else if msg.ev.Final != "" {
+		if m.streamIdx >= 0 && m.streamIdx < len(m.transcript) {
+			m.transcript[m.streamIdx].text = msg.ev.Final // replace streamed text with the canonical final
+		} else {
+			m.transcript = append(m.transcript, entry{"agent", msg.ev.Final})
+		}
+	}
+	// Accumulate reported token usage for the /status Usage tab and the status bar.
+	m.inTokens += msg.ev.InTokens
+	m.outTokens += msg.ev.OutTokens
+	// A plan-mode turn that finished cleanly hands off to the approve/refine/reject overlay.
+	completed := msg.ev.Err == nil && !m.interrupted && msg.ev.Final != ""
+	planMode := m.modeOrDefault() == "plan"
+	m = m.settleRun()
+	if completed && planMode {
+		m = m.openPlanReview()
 	}
 	return m, nil
+}
+
+// appendDelta streams a chunk of assistant text into the current agent line, starting a new line
+// when none is open (e.g. the first delta, or the first delta after a tool step).
+func (m Model) appendDelta(delta string) Model {
+	if m.streamIdx < 0 || m.streamIdx >= len(m.transcript) {
+		m.transcript = append(m.transcript, entry{"agent", ""})
+		m.streamIdx = len(m.transcript) - 1
+	}
+	m.transcript[m.streamIdx].text += delta
+	m.state = "streaming"
+	return m
+}
+
+// appendToolStep renders a tool call as a subtle two-line log (a human action line, then the result
+// folded under a "⎿" connector), in the style of Claude Code. A tool step closes the current
+// streamed line so text after it starts fresh.
+func (m Model) appendToolStep(t *ToolStep) Model {
+	switch t.Phase {
+	case "result":
+		if m.toolIdx >= 0 && m.toolIdx < len(m.transcript) {
+			if s := toolResultSummary(t.Result); s != "" {
+				m.transcript[m.toolIdx].text += "\n  ⎿  " + s
+			}
+		}
+	default: // "call"
+		m.transcript = append(m.transcript, entry{"tool", toolCallLabel(t.Name, t.Input)})
+		m.toolIdx = len(m.transcript) - 1
+	}
+	m.streamIdx = -1 // the next content delta starts a new agent line below the log
+	return m
+}
+
+// toolVerbs maps built-in tool names to a human action verb for the log line.
+var toolVerbs = map[string]string{
+	"fs_read": "Read", "fs_search": "Search", "fs_diff": "Diff",
+	"fs_write": "Write", "fs_replace": "Edit", "fs_patch": "Edit",
+	"git_exec": "Git", "terminal_run": "Run", "process_control": "Process",
+	"http_request": "Fetch", "sqlite_query": "Query",
+}
+
+// toolCallLabel renders a tool call as "<Verb> <subject>" (e.g. "Read internal/tui/model.go"),
+// falling back to the raw tool name when the verb or subject is unknown.
+func toolCallLabel(name, input string) string {
+	verb := toolVerbs[name]
+	if verb == "" {
+		verb = name
+	}
+	if subj := toolSubject(input); subj != "" {
+		return verb + " " + subj
+	}
+	return verb
+}
+
+// toolSubject pulls the most meaningful argument (path, command, query, url…) out of a tool's JSON
+// input to display alongside the verb.
+func toolSubject(input string) string {
+	if strings.TrimSpace(input) == "" {
+		return ""
+	}
+	var m map[string]any
+	if err := json.Unmarshal([]byte(input), &m); err != nil {
+		return oneLine(input, 60)
+	}
+	for _, k := range []string{"command", "cmd", "url", "query", "pattern", "statement", "path", "file", "filename"} {
+		if s, ok := m[k].(string); ok && strings.TrimSpace(s) != "" {
+			return oneLine(s, 60)
+		}
+	}
+	return ""
+}
+
+// toolResultSummary condenses a tool result to one subtle line: a friendly field from a JSON result
+// (content/output/stdout…) or the raw text, with a "(+N lines)" hint when it spans several lines.
+func toolResultSummary(result string) string {
+	r := strings.TrimSpace(result)
+	if r == "" {
+		return ""
+	}
+	var m map[string]any
+	if json.Unmarshal([]byte(r), &m) == nil {
+		for _, k := range []string{"content", "output", "stdout", "result", "text", "message", "error"} {
+			if s, ok := m[k].(string); ok {
+				return summarizeText(s)
+			}
+		}
+	}
+	return summarizeText(r)
+}
+
+// summarizeText returns the first line of s, appending "(+N lines)" when more follow.
+func summarizeText(s string) string {
+	s = strings.TrimRight(s, "\n")
+	if strings.TrimSpace(s) == "" {
+		return "(empty)"
+	}
+	lines := strings.Count(s, "\n") + 1
+	first := s
+	if i := strings.IndexByte(s, '\n'); i >= 0 {
+		first = s[:i]
+	}
+	first = oneLine(first, 70)
+	if lines > 1 {
+		return fmt.Sprintf("%s  (+%d lines)", first, lines-1)
+	}
+	return first
+}
+
+// settleRun resets streaming state when a run ends.
+func (m Model) settleRun() Model {
+	m.running = false
+	m.agentEvents = nil
+	m.cancelRun = nil
+	m.interrupted = false
+	m.streamIdx = -1
+	m.toolIdx = -1
+	m.state = "ready"
+	return m
+}
+
+// oneLine collapses whitespace/newlines and truncates, so a tool arg/result stays a single row.
+func oneLine(s string, limit int) string {
+	s = strings.TrimSpace(strings.ReplaceAll(strings.ReplaceAll(s, "\n", " "), "\r", ""))
+	for strings.Contains(s, "  ") {
+		s = strings.ReplaceAll(s, "  ", " ")
+	}
+	if len(s) > limit {
+		return s[:limit-1] + "…"
+	}
+	return s
 }
 
 // handleApprovalKey drives the approval overlay: arrows move, enter chooses, esc rejects.

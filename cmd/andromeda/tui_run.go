@@ -3,37 +3,59 @@ package main
 import (
 	"context"
 
+	"github.com/datamaia/andromeda/internal/agent"
 	"github.com/datamaia/andromeda/internal/app"
 	"github.com/datamaia/andromeda/internal/core"
 	"github.com/datamaia/andromeda/internal/ports"
 	"github.com/datamaia/andromeda/internal/tui"
 )
 
-// startAgentRun implements tui.AgentRunner: it drives a goal on a background goroutine and streams
-// events to the TUI, pausing on each permission "ask" so the user can approve or deny. Agent mode
-// runs interactively (state-changing actions prompt); plan mode runs strictly read-only, so it
-// streams straight to its result with nothing to approve.
-func (s *tuiSession) startAgentRun(goal, mode string) <-chan tui.AgentEvent {
-	events := make(chan tui.AgentEvent, 1)
+// startAgentRun implements tui.AgentRunner: it drives a goal on a background goroutine, streaming
+// content deltas and tool steps to the TUI and pausing on each permission "ask" so the user can
+// approve or deny. It returns a cancel the TUI calls to interrupt the run (Esc). Agent mode runs
+// interactively (state-changing actions prompt); plan mode runs strictly read-only.
+func (s *tuiSession) startAgentRun(goal, mode string) (<-chan tui.AgentEvent, func()) {
+	events := make(chan tui.AgentEvent, 16)
+	runCtx, cancel := context.WithCancel(s.ctx)
 	go func() {
 		defer close(events)
+		defer cancel()
 		opts := app.RunAgentOptions{
-			WorkspaceRoot: s.wd, Goal: goal, Model: s.cfg.model, Provider: s.prov,
+			WorkspaceRoot: s.wd, Goal: goal, Model: s.cfg.model, Effort: s.cfg.effort,
+			History: s.history, Provider: s.prov,
+			Sink: func(ev agent.RunEvent) { forwardRunEvent(events, ev) },
 		}
 		if mode == "plan" {
 			opts.System = planModeSystem // read-only: no Interactive, no capability grants
 		} else {
+			opts.System = agentModeSystem // act via tools; state-changing actions prompt for approval
 			opts.Interactive = true
-			opts.Approver = &channelApprover{events: events, ctx: s.ctx}
+			opts.Approver = &channelApprover{events: events, ctx: runCtx}
 		}
-		res, err := app.RunAgent(s.ctx, opts)
+		res, err := app.RunAgent(runCtx, opts)
 		if err != nil {
 			events <- tui.AgentEvent{Err: err}
 			return
 		}
-		events <- tui.AgentEvent{Final: res.FinalText}
+		// Carry the conversation forward for the next turn and persist it (best-effort). Writing before
+		// the terminal send establishes happens-before with the next run's read of s.history.
+		s.history = res.Messages
+		s.persistSession(mode)
+		events <- tui.AgentEvent{Final: res.FinalText, InTokens: res.InputTokens, OutTokens: res.OutputTokens}
 	}()
-	return events
+	return events, cancel
+}
+
+// forwardRunEvent translates an agent run event into the TUI's streaming event vocabulary.
+func forwardRunEvent(events chan<- tui.AgentEvent, ev agent.RunEvent) {
+	switch ev.Kind {
+	case "content":
+		events <- tui.AgentEvent{Delta: ev.Content}
+	case "tool_call":
+		events <- tui.AgentEvent{Tool: &tui.ToolStep{Phase: "call", Name: ev.ToolName, Input: string(ev.ToolInput)}}
+	case "tool_result":
+		events <- tui.AgentEvent{Tool: &tui.ToolStep{Phase: "result", Name: ev.ToolName, Result: ev.ToolResult}}
+	}
 }
 
 // channelApprover bridges the permission Manager's approval callback to the TUI: it surfaces each

@@ -9,13 +9,16 @@ import (
 	"github.com/datamaia/andromeda/internal/streams"
 )
 
-// scriptedProvider returns a preset sequence of responses, one per Chat call.
+// scriptedProvider returns a preset sequence of responses, one per Chat call, recording the last
+// request so tests can assert what the engine sent.
 type scriptedProvider struct {
 	responses []ports.ChatResponse
 	calls     int
+	lastReq   ports.ChatRequest
 }
 
-func (p *scriptedProvider) Chat(_ context.Context, _ ports.ChatRequest) (ports.ChatResponse, error) {
+func (p *scriptedProvider) Chat(_ context.Context, req ports.ChatRequest) (ports.ChatResponse, error) {
+	p.lastReq = req
 	r := p.responses[min(p.calls, len(p.responses)-1)]
 	p.calls++
 	return r, nil
@@ -131,5 +134,36 @@ func TestCancelledContext(t *testing.T) {
 	res, err := e.Run(ctx, RunInput{Goal: "g", Model: "m"})
 	if err == nil || res.State != "cancelled" {
 		t.Fatalf("expected cancellation, got state=%q err=%v", res.State, err)
+	}
+}
+
+// A run seeds the prior conversation, forwards reasoning effort, and returns the continued history.
+func TestRunSeedsHistoryAndReturnsConversation(t *testing.T) {
+	ctx := context.Background()
+	prior := []ports.Message{
+		{Role: "user", Parts: []ports.ContentPart{{Type: "text", Text: "first goal"}}},
+		{Role: "assistant", Parts: []ports.ContentPart{{Type: "text", Text: "first reply"}}},
+	}
+	prov := &scriptedProvider{responses: []ports.ChatResponse{assistant("second reply")}}
+	e := New(prov, &fakeTools{}, nil, nil)
+
+	res, err := e.Run(ctx, RunInput{Goal: "second goal", Model: "m", History: prior, Effort: "high"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	// The provider saw the prior history plus the new goal (2 + 1).
+	if got := len(prov.lastReq.Messages); got != 3 {
+		t.Fatalf("provider saw %d messages, want 3 (2 history + new goal)", got)
+	}
+	// Reasoning effort rode along on ModelParams.Extra.
+	if prov.lastReq.Params.Extra["reasoning_effort"] != "high" {
+		t.Errorf("effort not forwarded: %v", prov.lastReq.Params.Extra)
+	}
+	// The returned conversation is history + user goal + final assistant (2 + 1 + 1).
+	if got := len(res.Messages); got != 4 {
+		t.Fatalf("res.Messages = %d, want 4", got)
+	}
+	if last := res.Messages[3]; last.Role != "assistant" || textOf(last) != "second reply" {
+		t.Errorf("final message = %+v", last)
 	}
 }
