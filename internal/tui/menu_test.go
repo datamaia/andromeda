@@ -41,7 +41,7 @@ func TestMenuOpenNavigateSelect(t *testing.T) {
 }
 
 func TestMenuEscGoesBackUnchanged(t *testing.T) {
-	m := menuModel(func(id string) (string, error) { return "x", nil })
+	m := menuModel(func(_ string) (string, error) { return "x", nil })
 	m, _ = m.Update(ctrlP())
 	m, _ = m.Update(key(tea.KeyDown))
 	m, _ = m.Update(key(tea.KeyEscape))
@@ -55,7 +55,7 @@ func TestMenuEscGoesBackUnchanged(t *testing.T) {
 }
 
 func TestMenuSelectErrorStaysOpen(t *testing.T) {
-	m := menuModel(func(id string) (string, error) { return "", errors.New("needs GROQ_API_KEY") })
+	m := menuModel(func(_ string) (string, error) { return "", errors.New("needs GROQ_API_KEY") })
 	m, _ = m.Update(ctrlP())
 	m, _ = m.Update(key(tea.KeyDown))
 	m, _ = m.Update(key(tea.KeyEnter))

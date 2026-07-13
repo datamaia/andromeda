@@ -78,7 +78,7 @@ func openBrowser(u string) error {
 	default:
 		name, args = "xdg-open", []string{u}
 	}
-	return exec.Command(name, args...).Start()
+	return exec.Command(name, args...).Start() //nolint:gosec // opens the OS browser (fixed opener) to our own OAuth URL
 }
 
 func newAuthManager() (*auth.Manager, error) {

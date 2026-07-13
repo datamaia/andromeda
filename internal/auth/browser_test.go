@@ -124,7 +124,7 @@ func TestRefreshBrowserTokenPreservesRefresh(t *testing.T) {
 }
 
 func TestTokenEndpointErrorSurfaces(t *testing.T) {
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		_ = json.NewEncoder(w).Encode(map[string]any{"error": "invalid_grant", "error_description": "bad code"})
 	}))
 	defer srv.Close()

@@ -11,7 +11,7 @@ const OpenAIChatGPTProvider = "openai-chatgpt"
 // Codex subscription flow). Endpoints, client, scopes, and the extra authorization parameters
 // mirror OpenAI's Codex login so the resulting tokens are accepted by the ChatGPT backend.
 func OpenAIChatGPTFlow() BrowserFlowConfig {
-	return BrowserFlowConfig{
+	return BrowserFlowConfig{ //nolint:gosec // G101 false positive: ClientID is a public OAuth client, not a secret
 		AuthorizeURL: "https://auth.openai.com/oauth/authorize",
 		TokenURL:     "https://auth.openai.com/oauth/token",
 		ClientID:     OpenAIChatGPTClientID,

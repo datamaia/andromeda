@@ -10,7 +10,7 @@ import (
 
 // Pasting a long API key fills the key-entry field (bracketed paste, not one keystroke at a time).
 func TestPasteIntoKeyEntry(t *testing.T) {
-	m := onboardModel(t, func(id string) (string, error) { return "m", nil }, func(string, string) {})
+	m := onboardModel(t, func(_ string) (string, error) { return "m", nil }, func(string, string) {})
 	m, _ = m.Update(key(tea.KeyDown))  // groq
 	m, _ = m.Update(key(tea.KeyEnter)) // → key entry
 	m, _ = m.Update(tea.PasteMsg{Content: "sk-a-very-long-pasted-api-key-0123456789"})
@@ -79,7 +79,7 @@ func onboardModel(t *testing.T, onSelect ProviderSelectFunc, setKey ProviderSetK
 
 // Onboarding opens on the provider picker.
 func TestOnboardingOpensProviderPicker(t *testing.T) {
-	m := onboardModel(t, func(id string) (string, error) { return "x", nil }, nil)
+	m := onboardModel(t, func(_ string) (string, error) { return "x", nil }, nil)
 	got := m.(Model)
 	if !got.onboarding || !got.pickerOpen || got.pickerKind != "provider" {
 		t.Fatalf("onboarding should open the provider picker: onboarding=%v open=%v kind=%q",
@@ -117,7 +117,7 @@ func TestOnboardingProviderThenModel(t *testing.T) {
 // Esc on the provider picker during onboarding does NOT quit (a provider is required; exit is
 // ctrl+c twice) — it keeps the picker open.
 func TestOnboardingEscOnProviderStays(t *testing.T) {
-	m := onboardModel(t, func(id string) (string, error) { return "x", nil }, nil)
+	m := onboardModel(t, func(_ string) (string, error) { return "x", nil }, nil)
 	m, cmd := m.Update(key(tea.KeyEscape))
 	if cmd != nil {
 		t.Error("esc on the onboarding provider picker must not quit")

@@ -35,7 +35,7 @@ func (m *Manager) StoreOAuthToken(ctx context.Context, provider, profile string,
 	if tok.AccessToken == "" {
 		return authErr("E-AUTH-002", "empty access token")
 	}
-	data, err := json.Marshal(tok)
+	data, err := json.Marshal(tok) //nolint:gosec // G117: intentionally serializing the OAuth token to persist it in the secret store
 	if err != nil {
 		return err
 	}
