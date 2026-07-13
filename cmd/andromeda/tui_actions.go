@@ -7,8 +7,10 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/datamaia/andromeda/internal/app"
+	"github.com/datamaia/andromeda/internal/auth"
 	"github.com/datamaia/andromeda/internal/buildinfo"
 	"github.com/datamaia/andromeda/internal/memory"
 	"github.com/datamaia/andromeda/internal/ports"
@@ -31,7 +33,64 @@ func (s *tuiSession) sessionActions() tui.Actions {
 		MCP:       s.mcpAction,
 		Skills:    s.skillsAction,
 		Models:    s.modelsAction,
+		Config:    s.configAction,
+		Logout:    s.logoutAction,
+		Export:    s.exportAction,
 	}
+}
+
+func (s *tuiSession) configAction(ctx context.Context) string {
+	cfg, err := app.LoadedConfig(ctx, s.wd)
+	if err != nil {
+		return "config: " + err.Error()
+	}
+	keys := make([]string, 0, len(cfg.Values))
+	for k := range cfg.Values {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	var b strings.Builder
+	fmt.Fprintf(&b, "config · %d keys resolved", len(keys))
+	for _, k := range keys {
+		src := cfg.Sources[k]
+		if src == "" {
+			src = "default"
+		}
+		fmt.Fprintf(&b, "\n  %-30s %v  (%s)", k, cfg.Values[k], src)
+	}
+	return b.String()
+}
+
+func (s *tuiSession) logoutAction(ctx context.Context, provider string) string {
+	if provider == auth.OpenAIChatGPTProvider {
+		mgr, err := newAuthManager()
+		if err != nil {
+			return "logout: " + err.Error()
+		}
+		if err := mgr.Revoke(ctx, ports.AuthenticationHandle{Provider: provider, Profile: "default"}); err != nil {
+			return "logout: " + err.Error()
+		}
+		return "signed out of ChatGPT — pick a provider to sign in again"
+	}
+	if info, ok := app.LookupProvider(provider); ok && info.KeyEnv != "" {
+		_ = os.Unsetenv(info.KeyEnv)
+		return "cleared the API key for " + provider + " (this session)"
+	}
+	return "nothing to sign out of for " + provider
+}
+
+func (s *tuiSession) exportAction(lines []string) string {
+	name := "andromeda-transcript-" + time.Now().Format("20060102-150405") + ".md"
+	path := filepath.Join(s.wd, name)
+	var b strings.Builder
+	b.WriteString("# Andromeda transcript\n\n")
+	for _, l := range lines {
+		b.WriteString(l + "\n\n")
+	}
+	if err := os.WriteFile(path, []byte(b.String()), 0o600); err != nil {
+		return "export failed: " + err.Error()
+	}
+	return "saved transcript to " + path
 }
 
 func (s *tuiSession) doctorAction(ctx context.Context) string {

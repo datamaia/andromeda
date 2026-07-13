@@ -101,6 +101,21 @@ func TestResponderReceivesActiveMode(t *testing.T) {
 	}
 }
 
+// Shift+Tab cycles the interaction mode agent → plan → shell → agent.
+func TestShiftTabCyclesMode(t *testing.T) {
+	shiftTab := tea.KeyPressMsg{Code: tea.KeyTab, Mod: tea.ModShift}
+	var m tea.Model = New("ollama", "llama3", nil)
+	if got := m.(Model).modeOrDefault(); got != "agent" {
+		t.Fatalf("initial mode = %q, want agent", got)
+	}
+	for _, want := range []string{"plan", "shell", "agent"} {
+		m, _ = m.Update(shiftTab)
+		if got := m.(Model).mode; got != want {
+			t.Fatalf("after shift+tab mode = %q, want %q", got, want)
+		}
+	}
+}
+
 // /goal <text> runs the responder just like a typed goal.
 func TestGoalCommandRunsResponder(t *testing.T) {
 	var seen string

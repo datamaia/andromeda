@@ -176,6 +176,11 @@ func (m Model) handleKey(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 	if m.authing {
 		return m, nil
 	}
+	// Shift+Tab cycles the interaction mode (agent → plan → shell), like other agent CLIs.
+	if msg.Code == tea.KeyTab && msg.Mod&tea.ModShift != 0 {
+		m.mode = nextMode(m.modeOrDefault())
+		return m, nil
+	}
 	// While a slash-command name is being typed, the palette owns navigation keys (arrows/tab/enter
 	// select a command; esc closes the palette). Other keys fall through to normal text editing so
 	// the filter keeps narrowing as you type.
@@ -291,6 +296,18 @@ func (m Model) render() string {
 	return b.String()
 }
 
+// nextMode cycles the interaction modes: agent → plan → shell → agent.
+func nextMode(mode string) string {
+	switch mode {
+	case "plan":
+		return "shell"
+	case "shell":
+		return "agent"
+	default:
+		return "plan"
+	}
+}
+
 // promptSymbol reflects the active mode at the input line: "$" for shell, a "plan" cue for plan
 // mode, and the default caret for agent mode.
 func (m Model) promptSymbol() string {
@@ -326,10 +343,7 @@ func (m Model) statusBar() string {
 	}
 	parts = append(parts, m.uptime(), m.state)
 	left := " " + strings.Join(parts, " · ") + " "
-	hint := "  / commands · esc: quit"
-	if len(m.providers) > 0 {
-		hint = "  / commands · ctrl+p: provider · esc: quit"
-	}
+	hint := "  / commands · shift+tab: mode · esc: quit"
 	help := m.styles.Muted.Render(hint)
 	bar := m.styles.StatusBar.Render(left)
 	return lipgloss.JoinHorizontal(lipgloss.Left, bar, help)

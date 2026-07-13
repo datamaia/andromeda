@@ -18,6 +18,9 @@ type Actions struct {
 	MCP       func(ctx context.Context) string
 	Skills    func(ctx context.Context) string
 	Models    func(ctx context.Context) []string
+	Config    func(ctx context.Context) string
+	Logout    func(ctx context.Context, provider string) string
+	Export    func(lines []string) string
 }
 
 // WithActions wires the app-backed slash-command handlers.
@@ -35,11 +38,16 @@ func commandRegistry() []slashCommand {
 	return []slashCommand{
 		{"help", "list commands and keybindings", cmdHelp},
 		{"commands", "list all slash commands", cmdHelp},
+		{"keys", "show keybindings", cmdKeys},
 		{"clear", "clear the conversation", cmdClear},
 		{"compact", "summarize the conversation so far", cmdCompact},
 		{"status", "show provider, model, mode, and session", cmdStatus},
 		{"model", "choose the model (/model <name> to set)", cmdModel},
 		{"provider", "choose the provider", cmdProvider},
+		{"login", "switch or sign in to a provider", cmdLogin},
+		{"logout", "sign out of the current provider", cmdLogout},
+		{"config", "show resolved configuration", cmdConfig},
+		{"export", "save the transcript to a file", cmdExport},
 		{"doctor", "run environment checks", cmdDoctor},
 		{"update", "check for updates", cmdUpdate},
 		{"memory", "manage workspace memory", cmdMemory},
@@ -165,8 +173,18 @@ func cmdHelp(m Model, _ string) (tea.Model, tea.Cmd) {
 	for _, c := range commandRegistry() {
 		b.WriteString(fmt.Sprintf("\n  /%-11s %s", c.name, c.desc))
 	}
-	b.WriteString("\nkeys: enter send · / commands · ctrl+p provider · esc quit")
+	b.WriteString("\n\nkeybindings:")
+	b.WriteString("\n  enter        send the current line")
+	b.WriteString("\n  /            open the command palette")
+	b.WriteString("\n  shift+tab    cycle mode (agent → plan → shell)")
+	b.WriteString("\n  ctrl+p       switch provider")
+	b.WriteString("\n  ↑/↓ or j/k   move in a menu · esc goes back")
+	b.WriteString("\n  ctrl+c       quit")
 	return m.sys(b.String()), nil
+}
+
+func cmdKeys(m Model, _ string) (tea.Model, tea.Cmd) {
+	return m.sys("keys: enter send · / palette · shift+tab mode · ctrl+p provider · ↑/↓ move · esc back · ctrl+c quit"), nil
 }
 
 func cmdClear(m Model, _ string) (tea.Model, tea.Cmd) {
@@ -207,6 +225,31 @@ func cmdModel(m Model, args string) (tea.Model, tea.Cmd) {
 		return m.sys("model set to " + args), nil
 	}
 	return m.openModelPicker()
+}
+
+func cmdLogin(m Model, _ string) (tea.Model, tea.Cmd) {
+	if len(m.providers) == 0 {
+		return m.sys("no providers configured"), nil
+	}
+	return m.openProviderPicker()
+}
+
+func cmdLogout(m Model, _ string) (tea.Model, tea.Cmd) {
+	if m.actions.Logout == nil {
+		return m.unavailable("logout"), nil
+	}
+	return m.sys(m.actions.Logout(context.Background(), m.provider)), nil
+}
+
+func cmdConfig(m Model, _ string) (tea.Model, tea.Cmd) {
+	return m.runAction("config", m.actions.Config), nil
+}
+
+func cmdExport(m Model, _ string) (tea.Model, tea.Cmd) {
+	if m.actions.Export == nil {
+		return m.unavailable("export"), nil
+	}
+	return m.sys(m.actions.Export(m.Transcript())), nil
 }
 
 func cmdDoctor(m Model, _ string) (tea.Model, tea.Cmd) {
