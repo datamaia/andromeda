@@ -101,7 +101,8 @@ func launchTUI(ctx context.Context, cfg tuiConfig) error {
 		return err
 	}
 	m := tui.New(sess.cfg.provider, sess.cfg.model, sess.respond).
-		WithProviderMenu(providerChoices(), sess.selectProvider)
+		WithProviderMenu(providerChoices(), sess.selectProvider).
+		WithActions(sess.sessionActions())
 	return tui.RunModel(ctx, m)
 }
 

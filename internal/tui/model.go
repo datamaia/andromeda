@@ -38,12 +38,25 @@ type Model struct {
 	respond    Responder
 	quitting   bool
 
-	// provider picker (ctrl+p), configured via WithProviderMenu
+	// interaction mode shown in the status bar and enforced on the tool path: agent | plan | shell.
+	mode string
+	loop bool // loop mode (keep iterating on the last goal) — toggled by /loop
+
+	// provider picker (ctrl+p / "/provider"), configured via WithProviderMenu
 	providers        []ProviderChoice
 	onSelectProvider ProviderSelectFunc
-	menuOpen         bool
-	menuCursor       int
-	menuErr          string
+
+	// modal selection list (provider or model): a generic overlay driven by menu.go.
+	pickerOpen   bool
+	pickerTitle  string
+	pickerItems  []pickerItem
+	pickerCursor int
+	pickerErr    string
+	pickerApply  func(Model, string) (Model, error)
+
+	// slash-command palette ("/"): app-backed handlers and the highlighted row.
+	actions       Actions
+	paletteCursor int
 }
 
 // New builds a session Model.
@@ -54,6 +67,7 @@ func New(provider, model string, respond Responder) Model {
 		provider: provider,
 		model:    model,
 		state:    "ready",
+		mode:     "agent",
 		started:  start,
 		now:      start,
 		respond:  respond,
@@ -95,16 +109,26 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) handleKey(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
-	// The provider picker captures all keys while open (esc there means "back", not "quit").
-	if m.menuOpen {
-		return m.handleMenuKey(msg)
+	// A modal picker (provider/model) captures all keys while open (esc there means "back").
+	if m.pickerOpen {
+		return m.handlePickerKey(msg)
 	}
-	switch {
-	case msg.Mod&tea.ModCtrl != 0 && msg.Code == 'c':
+	// Ctrl+C always quits, even mid-command.
+	if msg.Mod&tea.ModCtrl != 0 && msg.Code == 'c' {
 		m.quitting = true
 		return m, tea.Quit
+	}
+	// While a slash-command name is being typed, the palette owns navigation keys (arrows/tab/enter
+	// select a command; esc closes the palette). Other keys fall through to normal text editing so
+	// the filter keeps narrowing as you type.
+	if m.paletteActive() {
+		if nm, cmd, handled := m.handlePaletteKey(msg); handled {
+			return nm, cmd
+		}
+	}
+	switch {
 	case msg.Mod&tea.ModCtrl != 0 && msg.Code == 'p' && len(m.providers) > 0:
-		return m.openMenu()
+		return m.openProviderPicker()
 	case msg.Code == tea.KeyEscape:
 		m.quitting = true
 		return m, tea.Quit
@@ -123,10 +147,15 @@ func (m Model) handleKey(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 
 func (m Model) submit() (tea.Model, tea.Cmd) {
 	goal := strings.TrimSpace(m.input)
-	m.input = ""
 	if goal == "" {
+		m.input = ""
 		return m, nil
 	}
+	// A "/"-prefixed line is a slash command, not a goal — dispatch it to the registry.
+	if strings.HasPrefix(goal, "/") {
+		return m.runInput()
+	}
+	m.input = ""
 	m.transcript = append(m.transcript, entry{"user", goal})
 	reply := "(no responder configured)"
 	if m.respond != nil {
@@ -151,11 +180,13 @@ func (m Model) render() string {
 	if m.quitting {
 		return ""
 	}
-	if m.menuOpen {
-		return m.renderMenu() + m.statusBar()
+	if m.pickerOpen {
+		return m.renderPicker() + m.statusBar()
 	}
 	var b strings.Builder
-	if m.atStart() {
+	// The splash is the start-screen greeting; hide it while the command palette is open so the
+	// command list and prompt stay on screen even on short terminals.
+	if m.atStart() && !m.paletteActive() {
 		b.WriteString(m.Splash(m.width))
 	}
 	for _, e := range m.transcript {
@@ -172,6 +203,9 @@ func (m Model) render() string {
 		}
 	}
 	b.WriteString("\n")
+	if m.paletteActive() {
+		b.WriteString(m.renderPalette())
+	}
 	b.WriteString(m.styles.Prompt.Render("❯ ") + m.input + "▏\n")
 	b.WriteString(m.statusBar())
 	return b.String()
@@ -190,15 +224,18 @@ func (m Model) atStart() bool {
 // statusBar shows, live, what the session is running on: the active provider and model, the
 // reasoning effort (only when set), the elapsed session time, and the current state.
 func (m Model) statusBar() string {
-	parts := []string{m.provider, m.model}
+	parts := []string{m.provider, m.model, m.modeOrDefault()}
 	if m.effort != "" {
 		parts = append(parts, "effort "+m.effort)
 	}
+	if m.loop {
+		parts = append(parts, "loop")
+	}
 	parts = append(parts, m.uptime(), m.state)
 	left := " " + strings.Join(parts, " · ") + " "
-	hint := "  enter: send · esc: quit"
+	hint := "  / commands · esc: quit"
 	if len(m.providers) > 0 {
-		hint = "  enter: send · ctrl+p: provider · esc: quit"
+		hint = "  / commands · ctrl+p: provider · esc: quit"
 	}
 	help := m.styles.Muted.Render(hint)
 	bar := m.styles.StatusBar.Render(left)

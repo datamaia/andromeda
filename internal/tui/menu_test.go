@@ -22,14 +22,14 @@ func TestMenuOpenNavigateSelect(t *testing.T) {
 	var picked string
 	m := menuModel(func(id string) (string, error) { picked = id; return "llama-3.3-70b-versatile", nil })
 	m, _ = m.Update(ctrlP())
-	if !m.(Model).menuOpen {
+	if !m.(Model).pickerOpen {
 		t.Fatal("ctrl+p should open the menu")
 	}
 	// cursor starts on the current provider (ollama, index 0); move down to groq (index 1)
 	m, _ = m.Update(key(tea.KeyDown))
 	m, _ = m.Update(key(tea.KeyEnter))
 	got := m.(Model)
-	if got.menuOpen {
+	if got.pickerOpen {
 		t.Error("menu should close after selection")
 	}
 	if picked != "groq" {
@@ -46,7 +46,7 @@ func TestMenuEscGoesBackUnchanged(t *testing.T) {
 	m, _ = m.Update(key(tea.KeyDown))
 	m, _ = m.Update(key(tea.KeyEscape))
 	got := m.(Model)
-	if got.menuOpen {
+	if got.pickerOpen {
 		t.Error("esc should close the menu")
 	}
 	if got.provider != "ollama" {
@@ -60,10 +60,10 @@ func TestMenuSelectErrorStaysOpen(t *testing.T) {
 	m, _ = m.Update(key(tea.KeyDown))
 	m, _ = m.Update(key(tea.KeyEnter))
 	got := m.(Model)
-	if !got.menuOpen {
+	if !got.pickerOpen {
 		t.Error("menu should stay open on a select error")
 	}
-	if got.menuErr == "" {
+	if got.pickerErr == "" {
 		t.Error("expected an error message on the menu")
 	}
 	if got.provider != "ollama" {
@@ -74,7 +74,7 @@ func TestMenuSelectErrorStaysOpen(t *testing.T) {
 func TestCtrlPInertWithoutMenu(t *testing.T) {
 	var m tea.Model = New("ollama", "llama3", nil) // no WithProviderMenu
 	m, _ = m.Update(ctrlP())
-	if m.(Model).menuOpen {
+	if m.(Model).pickerOpen {
 		t.Error("ctrl+p should be inert without a configured menu")
 	}
 }
