@@ -28,6 +28,14 @@ type RunAgentOptions struct {
 	AllowExec     bool // grant command execution (terminal_run)
 	AllowNetwork  bool // grant network access (http_request)
 	MaxIterations int
+
+	// Interactive registers the full toolset but pre-grants only reads: every state-changing
+	// action (write, git mutation, execute, network) resolves to "ask" and is routed to Approver,
+	// which prompts the user (approve once / for session / for workspace, or deny). The user's
+	// standing decisions are persisted as grants, forming the session/workspace allow- and
+	// deny-lists. A nil Approver makes "ask" fail closed (deny), same as a non-interactive run.
+	Interactive bool
+	Approver    permission.Approver
 }
 
 // RunAgent composes the workspace, permission manager (with safe-by-default grants scoped to
@@ -44,7 +52,11 @@ func RunAgent(ctx context.Context, opts RunAgentOptions) (agent.RunResult, error
 	}
 	defer func() { _ = db.Close() }()
 
-	pm := permission.NewManager(permission.NewStore(db), permission.WithActor("cli"))
+	mgrOpts := []permission.Option{permission.WithActor("cli")}
+	if opts.Interactive && opts.Approver != nil {
+		mgrOpts = append(mgrOpts, permission.WithApprover(opts.Approver))
+	}
+	pm := permission.NewManager(permission.NewStore(db), mgrOpts...)
 	// Safe by default: read is granted within the workspace subtree; write only when asked.
 	if _, err := pm.GrantPermission(ctx, permission.Grant{
 		Permission: core.PermRead, Scope: core.ScopePath, Selector: root + "/**", Effect: permission.EffectAllow,
@@ -55,48 +67,67 @@ func RunAgent(ctx context.Context, opts RunAgentOptions) (agent.RunResult, error
 	_, _ = pm.GrantPermission(ctx, permission.Grant{
 		Permission: core.PermRead, Scope: core.ScopePath, Selector: ".", Effect: permission.EffectAllow,
 	})
-	if opts.AllowWrite {
+
+	// In interactive mode the full toolset is registered but state-changing permissions are left
+	// ungranted, so each is prompted for; otherwise a capability is available only when its flag
+	// pre-grants it. preGrant enables the classic non-interactive behaviour.
+	registerWrite := opts.AllowWrite || opts.Interactive
+	registerExec := opts.AllowExec || opts.Interactive
+	registerNet := opts.AllowNetwork || opts.Interactive
+	preGrant := !opts.Interactive
+
+	if opts.AllowWrite && preGrant {
 		_, _ = pm.GrantPermission(ctx, permission.Grant{
 			Permission: core.PermWrite, Scope: core.ScopePath, Selector: root + "/**", Effect: permission.EffectAllow,
 		})
 	}
 
-	rt := tool.NewRuntime(pm)
+	rtOpts := []tool.RuntimeOption{}
+	if opts.Interactive {
+		rtOpts = append(rtOpts, tool.WithInteractive())
+	}
+	rt := tool.NewRuntime(pm, rtOpts...)
 	// sqlite_query is a read tool by default; mutating statements are gated per-statement by the
 	// write grant below (and refused entirely unless the caller passes read_only=false).
 	toolNames := []string{"fs_read", "fs_search", "fs_diff", "sqlite_query"}
 	tools := []ports.ToolPort{builtin.FSRead{}, builtin.FSSearch{}, builtin.FSDiff{}, builtin.SQLiteQuery{}}
-	if opts.AllowWrite {
+	if registerWrite {
 		tools = append(tools, builtin.FSWrite{}, builtin.FSReplace{}, builtin.FSPatch{})
 		toolNames = append(toolNames, "fs_write", "fs_replace", "fs_patch")
-		// The Git built-in operates on the workspace repository. Read is implied by the
-		// workspace read grant above; mutating operations request git_mutation, granted here so
-		// a write-enabled run can stage/commit (destructive actions remain the caller's to gate).
+		// The Git built-in operates on the workspace repository. Repository read is safe and always
+		// granted; mutating operations request git_mutation — pre-granted for a write-enabled
+		// non-interactive run, prompted for interactively (destructive actions stay the user's).
 		_, _ = pm.GrantPermission(ctx, permission.Grant{
 			Permission: core.PermRead, Scope: core.ScopeRepository, Selector: "*", Effect: permission.EffectAllow,
 		})
-		_, _ = pm.GrantPermission(ctx, permission.Grant{
-			Permission: core.PermGitMutation, Scope: core.ScopeRepository, Selector: "*", Effect: permission.EffectAllow,
-		})
+		if opts.AllowWrite && preGrant {
+			_, _ = pm.GrantPermission(ctx, permission.Grant{
+				Permission: core.PermGitMutation, Scope: core.ScopeRepository, Selector: "*", Effect: permission.EffectAllow,
+			})
+		}
 		tools = append(tools, builtin.NewGitExec(git.New("")))
 		toolNames = append(toolNames, "git_exec")
 	}
-	if opts.AllowExec {
-		_, _ = pm.GrantPermission(ctx, permission.Grant{
-			Permission: core.PermExecute, Scope: core.ScopeCommand, Selector: "*", Effect: permission.EffectAllow,
-		})
-		_, _ = pm.GrantPermission(ctx, permission.Grant{
-			Permission: core.PermProcessSpawn, Scope: core.ScopeHost, Selector: "*", Effect: permission.EffectAllow,
-		})
+	if registerExec {
+		if opts.AllowExec && preGrant {
+			_, _ = pm.GrantPermission(ctx, permission.Grant{
+				Permission: core.PermExecute, Scope: core.ScopeCommand, Selector: "*", Effect: permission.EffectAllow,
+			})
+			_, _ = pm.GrantPermission(ctx, permission.Grant{
+				Permission: core.PermProcessSpawn, Scope: core.ScopeHost, Selector: "*", Effect: permission.EffectAllow,
+			})
+		}
 		// One engine shared by both tools so process_control supervises what terminal_run starts.
 		termEngine := terminal.New()
 		tools = append(tools, builtin.NewTerminalRun(termEngine), builtin.NewProcessControl(termEngine))
 		toolNames = append(toolNames, "terminal_run", "process_control")
 	}
-	if opts.AllowNetwork {
-		_, _ = pm.GrantPermission(ctx, permission.Grant{
-			Permission: core.PermNetwork, Scope: core.ScopeDomain, Selector: "*", Effect: permission.EffectAllow,
-		})
+	if registerNet {
+		if opts.AllowNetwork && preGrant {
+			_, _ = pm.GrantPermission(ctx, permission.Grant{
+				Permission: core.PermNetwork, Scope: core.ScopeDomain, Selector: "*", Effect: permission.EffectAllow,
+			})
+		}
 		tools = append(tools, builtin.NewHTTPRequest(nil, nil))
 		toolNames = append(toolNames, "http_request")
 	}

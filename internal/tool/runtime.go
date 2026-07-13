@@ -21,14 +21,26 @@ type ResourceScoped interface {
 
 // Runtime registers tools and mediates their invocation under validation and permissions.
 type Runtime struct {
-	perms   ports.PermissionPort
-	tools   map[string]ports.ToolPort
-	schemas map[string]*jsonschema.Schema // compiled InputSchema per tool (ADR-024, FR-TOOL-002)
+	perms       ports.PermissionPort
+	tools       map[string]ports.ToolPort
+	schemas     map[string]*jsonschema.Schema // compiled InputSchema per tool (ADR-024, FR-TOOL-002)
+	interactive bool                          // route "ask" outcomes through the interactive approver
 }
 
+// RuntimeOption configures a Runtime.
+type RuntimeOption func(*Runtime)
+
+// WithInteractive makes the Runtime evaluate permissions through the interactive Request path, so
+// an "ask" outcome raises an approval prompt (via the Manager's approver) instead of failing closed.
+func WithInteractive() RuntimeOption { return func(r *Runtime) { r.interactive = true } }
+
 // NewRuntime returns a Tool Runtime that decides permissions through perms.
-func NewRuntime(perms ports.PermissionPort) *Runtime {
-	return &Runtime{perms: perms, tools: map[string]ports.ToolPort{}, schemas: map[string]*jsonschema.Schema{}}
+func NewRuntime(perms ports.PermissionPort, opts ...RuntimeOption) *Runtime {
+	r := &Runtime{perms: perms, tools: map[string]ports.ToolPort{}, schemas: map[string]*jsonschema.Schema{}}
+	for _, o := range opts {
+		o(r)
+	}
+	return r
 }
 
 // Register adds a tool by its declared name and compiles its input JSON Schema. A tool whose
@@ -116,10 +128,11 @@ func (r *Runtime) Invoke(ctx context.Context, name string, subjectCtx ports.Perm
 		return nil, toolErr("E-TOOL-002", "input validation failed for "+name)
 	}
 
-	// Evaluate permissions. Prefer path-level queries when the tool provides them.
+	// Evaluate permissions. Prefer path-level queries when the tool provides them. In interactive
+	// mode an "ask" outcome is routed to the approver (Request); otherwise it fails closed (Check).
 	queries := r.permissionQueries(t, desc, subjectCtx, input)
 	for _, q := range queries {
-		d, err := r.perms.Check(ctx, q)
+		d, err := r.decide(ctx, q)
 		if err != nil || d.Outcome != core.OutcomeAllow {
 			return streams.Slice([]ports.ToolEvent{{
 				Kind: "terminal", Terminal: true, Outcome: "error",
@@ -134,6 +147,15 @@ func (r *Runtime) Invoke(ctx context.Context, name string, subjectCtx ports.Perm
 		Granted:      desc.Permissions,
 	}
 	return t.Execute(ctx, req)
+}
+
+// decide evaluates one permission query, prompting via the approver when the Runtime is
+// interactive and falling back to the non-interactive check otherwise.
+func (r *Runtime) decide(ctx context.Context, q ports.PermissionQuery) (ports.Decision, error) {
+	if r.interactive {
+		return r.perms.Request(ctx, ports.PermissionRequest{Query: q, Interactive: true})
+	}
+	return r.perms.Check(ctx, q)
 }
 
 func (r *Runtime) permissionQueries(t ports.ToolPort, desc ports.ToolDescriptor, subj ports.PermissionQuery, input ports.JSON) []ports.PermissionQuery {

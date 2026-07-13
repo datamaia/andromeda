@@ -28,6 +28,7 @@ func defaultTUIConfig() tuiConfig {
 // tuiSession owns the live provider for a TUI session so the in-app provider menu can rebuild it
 // mid-session. The agent responder and the menu's select callback both read/mutate it.
 type tuiSession struct {
+	ctx  context.Context // program lifetime; cancelling it tears a run and its approver down
 	wd   string
 	cfg  tuiConfig
 	prov ports.ProviderPort
@@ -140,13 +141,14 @@ func launchTUI(ctx context.Context, cfg tuiConfig) error {
 	if err != nil {
 		return err
 	}
-	sess := &tuiSession{wd: wd, cfg: cfg}
+	sess := &tuiSession{ctx: ctx, wd: wd, cfg: cfg}
 	if err := sess.build(); err != nil {
 		return err
 	}
 	m := tui.New(sess.cfg.provider, sess.cfg.model, sess.respond).
 		WithProviderMenu(providerChoices(), sess.selectProvider).
-		WithActions(sess.sessionActions())
+		WithActions(sess.sessionActions()).
+		WithAgentRunner(sess.startAgentRun)
 	return tui.RunModel(ctx, m)
 }
 

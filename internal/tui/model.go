@@ -59,6 +59,14 @@ type Model struct {
 	// slash-command palette ("/"): app-backed handlers and the highlighted row.
 	actions       Actions
 	paletteCursor int
+
+	// async agent run (approval-capable): the driver's runner streams events the Model drains,
+	// pausing on an ApprovalRequest to prompt the user (approve/reject + allow/denylist).
+	runner         AgentRunner
+	agentEvents    <-chan AgentEvent
+	running        bool
+	approval       *ApprovalRequest
+	approvalCursor int
 }
 
 // New builds a session Model.
@@ -104,6 +112,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 		return m, tick()
+	case agentEventMsg:
+		return m.handleAgentEvent(msg)
 	case tea.KeyPressMsg:
 		return m.handleKey(msg)
 	}
@@ -111,14 +121,19 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) handleKey(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
-	// A modal picker (provider/model) captures all keys while open (esc there means "back").
-	if m.pickerOpen {
-		return m.handlePickerKey(msg)
-	}
-	// Ctrl+C always quits, even mid-command.
+	// Ctrl+C always quits, even mid-overlay; cancelling the program context unblocks any pending
+	// approver so a running agent tears down cleanly.
 	if msg.Mod&tea.ModCtrl != 0 && msg.Code == 'c' {
 		m.quitting = true
 		return m, tea.Quit
+	}
+	// The approval overlay captures all other keys while a run is paused awaiting a decision.
+	if m.approval != nil {
+		return m.handleApprovalKey(msg)
+	}
+	// A modal picker (provider/model) captures all keys while open (esc there means "back").
+	if m.pickerOpen {
+		return m.handlePickerKey(msg)
 	}
 	// While a slash-command name is being typed, the palette owns navigation keys (arrows/tab/enter
 	// select a command; esc closes the palette). Other keys fall through to normal text editing so
@@ -157,12 +172,26 @@ func (m Model) submit() (tea.Model, tea.Cmd) {
 	if strings.HasPrefix(goal, "/") {
 		return m.runInput()
 	}
+	// Ignore new goals while a run is in flight (its approval overlay handles keys separately).
+	if m.running {
+		return m, nil
+	}
 	m.input = ""
 	m.transcript = append(m.transcript, entry{"user", goal})
+	mode := m.modeOrDefault()
+	// Async path: a wired runner drives agent/plan runs so tool actions can pause for approval.
+	if m.runner != nil && mode != "shell" {
+		ch := m.runner(goal, mode)
+		m.agentEvents = ch
+		m.running = true
+		m.state = "running"
+		return m, waitAgent(ch)
+	}
+	// Synchronous path: shell mode, or when no runner is wired (e.g. unit tests).
 	reply := "(no responder configured)"
 	if m.respond != nil {
 		m.state = "running"
-		reply = m.respond(goal, m.modeOrDefault())
+		reply = m.respond(goal, mode)
 		m.state = "ready"
 	}
 	m.transcript = append(m.transcript, entry{"agent", reply})
@@ -181,6 +210,9 @@ func (m Model) View() tea.View {
 func (m Model) render() string {
 	if m.quitting {
 		return ""
+	}
+	if m.approval != nil {
+		return m.renderApproval() + m.statusBar()
 	}
 	if m.pickerOpen {
 		return m.renderPicker() + m.statusBar()
