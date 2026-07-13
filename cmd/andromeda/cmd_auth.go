@@ -1,8 +1,12 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
+	"os/exec"
+	"runtime"
+	"time"
 
 	"github.com/datamaia/andromeda/internal/app"
 	"github.com/datamaia/andromeda/internal/auth"
@@ -12,8 +16,69 @@ import (
 
 func newAuthCommand() *cobra.Command {
 	cmd := &cobra.Command{Use: "auth", Short: "Manage provider credentials (official mechanisms only)"}
-	cmd.AddCommand(newAuthAddCommand(), newAuthListCommand(), newAuthRemoveCommand())
+	cmd.AddCommand(newAuthAddCommand(), newAuthLoginCommand(), newAuthListCommand(), newAuthRemoveCommand())
 	return cmd
+}
+
+// newAuthLoginCommand runs a browser OAuth login (currently: openai-chatgpt) and stores the
+// resulting token bundle. The subscription grant never becomes an API key — it is an OAuth
+// session used only against the provider's own backend.
+func newAuthLoginCommand() *cobra.Command {
+	var profile string
+	c := &cobra.Command{
+		Use:   "login <provider>",
+		Short: "Sign in through the browser (OAuth). Supported: openai-chatgpt (your ChatGPT account)",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			provider := args[0]
+			var flow auth.BrowserFlowConfig
+			switch provider {
+			case "openai-chatgpt", "chatgpt":
+				provider = auth.OpenAIChatGPTProvider
+				flow = auth.OpenAIChatGPTFlow()
+			default:
+				return fmt.Errorf("browser login is not available for %q (supported: openai-chatgpt)", provider)
+			}
+			m, err := newAuthManager()
+			if err != nil {
+				return err
+			}
+			out := cmd.OutOrStdout()
+			_, _ = fmt.Fprintln(out, "Opening your browser to sign in. If it doesn't open, visit this URL:")
+			openAndPrint := func(u string) error {
+				_, _ = fmt.Fprintln(out, "  "+u)
+				return openBrowser(u)
+			}
+			ctx, cancel := context.WithTimeout(cmd.Context(), 5*time.Minute)
+			defer cancel()
+			tok, err := auth.RunBrowserFlow(ctx, flow, openAndPrint)
+			if err != nil {
+				return err
+			}
+			if err := m.StoreOAuthToken(ctx, provider, profile, tok); err != nil {
+				return err
+			}
+			_, _ = fmt.Fprintf(out, "Signed in to %s (profile %s).\n", provider, orDefault(profile))
+			return nil
+		},
+	}
+	c.Flags().StringVar(&profile, "profile", "default", "credential profile")
+	return c
+}
+
+// openBrowser launches the system browser at u (best-effort; the caller also prints the URL).
+func openBrowser(u string) error {
+	var name string
+	var args []string
+	switch runtime.GOOS {
+	case "darwin":
+		name, args = "open", []string{u}
+	case "windows":
+		name, args = "rundll32", []string{"url.dll,FileProtocolHandler", u}
+	default:
+		name, args = "xdg-open", []string{u}
+	}
+	return exec.Command(name, args...).Start()
 }
 
 func newAuthManager() (*auth.Manager, error) {
