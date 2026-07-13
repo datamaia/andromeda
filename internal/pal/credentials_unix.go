@@ -5,31 +5,87 @@ package pal
 import (
 	"encoding/base64"
 	"errors"
+	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/zalando/go-keyring"
 )
 
 // unixCredentialStore implements CredentialStore over the OS keychain via zalando/go-keyring
 // (macOS Keychain through /usr/bin/security; Linux Secret Service through D-Bus). Byte secrets
-// are base64-encoded because the backend stores strings.
+// are base64-encoded because the backend stores strings. Because go-keyring caps a single macOS
+// item at ~4 KB of command line, large secrets (OAuth token bundles with several JWTs) are split
+// into numbered chunks and transparently reassembled.
 type unixCredentialStore struct{}
 
 // NewCredentialStore returns the OS-keychain CredentialStore (ADR-014).
 func NewCredentialStore() CredentialStore { return unixCredentialStore{} }
 
+// chunkSize is the max base64 characters stored per keychain item, leaving headroom under the
+// backend's ~4 KB per-item command limit for the service/account and command overhead.
+const chunkSize = 3000
+
+// chunkHeaderPrefix marks an item whose value is a chunk count rather than base64 data. A ":" never
+// appears in base64, so the prefix is unambiguous.
+const chunkHeaderPrefix = "chunks:"
+
+func chunkAccount(account string, i int) string { return fmt.Sprintf("%s#chunk%d", account, i) }
+
 func (unixCredentialStore) Get(service, account string) ([]byte, error) {
-	enc, err := keyring.Get(service, account)
+	head, err := keyring.Get(service, account)
 	if err != nil {
 		return nil, err
 	}
-	return base64.StdEncoding.DecodeString(enc)
+	if n, ok := parseChunkHeader(head); ok {
+		var b strings.Builder
+		for i := 0; i < n; i++ {
+			part, err := keyring.Get(service, chunkAccount(account, i))
+			if err != nil {
+				return nil, err
+			}
+			b.WriteString(part)
+		}
+		return base64.StdEncoding.DecodeString(b.String())
+	}
+	return base64.StdEncoding.DecodeString(head)
 }
 
 func (unixCredentialStore) Set(service, account string, secret []byte) error {
-	return keyring.Set(service, account, base64.StdEncoding.EncodeToString(secret))
+	enc := base64.StdEncoding.EncodeToString(secret)
+	// Best-effort cleanup of any prior chunks so a shrinking secret leaves nothing dangling.
+	if head, err := keyring.Get(service, account); err == nil {
+		if n, ok := parseChunkHeader(head); ok {
+			for i := 0; i < n; i++ {
+				_ = keyring.Delete(service, chunkAccount(account, i))
+			}
+		}
+	}
+	if len(enc) <= chunkSize {
+		return keyring.Set(service, account, enc)
+	}
+	n := (len(enc) + chunkSize - 1) / chunkSize
+	for i := 0; i < n; i++ {
+		start := i * chunkSize
+		end := start + chunkSize
+		if end > len(enc) {
+			end = len(enc)
+		}
+		if err := keyring.Set(service, chunkAccount(account, i), enc[start:end]); err != nil {
+			return err
+		}
+	}
+	return keyring.Set(service, account, fmt.Sprintf("%s%d", chunkHeaderPrefix, n))
 }
 
 func (unixCredentialStore) Delete(service, account string) error {
+	if head, err := keyring.Get(service, account); err == nil {
+		if n, ok := parseChunkHeader(head); ok {
+			for i := 0; i < n; i++ {
+				_ = keyring.Delete(service, chunkAccount(account, i))
+			}
+		}
+	}
 	return keyring.Delete(service, account)
 }
 
@@ -38,4 +94,16 @@ func (unixCredentialStore) Delete(service, account string) error {
 func (unixCredentialStore) Available() bool {
 	_, err := keyring.Get("andromeda.probe", "availability")
 	return err == nil || errors.Is(err, keyring.ErrNotFound)
+}
+
+// parseChunkHeader returns the chunk count when value is a "chunks:N" header.
+func parseChunkHeader(value string) (int, bool) {
+	if !strings.HasPrefix(value, chunkHeaderPrefix) {
+		return 0, false
+	}
+	n, err := strconv.Atoi(strings.TrimPrefix(value, chunkHeaderPrefix))
+	if err != nil || n <= 0 {
+		return 0, false
+	}
+	return n, true
 }

@@ -231,8 +231,26 @@ func (s *tuiSession) modelsAction(ctx context.Context) []string {
 	}
 	ids := make([]string, 0, len(descs))
 	for _, d := range descs {
-		ids = append(ids, d.ID)
+		if chatModelUsable(d.ID) {
+			ids = append(ids, d.ID)
+		}
 	}
 	sort.Strings(ids)
 	return ids
+}
+
+// chatModelUsable filters out models the agent cannot drive as a chat/completions model
+// (embeddings, image/audio/video, moderation, reranking), so the model picker lists only usable
+// ones. It errs toward inclusion — anything not clearly special-purpose is kept.
+func chatModelUsable(id string) bool {
+	l := strings.ToLower(id)
+	for _, bad := range []string{
+		"embed", "imagen", "-image", "image-", "veo", "-tts", "tts-", "whisper",
+		"aqa", "rerank", "guard", "moderat", "-vision", "dall-e", "sora", "-audio", "audio-",
+	} {
+		if strings.Contains(l, bad) {
+			return false
+		}
+	}
+	return true
 }

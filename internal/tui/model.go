@@ -50,6 +50,7 @@ type Model struct {
 	// provider picker (ctrl+p / "/provider"), configured via WithProviderMenu
 	providers        []ProviderChoice
 	onSelectProvider ProviderSelectFunc
+	onSelectModel    func(string) // propagate a model choice to the driver so the agent uses it
 
 	// modal selection list (provider or model): a generic overlay driven by menu.go.
 	pickerOpen   bool

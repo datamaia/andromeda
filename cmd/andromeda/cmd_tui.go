@@ -121,6 +121,9 @@ func (s *tuiSession) selectProvider(id string) (string, error) {
 	return s.cfg.model, nil
 }
 
+// selectModel records the model the user chose so the agent runs on it (not the provider default).
+func (s *tuiSession) selectModel(id string) { s.cfg.model = id }
+
 // providerChoices adapts the app catalog into the TUI's menu entries.
 func providerChoices() []tui.ProviderChoice {
 	infos := app.Providers()
@@ -149,6 +152,7 @@ func launchTUI(ctx context.Context, cfg tuiConfig, onboard bool) error {
 	}
 	m := tui.New(sess.cfg.provider, sess.cfg.model, sess.respond).
 		WithProviderMenu(providerChoices(), sess.selectProvider).
+		WithModelSelect(sess.selectModel).
 		WithActions(sess.sessionActions()).
 		WithAgentRunner(sess.startAgentRun).
 		WithProviderAuth(sess.startProviderAuth).

@@ -221,8 +221,7 @@ func cmdProvider(m Model, _ string) (tea.Model, tea.Cmd) {
 
 func cmdModel(m Model, args string) (tea.Model, tea.Cmd) {
 	if args != "" {
-		m.model = args
-		return m.sys("model set to " + args), nil
+		return m.setModel(args).sys("model set to " + args), nil
 	}
 	return m.openModelPicker()
 }

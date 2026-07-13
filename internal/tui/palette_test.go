@@ -191,6 +191,37 @@ func TestModelCommandOpensPicker(t *testing.T) {
 	}
 }
 
+// Choosing a model propagates to the driver (so the agent runs on it), not just the view.
+func TestModelSelectPropagatesToDriver(t *testing.T) {
+	var driverModel string
+	m := New("gemini", "gemini-2.5-flash", nil).
+		WithActions(Actions{Models: func(context.Context) []string { return []string{"gemini-2.5-flash", "gemini-3.1-flash-lite"} }}).
+		WithModelSelect(func(id string) { driverModel = id })
+	var tm tea.Model = m
+	tm = typeString(tm, "/model")
+	tm, cmd := tm.Update(key(tea.KeyEnter)) // discovery
+	tm = stepCmd(tm, cmd)
+	tm, _ = tm.Update(key(tea.KeyDown))  // to gemini-3.1-flash-lite
+	tm, _ = tm.Update(key(tea.KeyEnter)) // select it
+	if driverModel != "gemini-3.1-flash-lite" {
+		t.Errorf("driver model = %q, want gemini-3.1-flash-lite", driverModel)
+	}
+	if tm.(Model).model != "gemini-3.1-flash-lite" {
+		t.Errorf("view model = %q", tm.(Model).model)
+	}
+}
+
+// /model <name> also propagates to the driver.
+func TestModelArgPropagatesToDriver(t *testing.T) {
+	var driverModel string
+	var m tea.Model = New("groq", "x", nil).WithModelSelect(func(id string) { driverModel = id })
+	m = typeString(m, "/model llama-3.3-70b-versatile")
+	m, _ = m.Update(key(tea.KeyEnter))
+	if driverModel != "llama-3.3-70b-versatile" {
+		t.Errorf("driver model = %q", driverModel)
+	}
+}
+
 // /model <name> sets the model directly without opening the picker.
 func TestModelCommandWithArgSetsDirectly(t *testing.T) {
 	var m tea.Model = New("ollama", "llama3", nil)

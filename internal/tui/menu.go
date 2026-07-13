@@ -27,6 +27,22 @@ func (m Model) WithProviderMenu(choices []ProviderChoice, onSelect ProviderSelec
 	return m
 }
 
+// WithModelSelect wires a callback that propagates a model choice to the driver, so the agent runs
+// on the model the user actually picked (not just the provider's default).
+func (m Model) WithModelSelect(onSelect func(string)) Model {
+	m.onSelectModel = onSelect
+	return m
+}
+
+// setModel records a model choice on both the view and (via the driver) the running agent.
+func (m Model) setModel(id string) Model {
+	m.model = id
+	if m.onSelectModel != nil {
+		m.onSelectModel(id)
+	}
+	return m
+}
+
 // pickerItem is one row in a modal selection list (providers, models, …).
 type pickerItem struct {
 	id      string
@@ -127,8 +143,7 @@ func (m Model) showModelPicker(models []string) (tea.Model, tea.Cmd) {
 	}
 	m.pickerKind = "model"
 	return m.openPicker("Select a model", items, m.model, func(mm Model, id string) (Model, error) {
-		mm.model = id
-		return mm, nil
+		return mm.setModel(id), nil
 	})
 }
 
