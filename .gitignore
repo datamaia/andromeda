@@ -73,3 +73,4 @@ dist/
 # They live locally for development and in a separate private home; never commit them here.
 docs/spec/
 docs/brand/
+/reference for providers.md
