@@ -89,7 +89,7 @@ structure-check: ## Verify the mandatory repository layout (FR-GH-002)
 
 .PHONY: lint-charm
 lint-charm: ## Ban Bubble Tea/Lip Gloss v1 imports; the TUI must use the charm.land v2 stack (ADR-006)
-	@hits=$$(grep -rn "github.com/charmbracelet/\(bubbletea\|lipgloss\|bubbles\)" $$(find . -name '*.go' -not -path './vendor/*') 2>/dev/null); \
+	@hits=$$(grep -n "github.com/charmbracelet/\(bubbletea\|lipgloss\|bubbles\)" $$(git ls-files '*.go') 2>/dev/null); \
 	if [ -n "$$hits" ]; then \
 		echo "ADR-006 violation: v1 charm imports found (use charm.land/*/v2):"; echo "$$hits"; exit 1; \
 	fi; \
