@@ -1,8 +1,8 @@
 # goreleaser configuration (ADR-013, Volume 14). Builds cross-platform binaries, checksums,
 # SBOMs, cosign signatures, and SLSA provenance, and publishes a GitHub Release plus a Homebrew
-# tap. The macOS + Linux (x86_64/arm64) build matrix realizes the Tier 1 platform set; macOS
-# Developer ID notarization is PENDING VALIDATION (Volume 1 open questions) and added when the
-# signing identity is available.
+# tap. The macOS + Linux + Windows (x86_64/arm64) build matrix realizes the Tier 1 platform set
+# (Windows ships as .zip; see format_overrides). macOS Developer ID notarization is PENDING
+# VALIDATION (Volume 1 open questions) and added when the signing identity is available.
 version: 2
 
 project_name: andromeda
@@ -17,7 +17,7 @@ builds:
     binary: andromeda
     env:
       - CGO_ENABLED=0
-    goos: [darwin, linux]
+    goos: [darwin, linux, windows]
     goarch: [amd64, arm64]
     ldflags:
       - -s -w
@@ -28,6 +28,10 @@ builds:
 archives:
   - id: andromeda
     formats: [tar.gz]
+    # Windows ships a .zip by convention; macOS/Linux stay tar.gz.
+    format_overrides:
+      - goos: windows
+        formats: [zip]
     name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
 
 # macOS notarization (ADR-013). Ready to activate: it enables only when the signing identity
