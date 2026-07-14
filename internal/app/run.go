@@ -58,9 +58,22 @@ func RunAgent(ctx context.Context, opts RunAgentOptions) (agent.RunResult, error
 	}
 	defer func() { _ = db.Close() }()
 
+	// Resolved configuration (best-effort): drives the command allowlist here and the loop cap below.
+	cfg, cfgErr := LoadedConfig(ctx, root)
+
 	mgrOpts := []permission.Option{permission.WithActor("cli")}
 	if opts.Interactive && opts.Approver != nil {
 		mgrOpts = append(mgrOpts, permission.WithApprover(opts.Approver))
+	}
+	// [permission] allow/deny from andromeda.toml: vetted commands the agent may run without a
+	// prompt (deny is always refused). Applies to both interactive and non-interactive runs.
+	if cfgErr == nil {
+		if al := permission.NewCommandAllowlist(
+			configStringSlice(cfg.Values["permission.allow"]),
+			configStringSlice(cfg.Values["permission.deny"]),
+		); !al.Empty() {
+			mgrOpts = append(mgrOpts, permission.WithCommandAllowlist(al))
+		}
 	}
 	pm := permission.NewManager(permission.NewStore(db), mgrOpts...)
 	// Safe by default: read is granted within the workspace subtree; write only when asked.
@@ -150,11 +163,9 @@ func RunAgent(ctx context.Context, opts RunAgentOptions) (agent.RunResult, error
 	// Precedence: an explicit option/flag wins; otherwise the resolved config's
 	// agent.loop.max_iterations applies; the Agent Engine falls back to its own default at 0.
 	maxIter := opts.MaxIterations
-	if maxIter == 0 {
-		if cfg, err := LoadedConfig(ctx, root); err == nil {
-			if v, ok := configInt(cfg.Values["agent.loop.max_iterations"]); ok {
-				maxIter = v
-			}
+	if maxIter == 0 && cfgErr == nil {
+		if v, ok := configInt(cfg.Values["agent.loop.max_iterations"]); ok {
+			maxIter = v
 		}
 	}
 
@@ -174,6 +185,36 @@ func RunAgent(ctx context.Context, opts RunAgentOptions) (agent.RunResult, error
 		MaxIterations: maxIter,
 		Sink:          opts.Sink,
 	})
+}
+
+// configStringSlice coerces a resolved config value (a TOML string array, or a single string) to
+// a slice of trimmed, non-empty strings. Non-string elements are skipped.
+func configStringSlice(v any) []string {
+	switch a := v.(type) {
+	case []string:
+		out := make([]string, 0, len(a))
+		for _, s := range a {
+			if s = strings.TrimSpace(s); s != "" {
+				out = append(out, s)
+			}
+		}
+		return out
+	case []any:
+		out := make([]string, 0, len(a))
+		for _, e := range a {
+			if s, ok := e.(string); ok {
+				if s = strings.TrimSpace(s); s != "" {
+					out = append(out, s)
+				}
+			}
+		}
+		return out
+	case string:
+		if s := strings.TrimSpace(a); s != "" {
+			return []string{s}
+		}
+	}
+	return nil
 }
 
 // configInt coerces a resolved config value (int64 from TOML, or a numeric string from an env

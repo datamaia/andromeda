@@ -20,11 +20,12 @@ type Clock func() time.Time
 
 // Manager implements ports.PermissionPort.
 type Manager struct {
-	store    *Store
-	policy   []Grant // effect-bearing rules from resolved configuration
-	approver Approver
-	now      Clock
-	actor    string
+	store     *Store
+	policy    []Grant          // effect-bearing rules from resolved configuration
+	allowlist CommandAllowlist // terminal-command allow/deny from [permission] config
+	approver  Approver
+	now       Clock
+	actor     string
 }
 
 // Option configures a Manager.
@@ -38,6 +39,10 @@ func WithClock(c Clock) Option { return func(m *Manager) { m.now = c } }
 
 // WithPolicy sets standing policy rules (from configuration).
 func WithPolicy(rules []Grant) Option { return func(m *Manager) { m.policy = rules } }
+
+// WithCommandAllowlist sets the terminal-command allowlist consulted during evaluation, so
+// allow-listed commands resolve without prompting and deny-listed commands are refused.
+func WithCommandAllowlist(a CommandAllowlist) Option { return func(m *Manager) { m.allowlist = a } }
 
 // WithActor sets the actor label recorded in audit rows.
 func WithActor(a string) Option { return func(m *Manager) { m.actor = a } }
@@ -91,6 +96,14 @@ func (m *Manager) evaluate(ctx context.Context, q ports.PermissionQuery) (core.D
 	for _, r := range m.policy {
 		if r.matches(q, now) {
 			candidates = append(candidates, r)
+		}
+	}
+	// Command allowlist ([permission] in andromeda.toml): pre-authorize or refuse vetted terminal
+	// commands by argv prefix. Appended as a synthetic candidate so the normal precedence
+	// (deny > ask > allow) applies — an explicit stored deny still overrides an allow-listed command.
+	if q.Scope == core.ScopeCommand && q.Command != "" && !m.allowlist.Empty() {
+		if eff, matched := m.allowlist.Decide(q.Command); matched {
+			candidates = append(candidates, Grant{ID: allowlistGrantID, Effect: eff})
 		}
 	}
 	outcome, deciding := resolve(candidates)

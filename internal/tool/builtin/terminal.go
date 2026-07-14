@@ -39,7 +39,9 @@ func (TerminalRun) Validate(_ context.Context, input ports.JSON) (ports.Validati
 	return ports.ValidationResult{Valid: true}, nil
 }
 
-// Resources requests execute permission scoped to the command's leading program.
+// Resources requests execute permission scoped to the command's leading program. The full
+// command line rides along in Command so a configured allowlist can match on argv, not just the
+// binary name.
 func (TerminalRun) Resources(input ports.JSON) ([]ports.PermissionQuery, error) {
 	var in struct{ Command string }
 	_ = json.Unmarshal(input, &in)
@@ -47,7 +49,10 @@ func (TerminalRun) Resources(input ports.JSON) ([]ports.PermissionQuery, error) 
 	if i := strings.IndexByte(prog, ' '); i > 0 {
 		prog = prog[:i]
 	}
-	return []ports.PermissionQuery{{Permission: core.PermExecute, Scope: core.ScopeCommand, Subject: prog}}, nil
+	return []ports.PermissionQuery{{
+		Permission: core.PermExecute, Scope: core.ScopeCommand,
+		Subject: prog, Command: in.Command,
+	}}, nil
 }
 
 // Execute runs the command through the Terminal Engine and returns its captured output and exit status.

@@ -7,8 +7,20 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/datamaia/andromeda/internal/core"
 	"github.com/datamaia/andromeda/internal/ports"
 )
+
+// denyingApprover refuses every prompt and records whether it was consulted, so a test can prove
+// an allow-listed command never reached it.
+type denyingApprover struct{ called *bool }
+
+func (a denyingApprover) Approve(context.Context, ports.PermissionRequest) (core.DecisionOutcome, core.PermissionDecisionKind, error) {
+	if a.called != nil {
+		*a.called = true
+	}
+	return core.OutcomeDeny, core.DecisionDenyOnce, nil
+}
 
 // scriptedProvider stands in for a live LLM: it emits a preset response sequence.
 type scriptedProvider struct {
@@ -136,6 +148,61 @@ func TestRunAgentExecutesCommandWithAllowExec(t *testing.T) {
 	}
 	if res.State != "completed" || res.ToolCalls != 1 {
 		t.Fatalf("res = %+v", res)
+	}
+}
+
+// A command matching the [permission] allowlist runs in interactive mode WITHOUT reaching the
+// approver (which here denies everything). Proves the config allowlist skips the prompt end-to-end.
+func TestRunAgentAllowlistedCommandSkipsApproval(t *testing.T) {
+	ctx := context.Background()
+	ws := t.TempDir()
+	if err := os.WriteFile(filepath.Join(ws, "andromeda.toml"), []byte("[permission]\nallow = [\"printf\"]\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	marker := filepath.Join(ws, "ran.out")
+	input, _ := json.Marshal(map[string]string{"command": "printf allowlisted > " + marker})
+	prov := &scriptedProvider{responses: []ports.ChatResponse{
+		assistantMsg("running", ports.ToolCall{ID: "1", Name: "terminal_run", Input: input}),
+		assistantMsg("done"),
+	}}
+	approverCalled := false
+	// Interactive registers terminal_run and routes ungranted exec to the approver; the allowlist
+	// must resolve "printf …" to allow before that happens.
+	if _, err := RunAgent(ctx, RunAgentOptions{
+		WorkspaceRoot: ws, Goal: "run", Model: "m", Provider: prov,
+		Interactive: true, Approver: denyingApprover{called: &approverCalled},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if approverCalled {
+		t.Error("approver was consulted for an allow-listed command")
+	}
+	if b, err := os.ReadFile(marker); err != nil || string(b) != "allowlisted" {
+		t.Errorf("allow-listed command did not run: content=%q err=%v", b, err)
+	}
+}
+
+// A command matching the [permission] deny list is refused even under --allow-exec (blanket exec),
+// so its side effect never happens. Proves the deny list is a guardrail over pre-granted exec.
+func TestRunAgentDenylistOverridesAllowExec(t *testing.T) {
+	ctx := context.Background()
+	ws := t.TempDir()
+	if err := os.WriteFile(filepath.Join(ws, "andromeda.toml"), []byte("[permission]\ndeny = [\"printf\"]\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	marker := filepath.Join(ws, "denied.out")
+	input, _ := json.Marshal(map[string]string{"command": "printf x > " + marker})
+	prov := &scriptedProvider{responses: []ports.ChatResponse{
+		assistantMsg("running", ports.ToolCall{ID: "1", Name: "terminal_run", Input: input}),
+		assistantMsg("done"),
+	}}
+	if _, err := RunAgent(ctx, RunAgentOptions{
+		WorkspaceRoot: ws, Goal: "run", Model: "m", Provider: prov, AllowExec: true,
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(marker); !os.IsNotExist(err) {
+		t.Error("deny-listed command ran despite the deny list")
 	}
 }
 

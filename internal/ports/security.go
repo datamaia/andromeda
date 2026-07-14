@@ -21,6 +21,11 @@ type PermissionQuery struct {
 	Scope      core.PermissionScope
 	Subject    string // the concrete resource: path, host, tool name, repository, ...
 
+	// Command is the full command line for ScopeCommand/PermExecute queries; Subject holds only
+	// the leading program. A configured command allowlist matches on this (argv, not just the
+	// binary name). Empty for non-command queries.
+	Command string
+
 	// Subject context — the ULIDs a grant's scope may enclose (all optional).
 	SessionID   ULID
 	RunID       ULID
