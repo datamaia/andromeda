@@ -2,9 +2,31 @@
 
 **Your terminal companion for shipping great software.**
 
-Andromeda is an open-source, local-first, vendor-agnostic AI engineering harness — a
-CLI and interactive TUI that runs coding agents against your workspace, with your choice
-of model provider and your credentials staying on your machine.
+[![CI](https://github.com/datamaia/andromeda/actions/workflows/ci.yml/badge.svg)](https://github.com/datamaia/andromeda/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/datamaia/andromeda?sort=semver)](https://github.com/datamaia/andromeda/releases)
+[![Go](https://img.shields.io/badge/go-1.25-00ADD8?logo=go&logoColor=white)](go.mod)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
+
+Andromeda is an open-source, **local-first, vendor-agnostic** AI engineering harness — a
+CLI and interactive TUI that runs coding agents against your workspace. Bring your own model
+provider; your credentials stay in your OS keychain and never leave your machine.
+
+## Why Andromeda
+
+- **Local-first & private** — no andromeda cloud, no telemetry. Credentials live in your OS
+  keychain (Keychain / Secret Service / Windows Credential Manager).
+- **Vendor-agnostic** — one interface over Anthropic, OpenAI (API key *or* ChatGPT
+  subscription), Gemini, xAI, Groq, Cerebras, OpenRouter, Hugging Face, and local models
+  (Ollama, vLLM). Switch providers with a flag.
+- **Safe by default** — every side-effecting action (write, run command, network, git
+  mutation) is read-only until you grant it. Approve interactively, or pre-approve vetted
+  commands with a [`[permission]` allowlist](#configuration).
+- **CLI *and* TUI** — script one-shot agent runs, or drop into a full-screen terminal UI with
+  slash commands, `@`-file mentions, a plan/approve flow, and mouse-scrollable history.
+- **Persistent sessions** — conversations are remembered across turns and can be resumed with
+  `--continue` / `--resume`.
+- **`AGENTS.md`-aware** — project guidance in `AGENTS.md` is folded into the agent's context on
+  every run. Scaffold it (and `andromeda.toml`) with `/init`.
 
 ## Install
 
@@ -14,32 +36,35 @@ of model provider and your credentials staying on your machine.
 brew install datamaia/tap/andromeda
 ```
 
-That single command taps the formula, verifies the checksum, and installs `andromeda`
-onto your `PATH`. Upgrade later with:
+Homebrew taps the formula, verifies the checksum, and installs `andromeda` onto your `PATH`.
+Upgrade later with `brew upgrade andromeda`.
+
+### Linux / macOS (script)
 
 ```sh
-brew upgrade andromeda
+curl -fsSL https://raw.githubusercontent.com/datamaia/andromeda/main/scripts/install.sh | bash
 ```
 
-### Linux / macOS without Homebrew
+Detects your OS/architecture, downloads the matching release binary, and installs it to
+`/usr/local/bin` (or `~/.local/bin`). Override with `ANDROMEDA_VERSION` or `ANDROMEDA_INSTALL_DIR`.
 
-Download the release binary for your platform (auto-detects OS and architecture):
+### Windows (PowerShell)
 
-```sh
-mkdir -p ~/.local/bin && \
-curl -fsSL "https://github.com/datamaia/andromeda/releases/download/v0.1.4/andromeda_0.1.4_$(uname -s|tr A-Z a-z)_$(uname -m|sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" \
-  | tar -xz -C ~/.local/bin andromeda && \
-andromeda version
+```powershell
+irm https://raw.githubusercontent.com/datamaia/andromeda/main/scripts/install.ps1 | iex
 ```
 
-Make sure `~/.local/bin` is on your `PATH` (or extract into `/usr/local/bin` with `sudo`).
-Checksums for every artifact are published alongside the release as `checksums.txt`.
+Downloads the release archive, verifies its SHA256 against the release checksums, installs
+`andromeda.exe` to `%LOCALAPPDATA%\Programs\andromeda`, and adds it to your user `PATH`.
 
 ### With Go
 
 ```sh
 go install github.com/datamaia/andromeda/cmd/andromeda@latest
 ```
+
+Prebuilt binaries and checksums for every release are on the
+[releases page](https://github.com/datamaia/andromeda/releases).
 
 ## Quick start
 
@@ -49,23 +74,33 @@ Launch the interactive TUI by running `andromeda` with no arguments:
 andromeda
 ```
 
-First run walks you through picking a provider and signing in. Or run a one-shot agent
-task from the command line:
+The first run walks you through picking a provider and signing in. Or run a one-shot agent task
+from the command line:
 
 ```sh
 andromeda run "add a health-check endpoint" --provider openai-chatgpt --allow-write
 ```
 
-Grant only the capabilities a task needs with `--allow-write`, `--allow-exec`, and
-`--allow-network`; everything is read-only by default.
+Capabilities are opt-in per run — `--allow-write`, `--allow-exec`, `--allow-network`. Without
+them the agent is read-only.
 
-## Providers
+## Configuration
 
-Andromeda is vendor-agnostic. Supported providers include Anthropic, OpenAI, OpenAI via
-your ChatGPT subscription (`openai-chatgpt`), Google Gemini, xAI, Groq, Cerebras,
-OpenRouter, Hugging Face, and local models via Ollama or vLLM.
+`andromeda.toml` configures a project (run `/init` in the TUI to scaffold it, `AGENTS.md`, and
+the `.agents/` capability dirs). It is plain TOML, layered global → workspace → project → env → flags:
 
-Authenticate once and credentials are stored in your OS keychain:
+```toml
+[provider]
+default = "openai-chatgpt"
+
+# Commands the agent may run WITHOUT an approval prompt, matched by argv prefix.
+# Anything not listed still asks; entries in `deny` are always refused.
+[permission]
+allow = ["git status", "git diff", "go build ./...", "go test ./..."]
+deny  = ["git push --force", "rm -rf"]
+```
+
+Sign in once and credentials are stored in your OS keychain:
 
 ```sh
 andromeda auth login openai-chatgpt   # browser OAuth (ChatGPT account)
@@ -73,7 +108,7 @@ andromeda auth add anthropic          # store an API key from an env var
 andromeda provider check              # validate connectivity
 ```
 
-## Common commands
+## Commands
 
 | Command | Description |
 | --- | --- |
@@ -87,6 +122,19 @@ andromeda provider check              # validate connectivity
 | `andromeda memory add <text>` | Add a workspace memory record |
 | `andromeda doctor` | Diagnose your environment |
 | `andromeda version` | Print the version |
+
+## Development
+
+Requires Go 1.25+. Common tasks:
+
+```sh
+go build ./...      # build
+go test ./...       # test
+make ci             # full local gate (fmt, vet, lint, build, test, coverage)
+```
+
+The codebase follows a hexagonal architecture: `internal/tui` and provider adapters depend only
+on ports (`internal/ports`), with wiring in `cmd/andromeda`.
 
 ## License
 
