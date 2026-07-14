@@ -2,6 +2,7 @@
 
 **Your terminal companion for shipping great software.**
 
+[![Website](https://img.shields.io/badge/web-andromedacli.com-7C5CFF)](https://andromedacli.com)
 [![CI](https://github.com/datamaia/andromeda/actions/workflows/ci.yml/badge.svg)](https://github.com/datamaia/andromeda/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/datamaia/andromeda?sort=semver)](https://github.com/datamaia/andromeda/releases)
 [![Go](https://img.shields.io/badge/go-1.25-00ADD8?logo=go&logoColor=white)](go.mod)
@@ -42,7 +43,7 @@ Upgrade later with `brew upgrade andromeda`.
 ### Linux / macOS (script)
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/datamaia/andromeda/main/scripts/install.sh | bash
+curl -fsSL https://andromedacli.com/install | bash
 ```
 
 Detects your OS/architecture, downloads the matching release binary, and installs it to
@@ -51,7 +52,7 @@ Detects your OS/architecture, downloads the matching release binary, and install
 ### Windows (PowerShell)
 
 ```powershell
-irm https://raw.githubusercontent.com/datamaia/andromeda/main/scripts/install.ps1 | iex
+irm https://andromedacli.com/install.ps1 | iex
 ```
 
 Downloads the release archive, verifies its SHA256 against the release checksums, installs
