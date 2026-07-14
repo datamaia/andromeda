@@ -23,8 +23,10 @@ type Actions struct {
 	Logout    func(ctx context.Context, provider string) string
 	Export    func(lines []string) string
 	Init      func(ctx context.Context, provider, model string) string
-	Files     func(ctx context.Context) []string // workspace files for @-mention completion
-	Context   func(ctx context.Context) []string // workspace context lines for the /status panel
+	Files     func(ctx context.Context) []string          // workspace files for @-mention completion
+	Context   func(ctx context.Context) []string          // workspace context lines for the /status panel
+	Ontology  func(ctx context.Context, op string) string // op: build|show|rm — deterministic .ttl map
+	Graph     func(ctx context.Context, op string) string // op: build|open|show|rm — visual map + viewer
 }
 
 // WithActions wires the app-backed slash-command handlers.
@@ -61,6 +63,8 @@ func commandRegistry() []slashCommand {
 		{name: "update", desc: "check for updates", run: cmdUpdate},
 		{name: "memory", desc: "manage workspace memory", aliases: []string{"mem"}, run: cmdMemory},
 		{name: "workflows", desc: "list SDD workflows", aliases: []string{"workflow"}, run: cmdWorkflows},
+		{name: "ontology", desc: "build/inspect the workspace ontology (.ttl)", aliases: []string{"onto", "ttl"}, run: cmdOntology},
+		{name: "graph", desc: "build/serve a visual graph of the workspace", aliases: []string{"viz"}, run: cmdGraph},
 		{name: "mcp", desc: "MCP servers", run: cmdMCP},
 		{name: "skills", desc: "available skills", aliases: []string{"skill"}, run: cmdSkills},
 		{name: "goal", desc: "set and run a goal (/goal <text>)", run: cmdGoal},
@@ -195,6 +199,10 @@ func argCandidates(name string) []string {
 		return []string{"dark", "light"}
 	case "status":
 		return statusTabNames
+	case "ontology":
+		return []string{"build", "show", "adjust", "rm"}
+	case "graph":
+		return []string{"build", "open", "show", "adjust", "rm"}
 	}
 	return nil
 }

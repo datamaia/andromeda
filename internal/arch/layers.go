@@ -43,6 +43,8 @@ var PackageLayer = map[string]Layer{
 	"provider":   L3Engine,
 	"memory":     L3Engine,
 	"indexer":    L3Engine,
+	"ontology":   L3Engine, // deterministic workspace structural map (.ttl)
+	"graph":      L3Engine, // visual workspace graph + local viewer (imports ontology)
 	"tool":       L3Engine,
 	"agent":      L3Engine,
 	"terminal":   L3Engine,

@@ -111,6 +111,8 @@ func newRootCommand() *cobra.Command {
 		newExportCommand(),
 		newContextCommand(),
 		newTraceCommand(),
+		newOntologyCommand(),
+		newGraphCommand(),
 	)
 	root.AddCommand(newCompletionCommand(root))
 	return root

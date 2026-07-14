@@ -12,7 +12,9 @@ import (
 	"github.com/datamaia/andromeda/internal/app"
 	"github.com/datamaia/andromeda/internal/auth"
 	"github.com/datamaia/andromeda/internal/buildinfo"
+	"github.com/datamaia/andromeda/internal/graph"
 	"github.com/datamaia/andromeda/internal/memory"
+	"github.com/datamaia/andromeda/internal/ontology"
 	"github.com/datamaia/andromeda/internal/ports"
 	"github.com/datamaia/andromeda/internal/skill"
 	"github.com/datamaia/andromeda/internal/storage"
@@ -39,7 +41,114 @@ func (s *tuiSession) sessionActions() tui.Actions {
 		Init:      s.initAction,
 		Files:     s.listFiles,
 		Context:   s.contextAction,
+		Ontology:  s.ontologyAction,
+		Graph:     s.graphAction,
 	}
+}
+
+// ontologyAction backs the /ontology slash command: it scans the workspace and manages the
+// deterministic Turtle map under .andromeda/ontology/. op is build | show | rm.
+func (s *tuiSession) ontologyAction(ctx context.Context, op string) string {
+	switch op {
+	case "build":
+		m, err := ontology.Scan(ctx, s.wd)
+		if err != nil {
+			return "ontology: " + err.Error()
+		}
+		path, err := ontology.Write(s.wd, m)
+		if err != nil {
+			return "ontology: " + err.Error()
+		}
+		return "ontology · " + m.Stats() + "\n  written to " + relOr(s.wd, path)
+	case "show":
+		data, err := os.ReadFile(filepath.Join(ontology.Dir(s.wd), "project.ttl")) //nolint:gosec // fixed path under the workspace marker dir
+		if err != nil {
+			if os.IsNotExist(err) {
+				return "no ontology yet — run /ontology build"
+			}
+			return "ontology: " + err.Error()
+		}
+		return string(data)
+	case "rm":
+		if err := ontology.Remove(s.wd); err != nil {
+			return "ontology: " + err.Error()
+		}
+		return "removed .andromeda/ontology"
+	default:
+		return "ontology subcommands: build · show · rm"
+	}
+}
+
+// graphAction backs the /graph slash command: it scans the workspace, writes the visual graph model
+// (graph.json + Markdown notes), and can serve the interactive viewer. op is build | open | show | rm.
+func (s *tuiSession) graphAction(ctx context.Context, op string) string {
+	switch op {
+	case "build":
+		m, err := ontology.Scan(ctx, s.wd)
+		if err != nil {
+			return "graph: " + err.Error()
+		}
+		g, dir, err := graph.Write(s.wd, m)
+		if err != nil {
+			return "graph: " + err.Error()
+		}
+		return "graph · " + g.Stats() + "\n  written to " + relOr(s.wd, dir)
+	case "open":
+		return s.graphOpen(ctx)
+	case "show":
+		data, err := os.ReadFile(filepath.Join(graph.Dir(s.wd), "index.md")) //nolint:gosec // fixed path under the workspace marker dir
+		if err != nil {
+			if os.IsNotExist(err) {
+				return "no graph yet — run /graph build"
+			}
+			return "graph: " + err.Error()
+		}
+		return string(data)
+	case "rm":
+		if err := graph.Remove(s.wd); err != nil {
+			return "graph: " + err.Error()
+		}
+		return "removed .andromeda/graph"
+	default:
+		return "graph subcommands: build · open · show · rm"
+	}
+}
+
+// graphOpen rebuilds the graph (so the viewer reflects the current tree) and serves the interactive
+// viewer on localhost, opening the system browser. The server is bound to the program lifetime, so a
+// second /graph open just reopens the already-running viewer.
+func (s *tuiSession) graphOpen(ctx context.Context) string {
+	m, err := ontology.Scan(ctx, s.wd)
+	if err != nil {
+		return "graph: " + err.Error()
+	}
+	if _, _, err := graph.Write(s.wd, m); err != nil {
+		return "graph: " + err.Error()
+	}
+	if s.graphURL != "" {
+		_ = openBrowser(s.graphURL)
+		return "graph viewer already running at " + s.graphURL + " — reopened in your browser"
+	}
+	ready := make(chan string, 1)
+	go func() {
+		_ = graph.Serve(s.ctx, s.wd, 0, func(url string) { ready <- url })
+	}()
+	select {
+	case url := <-ready:
+		s.graphURL = url
+		_ = openBrowser(url)
+		return "graph viewer serving at " + url + "\n  opened in your browser · stays up for this session"
+	case <-time.After(3 * time.Second):
+		return "graph: viewer did not start in time"
+	}
+}
+
+// relOr renders path relative to base for display, falling back to the absolute path.
+func relOr(base, path string) string {
+	if rel, err := filepath.Rel(base, path); err == nil {
+		return rel
+	}
+	return path
 }
 
 // initAction scaffolds the project layout — AGENTS.md, andromeda.toml, .agents/, and .andromeda/ —

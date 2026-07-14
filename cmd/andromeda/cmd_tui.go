@@ -40,6 +40,10 @@ type tuiSession struct {
 	// memory) and the id under which it is saved to disk after every turn.
 	sessionID string
 	history   []ports.Message
+
+	// graphURL is the address of the graph viewer once /graph open has started it; empty until then.
+	// The server runs for the program lifetime (bound to s.ctx), so a second open just reopens it.
+	graphURL string
 }
 
 func (s *tuiSession) build() error {

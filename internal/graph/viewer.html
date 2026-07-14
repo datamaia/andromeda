@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Andromeda — workspace graph</title>
+<style>
+  :root{
+    --bg:#121417; --panel:#181B20; --ink:#F5F2ED; --muted:#8C7B6E;
+    --violet:#7C5CFF; --violet-soft:#B58CFF; --line:#2A2E35;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
+    font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow:hidden}
+  #stage{position:fixed;inset:0;display:block;cursor:grab}
+  #stage:active{cursor:grabbing}
+  header{position:fixed;top:0;left:0;right:0;display:flex;align-items:center;gap:.6rem;
+    padding:.7rem 1rem;background:linear-gradient(#121417ee,#12141700);pointer-events:none;z-index:3}
+  header .cat{font-size:1.2rem}
+  header h1{font-size:.95rem;font-weight:600;margin:0;letter-spacing:.01em}
+  header h1 b{color:var(--violet);font-weight:700}
+  header .meta{color:var(--muted);font-size:.8rem;margin-left:.2rem}
+  .panel{position:fixed;background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    box-shadow:0 8px 30px #0008;z-index:4}
+  #legend{left:1rem;bottom:1rem;padding:.7rem .85rem;min-width:150px}
+  #legend h2{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);
+    margin:0 0 .5rem}
+  #legend .row{display:flex;align-items:center;gap:.5rem;font-size:.8rem;padding:.12rem 0;cursor:pointer;
+    opacity:.9;user-select:none}
+  #legend .row:hover{opacity:1}
+  #legend .row.off{opacity:.35}
+  #legend .dot{width:11px;height:11px;border-radius:50%;flex:0 0 auto}
+  #controls{right:1rem;top:1rem;display:flex;gap:.4rem;padding:.4rem}
+  #controls button{background:transparent;border:1px solid var(--line);color:var(--ink);
+    width:30px;height:30px;border-radius:8px;font-size:1rem;cursor:pointer;line-height:1}
+  #controls button:hover{border-color:var(--violet);color:var(--violet)}
+  #search{position:fixed;right:1rem;top:3.6rem;z-index:4}
+  #search input{background:var(--panel);border:1px solid var(--line);color:var(--ink);
+    border-radius:9px;padding:.4rem .7rem;font-size:.82rem;width:200px;outline:none}
+  #search input:focus{border-color:var(--violet)}
+  #tip{position:fixed;pointer-events:none;background:#0d0f12ee;border:1px solid var(--line);
+    border-radius:8px;padding:.4rem .6rem;font-size:.78rem;z-index:5;max-width:340px;display:none}
+  #tip .p{color:var(--violet-soft);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  #tip .s{color:var(--muted);display:block;margin-top:.2rem}
+  #empty{position:fixed;inset:0;display:none;align-items:center;justify-content:center;
+    flex-direction:column;gap:.5rem;color:var(--muted);text-align:center;padding:2rem}
+  #empty .cat{font-size:2rem}
+  a{color:var(--violet-soft)}
+</style>
+</head>
+<body>
+<canvas id="stage"></canvas>
+<header>
+  <span class="cat">🐈‍⬛</span>
+  <h1><b>ANDROMEDA</b> · workspace graph</h1>
+  <span class="meta" id="meta"></span>
+</header>
+<div id="controls" class="panel">
+  <button id="zin" title="Zoom in">+</button>
+  <button id="zout" title="Zoom out">−</button>
+  <button id="fit" title="Fit to view">⤢</button>
+</div>
+<div id="search"><input id="q" type="search" placeholder="Filter nodes… (/)" autocomplete="off"></div>
+<div id="legend" class="panel"><h2>Kinds</h2><div id="legend-rows"></div></div>
+<div id="tip"></div>
+<div id="empty"><span class="cat">🐈‍⬛</span><div>No graph yet.<br>Run <code>andromeda graph build</code> and refresh.</div></div>
+<script>
+const KIND_COLOR = {
+  project:  "#7C5CFF",
+  directory:"#8C7B6E",
+  code:     "#7C5CFF",
+  doc:      "#E4B36E",
+  config:   "#6FB2C9",
+  data:     "#6EC18C",
+  asset:    "#B58CFF",
+  other:    "#6B6F76",
+};
+const KIND_ORDER = ["project","directory","code","doc","config","data","asset","other"];
+
+const canvas = document.getElementById("stage");
+const ctx = canvas.getContext("2d");
+const tip = document.getElementById("tip");
+let DPR = Math.max(1, window.devicePixelRatio || 1);
+let W = 0, H = 0;
+let nodes = [], edges = [], byId = new Map();
+let view = { x: 0, y: 0, k: 1 };
+let alpha = 1;
+const hidden = new Set();      // hidden kinds
+let hover = null, dragNode = null, panning = false, last = {x:0,y:0};
+
+function resize(){
+  DPR = Math.max(1, window.devicePixelRatio || 1);
+  W = canvas.clientWidth = window.innerWidth;
+  H = canvas.clientHeight = window.innerHeight;
+  canvas.width = W * DPR; canvas.height = H * DPR;
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+}
+window.addEventListener("resize", resize);
+
+function radius(n){
+  if (n.kind === "project") return 16;
+  if (n.kind === "directory") return 8;
+  return 4 + Math.min(6, Math.log10((n.size||0)+10));
+}
+
+async function load(){
+  resize();
+  let data;
+  try { data = await (await fetch("graph.json", {cache:"no-store"})).json(); }
+  catch(e){ document.getElementById("empty").style.display = "flex"; return; }
+  if (!data.nodes || !data.nodes.length){ document.getElementById("empty").style.display="flex"; return; }
+
+  // Seed positions on a deterministic spiral so the layout settles the same way each load.
+  nodes = data.nodes.map((n,i) => {
+    const a = i * 2.399963, r = 12 * Math.sqrt(i);
+    return {...n, x: Math.cos(a)*r, y: Math.sin(a)*r, vx:0, vy:0,
+            fixed: n.kind === "project"};
+  });
+  byId = new Map(nodes.map(n => [n.id, n]));
+  edges = (data.edges||[]).map(e => ({source: byId.get(e.from), target: byId.get(e.to)}))
+                          .filter(e => e.source && e.target);
+  document.getElementById("meta").textContent =
+    `${data.name} · ${nodes.length} nodes · ${edges.length} edges`;
+  document.title = `Andromeda — ${data.name} graph`;
+  buildLegend();
+  alpha = 1;
+  requestAnimationFrame(tick);
+  setTimeout(fit, 400);
+}
+
+function buildLegend(){
+  const present = new Set(nodes.map(n => n.kind));
+  const box = document.getElementById("legend-rows");
+  box.innerHTML = "";
+  KIND_ORDER.filter(k => present.has(k)).forEach(k => {
+    const row = document.createElement("div");
+    row.className = "row"; row.dataset.kind = k;
+    row.innerHTML = `<span class="dot" style="background:${KIND_COLOR[k]}"></span>${k}`;
+    row.onclick = () => { hidden.has(k) ? hidden.delete(k) : hidden.add(k);
+      row.classList.toggle("off"); alpha = Math.max(alpha, .3); };
+    box.appendChild(row);
+  });
+}
+
+const shown = n => !hidden.has(n.kind);
+
+// --- force simulation (Barnes-Hut-free; fine for typical repos) ---
+function simulate(){
+  const REPEL = 5200, SPRING = 0.02, LINK = 46, CENTER = 0.015;
+  for (const n of nodes){ if(!n.fixed){ n.vx *= 0.86; n.vy *= 0.86; } }
+  // pairwise repulsion
+  for (let i=0;i<nodes.length;i++){
+    const a = nodes[i];
+    for (let j=i+1;j<nodes.length;j++){
+      const b = nodes[j];
+      let dx = a.x-b.x, dy = a.y-b.y, d2 = dx*dx+dy*dy+0.01;
+      if (d2 > 90000) continue;
+      const f = REPEL/d2, d = Math.sqrt(d2), fx = dx/d*f, fy = dy/d*f;
+      a.vx += fx*alpha; a.vy += fy*alpha; b.vx -= fx*alpha; b.vy -= fy*alpha;
+    }
+  }
+  // spring along edges
+  for (const e of edges){
+    let dx = e.target.x-e.source.x, dy = e.target.y-e.source.y;
+    const d = Math.sqrt(dx*dx+dy*dy)||1, f = (d-LINK)*SPRING;
+    const fx = dx/d*f, fy = dy/d*f;
+    e.source.vx += fx*alpha; e.source.vy += fy*alpha;
+    e.target.vx -= fx*alpha; e.target.vy -= fy*alpha;
+  }
+  for (const n of nodes){
+    if (n.fixed || n === dragNode){ continue; }
+    n.vx -= n.x*CENTER*alpha; n.vy -= n.y*CENTER*alpha;
+    n.x += n.vx; n.y += n.vy;
+  }
+  alpha *= 0.992;
+  if (alpha < 0.02) alpha = 0.02;
+}
+
+function worldToScreen(x,y){ return [x*view.k + view.x + W/2, y*view.k + view.y + H/2]; }
+function screenToWorld(px,py){ return [(px - view.x - W/2)/view.k, (py - view.y - H/2)/view.k]; }
+
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  // edges
+  ctx.lineWidth = Math.max(0.5, view.k*0.8);
+  ctx.strokeStyle = "rgba(140,123,110,0.28)";
+  ctx.beginPath();
+  for (const e of edges){
+    if (!shown(e.source) || !shown(e.target)) continue;
+    const [x1,y1] = worldToScreen(e.source.x,e.source.y);
+    const [x2,y2] = worldToScreen(e.target.x,e.target.y);
+    ctx.moveTo(x1,y1); ctx.lineTo(x2,y2);
+  }
+  ctx.stroke();
+  // nodes
+  for (const n of nodes){
+    if (!shown(n)) continue;
+    const [x,y] = worldToScreen(n.x,n.y);
+    const r = radius(n)*Math.max(0.7, Math.min(1.6, view.k));
+    ctx.beginPath(); ctx.arc(x,y,r,0,6.2832);
+    ctx.fillStyle = KIND_COLOR[n.kind] || KIND_COLOR.other;
+    ctx.globalAlpha = n.dim ? 0.1 : (hover && hover!==n && !isNeighbor(n) ? 0.35 : 1);
+    ctx.fill();
+    if (n === hover || n.kind === "project"){
+      ctx.lineWidth = 2; ctx.strokeStyle = "#F5F2ED"; ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    // labels for prominent nodes or when zoomed in
+    if (!n.dim && (n.kind === "project" || n.kind === "directory" || view.k > 1.4 || n === hover)){
+      ctx.fillStyle = "#F5F2ED"; ctx.globalAlpha = n===hover?1:0.82;
+      ctx.font = `${n.kind==="project"?13:11}px ui-sans-serif,system-ui`;
+      ctx.fillText(n.label, x + r + 3, y + 3);
+      ctx.globalAlpha = 1;
+    }
+  }
+}
+
+const neighborCache = new Map();
+function isNeighbor(n){
+  if (!hover) return false;
+  let set = neighborCache.get(hover);
+  if (!set){ set = new Set(); for (const e of edges){
+    if (e.source===hover) set.add(e.target); if (e.target===hover) set.add(e.source);
+  } neighborCache.set(hover,set); }
+  return set.has(n);
+}
+
+function tick(){ simulate(); draw(); requestAnimationFrame(tick); }
+
+function fit(){
+  const vis = nodes.filter(shown); if (!vis.length) return;
+  let minX=1e9,minY=1e9,maxX=-1e9,maxY=-1e9;
+  for (const n of vis){ minX=Math.min(minX,n.x);minY=Math.min(minY,n.y);
+    maxX=Math.max(maxX,n.x);maxY=Math.max(maxY,n.y); }
+  const w = maxX-minX||1, h = maxY-minY||1;
+  view.k = Math.min(3, 0.85*Math.min(W/w, H/h));
+  view.x = -((minX+maxX)/2)*view.k; view.y = -((minY+maxY)/2)*view.k;
+}
+
+// --- interaction ---
+function pick(px,py){
+  const [wx,wy] = screenToWorld(px,py);
+  let best=null, bd=1e9;
+  for (const n of nodes){ if(!shown(n)) continue;
+    const dx=n.x-wx, dy=n.y-wy, d=dx*dx+dy*dy;
+    const rr = (radius(n)+6)/view.k;
+    if (d < rr*rr && d < bd){ bd=d; best=n; } }
+  return best;
+}
+canvas.addEventListener("mousemove", e => {
+  const px=e.clientX, py=e.clientY;
+  if (dragNode){ const [wx,wy]=screenToWorld(px,py); dragNode.x=wx; dragNode.y=wy;
+    dragNode.vx=0; dragNode.vy=0; alpha=Math.max(alpha,.3); return; }
+  if (panning){ view.x += px-last.x; view.y += py-last.y; last={x:px,y:py}; return; }
+  const n = pick(px,py); hover = n; neighborCache.clear();
+  if (n){ tip.style.display="block"; tip.style.left=(px+14)+"px"; tip.style.top=(py+14)+"px";
+    tip.innerHTML = `<span class="p">${n.path||n.label}</span>`+
+      `<span class="s">${n.kind}${n.size?` · ${fmtBytes(n.size)}`:""}</span>`;
+    canvas.style.cursor="pointer"; }
+  else { tip.style.display="none"; canvas.style.cursor = panning?"grabbing":"grab"; }
+});
+canvas.addEventListener("mousedown", e => {
+  const n = pick(e.clientX,e.clientY);
+  if (n){ dragNode=n; n.fixed=true; }
+  else { panning=true; last={x:e.clientX,y:e.clientY}; }
+});
+window.addEventListener("mouseup", () => {
+  if (dragNode && dragNode.kind!=="project") dragNode.fixed=false;
+  dragNode=null; panning=false;
+});
+canvas.addEventListener("wheel", e => {
+  e.preventDefault();
+  const [wx,wy]=screenToWorld(e.clientX,e.clientY);
+  view.k *= e.deltaY<0 ? 1.1 : 0.9; view.k = Math.max(0.15, Math.min(6, view.k));
+  const [nx,ny]=worldToScreen(wx,wy);
+  view.x += e.clientX-nx; view.y += e.clientY-ny;
+}, {passive:false});
+
+function fmtBytes(b){ if(b<1024)return b+" B"; if(b<1048576)return (b/1024).toFixed(1)+" KB";
+  return (b/1048576).toFixed(1)+" MB"; }
+
+document.getElementById("zin").onclick = ()=>{view.k=Math.min(6,view.k*1.2)};
+document.getElementById("zout").onclick = ()=>{view.k=Math.max(0.15,view.k/1.2)};
+document.getElementById("fit").onclick = fit;
+
+const q = document.getElementById("q");
+q.addEventListener("input", () => {
+  const t = q.value.trim().toLowerCase();
+  for (const n of nodes) n.dim = t && !( (n.path||n.label).toLowerCase().includes(t) );
+});
+window.addEventListener("keydown", e => {
+  if (e.key === "/" && document.activeElement !== q){ e.preventDefault(); q.focus(); }
+  if (e.key === "Escape"){ q.value=""; q.dispatchEvent(new Event("input")); q.blur(); }
+});
+
+load();
+</script>
+</body>
+</html>
