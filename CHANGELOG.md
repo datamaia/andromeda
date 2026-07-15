@@ -8,6 +8,20 @@ Commit history by the release automation (ADR-013) and committed at release time
 
 ## [Unreleased]
 
+Deep session and context commands.
+
+### Added
+
+- **Session branching.** `/branch` bookmarks the current conversation as a new saved session while
+  you keep working where you are; `/clone` freezes the current line and continues on a fresh copy so
+  the original is preserved. Each fork records its origin, and `/tree` shows the resulting lineage.
+- **Session switching.** `/sessions` lists every saved session (turns, date, title, current marked);
+  `/sessions resume <id>` swaps the live conversation in place and re-seeds the transcript;
+  `/sessions rm <id>` deletes one. The session you are in is never removed out from under you.
+- **`/btw` notes.** `/btw <note>` queues an out-of-band "by the way" that is folded into your next
+  message to the agent — context without triggering a reply now. Multiple notes stack and clear once
+  sent.
+
 ## [0.1.11] - 2026-07-15
 
 ### Fixed

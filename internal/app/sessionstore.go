@@ -18,11 +18,14 @@ import (
 // StoredSession is one persisted conversation. The transcript is provider-neutral (ports.Message),
 // so a resumed session can continue under whichever provider the user selects.
 type StoredSession struct {
-	ID        string          `json:"id"`
-	Title     string          `json:"title"`
-	Provider  string          `json:"provider"`
-	Model     string          `json:"model"`
-	Mode      string          `json:"mode"`
+	ID       string `json:"id"`
+	Title    string `json:"title"`
+	Provider string `json:"provider"`
+	Model    string `json:"model"`
+	Mode     string `json:"mode"`
+	// Parent is the id of the session this one was forked from (/branch, /clone), or "" for an
+	// original session. It lets /tree reconstruct the branch structure.
+	Parent    string          `json:"parent,omitempty"`
 	UpdatedAt string          `json:"updated_at"` // RFC3339
 	Messages  []ports.Message `json:"messages"`
 }

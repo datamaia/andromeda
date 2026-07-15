@@ -891,15 +891,23 @@ func (m Model) WithHistory(entries []HistoryEntry) Model {
 	if len(entries) == 0 {
 		return m
 	}
-	m.transcript = []entry{{"system", fmt.Sprintf("resumed session · %d messages restored", len(entries))}}
+	m.transcript = seedTranscript(fmt.Sprintf("resumed session · %d messages restored", len(entries)), entries)
+	return m
+}
+
+// seedTranscript builds a fresh transcript from restored history: a system header line followed by
+// each entry (roles other than user/agent are shown as system). Shared by WithHistory and the live
+// /sessions resume handler.
+func seedTranscript(header string, entries []HistoryEntry) []entry {
+	out := []entry{{"system", header}}
 	for _, e := range entries {
 		role := e.Role
 		if role != "user" && role != "agent" {
 			role = "system"
 		}
-		m.transcript = append(m.transcript, entry{role, e.Text})
+		out = append(out, entry{role, e.Text})
 	}
-	return m
+	return out
 }
 
 // runElapsed is the time the current run has been going, shown next to the working spinner (e.g.

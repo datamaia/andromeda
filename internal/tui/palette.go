@@ -42,6 +42,18 @@ type Actions struct {
 	// Cd changes the session working directory; returns (resolvedDir, gitBranch, status). resolvedDir
 	// is empty on error so the caller leaves the displayed workspace unchanged.
 	Cd func(ctx context.Context, path string) (dir, branch, status string)
+	// Branch (/branch) snapshots the conversation into a new saved session and stays on the current
+	// one; Clone (/clone) freezes the current line and continues on a fresh copy. Both return status.
+	Branch func(ctx context.Context) string
+	Clone  func(ctx context.Context) string
+	// Note (/btw) queues an out-of-band note folded into the next agent message; returns status.
+	Note func(ctx context.Context, text string) string
+	// Sessions (/sessions) lists or removes saved sessions; SessionTree (/tree) renders fork lineage.
+	Sessions    func(ctx context.Context, args string) string
+	SessionTree func(ctx context.Context) string
+	// ResumeSession (/sessions resume <id>) swaps the live conversation to a saved session. It
+	// returns the transcript entries to re-seed, ok=false with a status on failure.
+	ResumeSession func(ctx context.Context, id string) (entries []HistoryEntry, ok bool, status string)
 }
 
 // WithActions wires the app-backed slash-command handlers.
@@ -67,6 +79,11 @@ func commandRegistry() []slashCommand {
 		{name: "status", desc: "show provider, model, mode, and session", run: cmdStatus},
 		{name: "add-dir", desc: "add a working directory to the session", run: cmdAddDir},
 		{name: "cd", desc: "change the session working directory", run: cmdCd},
+		{name: "btw", desc: "add a note the agent sees on your next message", run: cmdBtw},
+		{name: "sessions", desc: "list, resume, or remove saved sessions", aliases: []string{"session"}, run: cmdSessions},
+		{name: "branch", desc: "bookmark this conversation as a new session", run: cmdBranch},
+		{name: "clone", desc: "copy this conversation and continue on the copy", run: cmdClone},
+		{name: "tree", desc: "show the session branch tree", run: cmdTree},
 		{name: "model", desc: "choose the model (/model <name> to set)", aliases: []string{"models"}, run: cmdModel},
 		{name: "effort", desc: "reasoning effort (minimal|low|medium|high)", run: cmdEffort},
 		{name: "theme", desc: "color theme (dark|light)", run: cmdTheme},
@@ -222,6 +239,8 @@ func argCandidates(name string) []string {
 		return []string{"build", "show", "adjust", "rm"}
 	case "graph":
 		return []string{"build", "open", "show", "adjust", "rm"}
+	case "sessions", "session":
+		return []string{"list", "resume", "rm"}
 	}
 	return nil
 }

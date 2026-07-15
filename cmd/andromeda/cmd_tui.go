@@ -49,6 +49,10 @@ type tuiSession struct {
 	// extraDirs are additional working directories added with /add-dir; their files join @-mention
 	// completion alongside the primary workspace (s.wd).
 	extraDirs []string
+
+	// pendingNotes are out-of-band context lines queued with /btw; they are folded into the next
+	// message to the agent (and then cleared) rather than triggering a reply on their own.
+	pendingNotes []string
 }
 
 func (s *tuiSession) build() error {
