@@ -170,8 +170,9 @@ func RunAgent(ctx context.Context, opts RunAgentOptions) (agent.RunResult, error
 	}
 
 	// AGENTS.md is active: its content is folded into the system prompt on every run so project
-	// guidance steers the agent (the file is read here, in the composition layer).
-	system := composeSystem(opts.System, projectInstructions(root))
+	// guidance steers the agent (the file is read here, in the composition layer). The workspace
+	// memory index (.andromeda/memory) is folded in too, so the agent can recall durable facts.
+	system := withMemory(composeSystem(opts.System, projectInstructions(root)), projectMemory(root))
 
 	eng := agent.New(opts.Provider, rt, sessions, nil)
 	return eng.Run(ctx, agent.RunInput{

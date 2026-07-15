@@ -12,11 +12,10 @@ import (
 	"github.com/datamaia/andromeda/internal/app"
 	"github.com/datamaia/andromeda/internal/auth"
 	"github.com/datamaia/andromeda/internal/graph"
-	"github.com/datamaia/andromeda/internal/memory"
+	"github.com/datamaia/andromeda/internal/memnote"
 	"github.com/datamaia/andromeda/internal/ontology"
 	"github.com/datamaia/andromeda/internal/ports"
 	"github.com/datamaia/andromeda/internal/skill"
-	"github.com/datamaia/andromeda/internal/storage"
 	"github.com/datamaia/andromeda/internal/tui"
 	"github.com/datamaia/andromeda/internal/workflow"
 )
@@ -29,6 +28,7 @@ func (s *tuiSession) sessionActions() tui.Actions {
 		Doctor:     s.doctorAction,
 		Update:     s.updateAction,
 		Memory:     s.memoryAction,
+		MemoryList: s.memoryListAction,
 		Collection: s.collectionAction,
 		Models:     s.modelsAction,
 		Config:     s.configAction,
@@ -235,51 +235,94 @@ func (s *tuiSession) updateAction(ctx context.Context) string {
 	return checkForUpdate(ctx, "stable", self)
 }
 
-func (s *tuiSession) memoryAction(ctx context.Context, args string) string {
+// memoryAction backs the /memory text subcommands over the file-based note store (memnote): a folder
+// of Markdown notes under .andromeda/memory/ with a generated MEMORY.md index, alongside AGENTS.md.
+func (s *tuiSession) memoryAction(_ context.Context, args string) string {
 	sub, rest, _ := strings.Cut(strings.TrimSpace(args), " ")
 	rest = strings.TrimSpace(rest)
-	db, err := storage.OpenWorkspaceDB(ctx, s.wd)
-	if err != nil {
-		return "memory: " + err.Error()
-	}
-	defer func() { _ = db.Close() }()
-	store := memory.New(db)
-
 	switch sub {
 	case "add":
 		if rest == "" {
-			return "usage: /memory add <content>"
+			return "usage: /memory add <title> [#tag …]"
 		}
-		ids, err := store.Ingest(ctx, []ports.MemoryRecordDraft{{Layer: "workspace", Content: rest, Source: "tui"}})
+		title, tags := extractTags(rest)
+		n, err := memnote.Add(s.wd, title, tags, "")
 		if err != nil {
 			return "memory: " + err.Error()
 		}
-		return "remembered " + ids[0]
+		return "remembered " + n.ID + " · " + n.Title
 	case "search":
 		if rest == "" {
 			return "usage: /memory search <query>"
 		}
-		return formatMemory(store.Retrieve(ctx, ports.MemoryQuery{Text: rest, Limit: 20}))
+		hits, err := memnote.Search(s.wd, rest)
+		return formatNotes(fmt.Sprintf("search %q", rest), hits, err)
+	case "rm", "delete":
+		if rest == "" {
+			return "usage: /memory rm <id>"
+		}
+		if err := memnote.Delete(s.wd, rest); err != nil {
+			return "memory: " + err.Error()
+		}
+		return "deleted memory " + rest
 	case "", "list":
-		return formatMemory(store.Retrieve(ctx, ports.MemoryQuery{Limit: 20}))
+		notes, err := memnote.List(s.wd)
+		return formatNotes("memory", notes, err)
 	default:
-		return "memory subcommands: list · add <content> · search <query>"
+		return "memory subcommands: list · add <title> [#tag] · search <query> · rm <id>"
 	}
 }
 
-func formatMemory(recs []ports.MemoryRecord, err error) string {
+// memoryListAction returns the notes for the interactive /memory menu.
+func (s *tuiSession) memoryListAction(_ context.Context) []tui.MemoryNote {
+	notes, _ := memnote.List(s.wd)
+	out := make([]tui.MemoryNote, 0, len(notes))
+	for _, n := range notes {
+		out = append(out, tui.MemoryNote{
+			ID: n.ID, Title: n.Title, Tags: n.Tags, Created: n.Created,
+			Preview: firstLine(n.Body), Path: relOr(s.wd, n.Path(s.wd)),
+		})
+	}
+	return out
+}
+
+func formatNotes(label string, notes []memnote.Note, err error) string {
 	if err != nil {
 		return "memory: " + err.Error()
 	}
-	if len(recs) == 0 {
-		return "no memories yet — add one with /memory add <content>"
+	if len(notes) == 0 {
+		return "no memories yet — add one with /memory add <title>"
 	}
 	var b strings.Builder
-	fmt.Fprintf(&b, "memory · %d record(s)", len(recs))
-	for _, r := range recs {
-		fmt.Fprintf(&b, "\n  [%s] %s", r.Layer, r.Content)
+	fmt.Fprintf(&b, "%s · %d note(s)", label, len(notes))
+	for _, n := range notes {
+		tags := ""
+		if len(n.Tags) > 0 {
+			tags = " [" + strings.Join(n.Tags, ", ") + "]"
+		}
+		fmt.Fprintf(&b, "\n  %s  %s%s", n.ID, n.Title, tags)
 	}
 	return b.String()
+}
+
+// extractTags pulls inline #tags out of an add line, returning the remaining title and the tags.
+func extractTags(s string) (title string, tags []string) {
+	var words []string
+	for _, w := range strings.Fields(s) {
+		if strings.HasPrefix(w, "#") && len(w) > 1 {
+			tags = append(tags, strings.TrimPrefix(w, "#"))
+			continue
+		}
+		words = append(words, w)
+	}
+	return strings.Join(words, " "), tags
+}
+
+func firstLine(s string) string {
+	if i := strings.IndexByte(s, '\n'); i >= 0 {
+		return strings.TrimSpace(s[:i])
+	}
+	return strings.TrimSpace(s)
 }
 
 // collectionAction backs the interactive /skills, /mcp, /workflows and /plugins menus, returning the

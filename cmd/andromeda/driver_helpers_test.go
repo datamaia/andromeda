@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/datamaia/andromeda/internal/core"
+	"github.com/datamaia/andromeda/internal/memnote"
 	"github.com/datamaia/andromeda/internal/ports"
 	"github.com/datamaia/andromeda/internal/tui"
 	"github.com/spf13/cobra"
@@ -92,16 +93,26 @@ func TestMessageTextAndHistoryEntries(t *testing.T) {
 	}
 }
 
-func TestFormatMemory(t *testing.T) {
-	if got := formatMemory(nil, errors.New("boom")); !strings.Contains(got, "boom") {
+func TestFormatNotes(t *testing.T) {
+	if got := formatNotes("memory", nil, errors.New("boom")); !strings.Contains(got, "boom") {
 		t.Errorf("error case = %q", got)
 	}
-	if got := formatMemory(nil, nil); !strings.Contains(got, "no memories") {
+	if got := formatNotes("memory", nil, nil); !strings.Contains(got, "no memories") {
 		t.Errorf("empty case = %q", got)
 	}
-	recs := []ports.MemoryRecord{{Layer: "project", Content: "remember this"}}
-	if got := formatMemory(recs, nil); !strings.Contains(got, "project") || !strings.Contains(got, "remember this") {
+	notes := []memnote.Note{{ID: "0003", Title: "remember this", Tags: []string{"proj"}}}
+	if got := formatNotes("memory", notes, nil); !strings.Contains(got, "0003") || !strings.Contains(got, "remember this") || !strings.Contains(got, "proj") {
 		t.Errorf("records case = %q", got)
+	}
+}
+
+func TestExtractTags(t *testing.T) {
+	title, tags := extractTags("Fix the auth bug #auth #keychain")
+	if title != "Fix the auth bug" {
+		t.Errorf("title = %q", title)
+	}
+	if strings.Join(tags, ",") != "auth,keychain" {
+		t.Errorf("tags = %v", tags)
 	}
 }
 

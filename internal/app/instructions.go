@@ -45,3 +45,33 @@ func composeSystem(base, instructions string) string {
 	}
 	return base + "\n\n" + block
 }
+
+// projectMemory reads the workspace memory index (<root>/.andromeda/memory/MEMORY.md), size-capped
+// and trimmed, or "" when absent. This is the human/agent-readable index of the file-based memory
+// notes (see internal/memnote), folded into the system prompt so the model can recall durable facts.
+func projectMemory(root string) string {
+	f, err := os.Open(filepath.Join(root, ".andromeda", "memory", "MEMORY.md")) //nolint:gosec // reads the workspace's own memory index
+	if err != nil {
+		return ""
+	}
+	defer func() { _ = f.Close() }()
+	data, err := io.ReadAll(io.LimitReader(f, maxInstructionsBytes))
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(string(data))
+}
+
+// withMemory appends the workspace memory index to the system prompt under a labeled section, so the
+// agent knows what has been durably remembered (and can open the referenced notes). Empty degrades.
+func withMemory(base, memory string) string {
+	if memory == "" {
+		return base
+	}
+	block := "Workspace memory index from .andromeda/memory/MEMORY.md " +
+		"(durable facts remembered for this project; open a referenced note when it is relevant):\n\n" + memory
+	if strings.TrimSpace(base) == "" {
+		return block
+	}
+	return base + "\n\n" + block
+}

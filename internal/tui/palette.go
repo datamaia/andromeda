@@ -14,7 +14,9 @@ import (
 type Actions struct {
 	Doctor func(ctx context.Context) string
 	Update func(ctx context.Context) string
-	Memory func(ctx context.Context, args string) string
+	// Memory runs the /memory text subcommands (add|search|rm|list); MemoryList backs the menu.
+	Memory     func(ctx context.Context, args string) string
+	MemoryList func(ctx context.Context) []MemoryNote
 	// Collection returns the entries of a manageable capability set (kind: skills|mcp|workflows|
 	// plugins) for its interactive menu; a zero CollectionView renders an empty state.
 	Collection func(ctx context.Context, kind string) CollectionView
@@ -685,13 +687,6 @@ func cmdUpdate(m Model, _ string) (tea.Model, tea.Cmd) {
 	return m.sys("checking for updates…"), func() tea.Msg {
 		return noticeMsg{text: fn(context.Background())}
 	}
-}
-
-func cmdMemory(m Model, args string) (tea.Model, tea.Cmd) {
-	if m.actions.Memory == nil {
-		return m.unavailable("memory"), nil
-	}
-	return m.sys(m.actions.Memory(context.Background(), args)), nil
 }
 
 func cmdGoal(m Model, args string) (tea.Model, tea.Cmd) {
