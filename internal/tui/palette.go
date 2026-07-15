@@ -51,8 +51,8 @@ type slashCommand struct {
 // commandRegistry is the full set of slash commands (industry-standard basics + Andromeda modes).
 func commandRegistry() []slashCommand {
 	return []slashCommand{
-		{name: "help", desc: "list commands and keybindings", aliases: []string{"?"}, run: cmdHelp},
-		{name: "commands", desc: "list all slash commands", run: cmdHelp},
+		{name: "help", desc: "getting started, modes, and keybindings", aliases: []string{"?"}, run: cmdHelp},
+		{name: "commands", desc: "every slash command with its aliases", run: cmdCommands},
 		{name: "keys", desc: "show keybindings", run: cmdKeys},
 		{name: "clear", desc: "clear the conversation", aliases: []string{"reset"}, run: cmdClear},
 		{name: "compact", desc: "summarize the conversation so far", run: cmdCompact},
@@ -463,22 +463,45 @@ func (m Model) menuWindow() int {
 
 // --- command handlers ---
 
+// cmdHelp is the orientation guide: what to do, the modes, inline sigils, and keybindings. It points
+// at /commands for the exhaustive command reference (the two used to be identical dumps).
 func cmdHelp(m Model, _ string) (tea.Model, tea.Cmd) {
 	var b strings.Builder
-	b.WriteString("commands:")
-	for _, c := range commandRegistry() {
-		_, _ = fmt.Fprintf(&b, "\n  /%-11s %s", c.name, c.desc)
-	}
+	b.WriteString("Andromeda — your terminal companion\n")
+	b.WriteString("\nType a goal and press enter. Commands start with / — press / to browse them, or run")
+	b.WriteString("\n/commands for the full list.")
+	b.WriteString("\n\nmodes  (shift+tab cycles):")
+	b.WriteString("\n  agent   make changes with tools and approvals")
+	b.WriteString("\n  plan    think through an approach; no edits are made")
+	b.WriteString("\n  shell   run shell commands directly")
+	b.WriteString("\n\ninline:")
+	b.WriteString("\n  /   command palette      @   mention a file      $   invoke a skill")
 	b.WriteString("\n\nkeybindings:")
 	b.WriteString("\n  enter          send the current line")
 	b.WriteString("\n  ↑/↓            recall previous/next inputs (navigate a menu when one is open)")
 	b.WriteString("\n  mouse wheel    scroll the conversation, back to the oldest output of the session")
 	b.WriteString("\n  PgUp/PgDn      scroll the conversation · ctrl+u/ctrl+d half-page · Home top · End latest")
-	b.WriteString("\n  /              open the command palette · @ mention a file")
-	b.WriteString("\n  shift+tab      cycle mode: agent → plan → shell → agent (or /agent /plan /shell)")
+	b.WriteString("\n  shift+tab      cycle mode: agent → plan → shell → agent")
 	b.WriteString("\n  esc            interrupt a running turn / clear the line")
-	b.WriteString("\n  ctrl+p         switch provider")
-	b.WriteString("\n  ctrl+c ctrl+c  quit")
+	b.WriteString("\n  ctrl+p         switch provider · ctrl+c ctrl+c quit")
+	b.WriteString("\n\nmore: /commands (every command) · /status (session) · /doctor (environment)")
+	return m.sys(b.String()), nil
+}
+
+// cmdCommands is the exhaustive command reference: every slash command (built-in and user-authored)
+// with its aliases and description. Distinct from /help, which is the getting-started guide.
+func cmdCommands(m Model, _ string) (tea.Model, tea.Cmd) {
+	cmds := m.mergedCommands()
+	var b strings.Builder
+	_, _ = fmt.Fprintf(&b, "slash commands (%d):", len(cmds))
+	for _, c := range cmds {
+		name := "/" + c.name
+		if len(c.aliases) > 0 {
+			name += " /" + strings.Join(c.aliases, " /")
+		}
+		_, _ = fmt.Fprintf(&b, "\n  %-26s %s", name, c.desc)
+	}
+	b.WriteString("\n\ntip: type / then a fragment to filter; enter or → to run.")
 	return m.sys(b.String()), nil
 }
 

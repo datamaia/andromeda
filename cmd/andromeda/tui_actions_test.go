@@ -113,6 +113,25 @@ func TestWorkflowCollection(t *testing.T) {
 	}
 }
 
+func TestFallbackModelsKiro(t *testing.T) {
+	// No provider built (s.prov nil) → modelsAction returns the catalog's curated list, so Kiro's
+	// models are pickable before its gateway is running.
+	s := &tuiSession{cfg: tuiConfig{provider: "kiro"}}
+	got := s.modelsAction(context.Background())
+	if len(got) == 0 {
+		t.Fatal("expected Kiro fallback models")
+	}
+	var hasSonnet bool
+	for _, m := range got {
+		if m == "claude-sonnet-4-5" {
+			hasSonnet = true
+		}
+	}
+	if !hasSonnet {
+		t.Fatalf("Kiro fallback missing claude-sonnet-4-5: %v", got)
+	}
+}
+
 func TestConfigStrings(t *testing.T) {
 	cases := []struct {
 		in   any
