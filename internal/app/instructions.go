@@ -75,3 +75,37 @@ func withMemory(base, memory string) string {
 	}
 	return base + "\n\n" + block
 }
+
+// projectMaps reports which workspace maps exist under .andromeda/ — the deterministic ontology
+// (project.ttl) and the visual graph (index.md + graph.json), built by `/ontology` and `/graph`.
+// Surfacing their presence lets the agent orient via a precomputed map instead of exploring blindly.
+func projectMaps(root string) string {
+	var have []string
+	if fileExists(filepath.Join(root, ".andromeda", "ontology", "project.ttl")) {
+		have = append(have, "- .andromeda/ontology/project.ttl — a deterministic Turtle map of how files and directories relate")
+	}
+	if fileExists(filepath.Join(root, ".andromeda", "graph", "index.md")) {
+		have = append(have, "- .andromeda/graph/ (index.md, graph.json) — a node/edge map of the workspace with human-readable notes")
+	}
+	return strings.Join(have, "\n")
+}
+
+// withMaps tells the agent that precomputed workspace maps exist and to consult them first, so it can
+// understand and navigate the repository quickly. Empty degrades gracefully.
+func withMaps(base, maps string) string {
+	if maps == "" {
+		return base
+	}
+	block := "Workspace maps are available under .andromeda/ — read them to understand and navigate the " +
+		"project quickly before exploring file by file:\n\n" + maps
+	if strings.TrimSpace(base) == "" {
+		return block
+	}
+	return base + "\n\n" + block
+}
+
+// fileExists reports whether path is an existing regular file.
+func fileExists(path string) bool {
+	info, err := os.Stat(path)
+	return err == nil && !info.IsDir()
+}
