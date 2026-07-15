@@ -10,6 +10,14 @@ Commit history by the release automation (ADR-013) and committed at release time
 
 ### Added
 
+- **`/background`.** Launch an unattended agent for a goal as a detached process that logs to
+  `.andromeda/background/` while the composer stays free. Because a background agent cannot answer
+  approval prompts, it runs with workspace write granted by default (revertible with `/undo`) and
+  command execution only when you add `--exec`; the grants are stated in the confirmation.
+- **`/autofix-pr`.** Inspect a pull request's failing CI checks (via `gh`) and, when any are red,
+  hand the agent a concrete fix goal listing them and start a normal (approval-gated) fix turn. It
+  diagnoses and fixes locally — it never commits or pushes. With no argument it targets the current
+  branch's PR.
 - **`/undo` and `/redo`.** The workspace is snapshotted (a git tree object, via a throwaway index —
   your real index, branch, and stash are never touched) before each agent turn, so `/undo` reverts
   that turn's file changes: edits roll back, deleted files return, and files the agent created are

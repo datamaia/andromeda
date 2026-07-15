@@ -276,6 +276,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.sys(msg.text), nil
 	case EditorMsg:
 		return m.applyEditor(msg)
+	case autofixMsg:
+		return m.applyAutofix(msg)
 	case tea.PasteMsg:
 		return m.handlePaste(msg.Content)
 	case tea.MouseWheelMsg:

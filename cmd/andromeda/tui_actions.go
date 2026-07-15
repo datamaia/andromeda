@@ -59,6 +59,8 @@ func (s *tuiSession) sessionActions() tui.Actions {
 		Editor:        s.editorAction,
 		Undo:          s.undoAction,
 		Redo:          s.redoAction,
+		Background:    s.backgroundAction,
+		AutofixPR:     s.autofixPRAction,
 	}
 }
 
