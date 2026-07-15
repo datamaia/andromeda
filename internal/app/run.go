@@ -10,6 +10,7 @@ import (
 	"github.com/datamaia/andromeda/internal/core"
 	"github.com/datamaia/andromeda/internal/git"
 	"github.com/datamaia/andromeda/internal/permission"
+	"github.com/datamaia/andromeda/internal/permstore"
 	"github.com/datamaia/andromeda/internal/ports"
 	"github.com/datamaia/andromeda/internal/storage"
 	"github.com/datamaia/andromeda/internal/terminal"
@@ -65,15 +66,21 @@ func RunAgent(ctx context.Context, opts RunAgentOptions) (agent.RunResult, error
 	if opts.Interactive && opts.Approver != nil {
 		mgrOpts = append(mgrOpts, permission.WithApprover(opts.Approver))
 	}
-	// [permission] allow/deny from andromeda.toml: vetted commands the agent may run without a
-	// prompt (deny is always refused). Applies to both interactive and non-interactive runs.
+	// Command allow/deny: vetted commands the agent may run without a prompt (deny is always
+	// refused). The effective policy merges andromeda.toml's [permission] section with the
+	// workspace-managed store at .andromeda/permissions.toml (edited by the /permission menu), so
+	// rules added interactively take effect immediately. Applies to interactive and one-shot runs.
+	var allow, deny []string
 	if cfgErr == nil {
-		if al := permission.NewCommandAllowlist(
-			configStringSlice(cfg.Values["permission.allow"]),
-			configStringSlice(cfg.Values["permission.deny"]),
-		); !al.Empty() {
-			mgrOpts = append(mgrOpts, permission.WithCommandAllowlist(al))
-		}
+		allow = append(allow, configStringSlice(cfg.Values["permission.allow"])...)
+		deny = append(deny, configStringSlice(cfg.Values["permission.deny"])...)
+	}
+	if r, err := permstore.Load(root); err == nil {
+		allow = append(allow, r.Allow...)
+		deny = append(deny, r.Deny...)
+	}
+	if al := permission.NewCommandAllowlist(allow, deny); !al.Empty() {
+		mgrOpts = append(mgrOpts, permission.WithCommandAllowlist(al))
 	}
 	pm := permission.NewManager(permission.NewStore(db), mgrOpts...)
 	// Safe by default: read is granted within the workspace subtree; write only when asked.

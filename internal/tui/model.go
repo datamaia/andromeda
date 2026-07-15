@@ -121,6 +121,12 @@ type Model struct {
 	filesLoaded bool
 	atCursor    int
 
+	// $-mention skill invocation: the workspace skill list (loaded once from Actions.Skills) and the
+	// highlighted candidate.
+	skillList    []SkillNote
+	skillsLoaded bool
+	skillCursor  int
+
 	// plan-review handoff: after a plan-mode turn completes, an approve/refine/reject overlay opens.
 	planReview       bool
 	planReviewCursor int
@@ -364,6 +370,12 @@ func (m Model) handleKey(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 			return nm, cmd
 		}
 	}
+	// The $-mention menu owns navigation keys while a "$fragment" skill token is being typed.
+	if m.skillActive() {
+		if nm, cmd, handled := m.handleSkillKey(msg); handled {
+			return nm, cmd
+		}
+	}
 	switch {
 	case msg.Mod&tea.ModCtrl != 0 && msg.Code == 'p' && len(m.providers) > 0:
 		return m.openProviderPicker()
@@ -418,6 +430,10 @@ func (m Model) handleKey(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 		// open immediately as the user keeps typing.
 		if _, ok := atToken(m.input); ok && !m.filesLoaded {
 			m = m.loadFiles()
+		}
+		// Likewise load skills the first time a "$" token appears, so the invocation menu can open.
+		if _, ok := dollarToken(m.input); ok && !m.skillsLoaded {
+			m = m.loadSkills()
 		}
 	}
 	return m, nil
@@ -488,10 +504,30 @@ func (m Model) submit() (tea.Model, tea.Cmd) {
 	m.scrollOffset = 0 // jump to the bottom so the new exchange is visible
 	m.transcript = append(m.transcript, entry{"user", goal})
 	mode := m.modeOrDefault()
-	// Async path: a wired runner drives agent/plan runs so tool actions can pause for approval and
-	// content streams in live. The cancel interrupts the run when the user presses Esc.
+	// $-mention skill invocation: fold any referenced skills' instructions into the goal sent to the
+	// agent (not shell), leaving the visible transcript as the user typed it. A short system line
+	// records each activation so it's clear the skill took effect.
+	sendGoal := goal
+	if mode != "shell" {
+		if !m.skillsLoaded && strings.Contains(goal, "$") {
+			m = m.loadSkills()
+		}
+		var used []string
+		sendGoal, used = m.expandSkillMentions(goal)
+		for _, name := range used {
+			m.transcript = append(m.transcript, entry{"system", "↯ activated skill " + name})
+		}
+	}
+	return m.dispatchGoal(sendGoal, mode)
+}
+
+// dispatchGoal starts a run for an already-composed goal in the given mode. It is the shared tail of
+// submit() — reused by workflow "Run", which sends a recipe body without echoing it as the prompt.
+// Async path: a wired runner drives agent/plan runs so tool actions can pause for approval and
+// content streams in live (the cancel interrupts on Esc). Synchronous path: shell mode or tests.
+func (m Model) dispatchGoal(sendGoal, mode string) (tea.Model, tea.Cmd) {
 	if m.runner != nil && mode != "shell" {
-		ch, cancel := m.runner(goal, mode)
+		ch, cancel := m.runner(sendGoal, mode)
 		m.agentEvents = ch
 		m.cancelRun = cancel
 		m.running = true
@@ -503,11 +539,10 @@ func (m Model) submit() (tea.Model, tea.Cmd) {
 		m.state = "running"
 		return m, waitAgent(ch)
 	}
-	// Synchronous path: shell mode, or when no runner is wired (e.g. unit tests).
 	reply := "(no responder configured)"
 	if m.respond != nil {
 		m.state = "running"
-		reply = m.respond(goal, mode)
+		reply = m.respond(sendGoal, mode)
 		m.state = "ready"
 	}
 	m.transcript = append(m.transcript, entry{"agent", reply})
@@ -575,7 +610,7 @@ func (m Model) bodyString() string {
 	// The splash is the start-screen greeting; it shows only until there is real content to display
 	// (a conversation turn OR any command output). It is also hidden while the palette is open or a
 	// sign-in is in flight, so the command list / progress messages and the prompt stay on screen.
-	showSplash := !m.hasContent() && m.menuKind() == "" && !m.atActive() && !m.authing
+	showSplash := !m.hasContent() && m.menuKind() == "" && !m.atActive() && !m.skillActive() && !m.authing
 	if showSplash {
 		b.WriteString(m.Splash(m.width))
 	}
@@ -616,6 +651,8 @@ func (m Model) footerString() string {
 		b.WriteString(m.renderPalette())
 	case m.atActive():
 		b.WriteString(m.renderAtMenu())
+	case m.skillActive():
+		b.WriteString(m.renderSkillMenu())
 	default:
 		// A thin rule + blank line give the compose area room to breathe, so it reads like a proper
 		// chat box separated from the conversation above (only when no overlay owns the space).

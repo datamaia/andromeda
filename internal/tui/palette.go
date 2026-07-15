@@ -29,6 +29,11 @@ type Actions struct {
 	Context    func(ctx context.Context) []string          // workspace context lines for the /status panel
 	Ontology   func(ctx context.Context, op string) string // op: build|show|rm — deterministic .ttl map
 	Graph      func(ctx context.Context, op string) string // op: build|open|show|rm — visual map + viewer
+	Skills     func(ctx context.Context) []SkillNote       // discovered skills for $-mention invocation
+	// Permission runs the /permission text subcommands (allow|deny <cmd>, rm <list> <cmd>, list);
+	// Permissions returns the current allow/deny policy for the interactive menu.
+	Permission  func(ctx context.Context, args string) string
+	Permissions func(ctx context.Context) PermissionView
 }
 
 // WithActions wires the app-backed slash-command handlers.
@@ -59,12 +64,13 @@ func commandRegistry() []slashCommand {
 		{name: "login", desc: "switch or sign in to a provider", aliases: []string{"signin"}, run: cmdLogin},
 		{name: "logout", desc: "sign out of the current provider", aliases: []string{"signout"}, run: cmdLogout},
 		{name: "config", desc: "show resolved configuration", run: cmdConfig},
+		{name: "permission", desc: "pre-approve or block shell commands (allow/deny)", aliases: []string{"perms", "allowlist"}, run: cmdPermission},
 		{name: "init", desc: "scaffold AGENTS.md, andromeda.toml, .agents/ and .andromeda/", run: cmdInit},
 		{name: "export", desc: "save the transcript to a file", run: cmdExport},
 		{name: "doctor", desc: "run environment checks", run: cmdDoctor},
 		{name: "update", desc: "check for updates", run: cmdUpdate},
 		{name: "memory", desc: "manage workspace memory", aliases: []string{"mem"}, run: cmdMemory},
-		{name: "workflows", desc: "list SDD workflows", aliases: []string{"workflow"}, run: cmdWorkflows},
+		{name: "workflows", desc: "run step-by-step workflow recipes", aliases: []string{"workflow"}, run: cmdWorkflows},
 		{name: "ontology", desc: "build/inspect the workspace ontology (.ttl)", aliases: []string{"onto", "ttl"}, run: cmdOntology},
 		{name: "graph", desc: "build/serve a visual graph of the workspace", aliases: []string{"viz"}, run: cmdGraph},
 		{name: "mcp", desc: "manage MCP servers", run: cmdMCP},

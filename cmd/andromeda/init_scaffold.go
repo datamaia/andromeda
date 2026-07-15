@@ -250,7 +250,7 @@ const agentsDirReadme = `# .agents/
 
 Home for this project's agent capabilities, shared by Andromeda and compatible AGENTS.md tools.
 
-- ` + "`skills/`" + `   — reusable skills; one per directory, described by a ` + "`skill.toml`" + ` manifest.
+- ` + "`skills/`" + `   — reusable skills; one per directory, described by a ` + "`SKILL.md`" + ` manifest (YAML frontmatter + instructions; ` + "`skill.toml`" + ` also accepted).
 - ` + "`commands/`" + ` — custom slash commands as Markdown templates ($ARGUMENTS, $1..$9).
 - ` + "`mcp/`" + `      — Model Context Protocol server definitions (also configurable in andromeda.toml [mcp]).
 

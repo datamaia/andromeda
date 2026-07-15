@@ -16,6 +16,7 @@ type CollectionEntry struct {
 	Title  string // display name (e.g. "web-search@1.2.0")
 	Detail string // one-line description
 	Path   string // file backing the entry, if any (shown so the user can find/edit it)
+	Body   string // runnable content (a workflow recipe); when set, the detail view offers "Run"
 }
 
 // CollectionView is a collection's contents plus the copy for its empty and create affordances.
@@ -34,9 +35,9 @@ type collectionMeta struct {
 }
 
 var collectionKinds = map[string]collectionMeta{
-	"skills":    {"skills", "Skills", "skill", "Create a new skill under .agents/skills/ that "},
+	"skills":    {"skills", "Skills", "skill", "Create a skill at .agents/skills/<name>/SKILL.md with YAML frontmatter (name, description) and the instructions in the body. The skill should "},
 	"mcp":       {"mcp", "MCP servers", "MCP server", "Add an MCP server to andromeda.toml that "},
-	"workflows": {"workflows", "Workflows", "workflow", "Create a workflow that "},
+	"workflows": {"workflows", "Workflows", "workflow", "Create a workflow at .agents/workflows/<name>.md with YAML frontmatter (description) and numbered step-by-step instructions in the body. The workflow should "},
 	"plugins":   {"plugins", "Plugins", "plugin", "Add a plugin to andromeda.toml that "},
 }
 
@@ -83,6 +84,24 @@ func (m Model) openCollectionMenu(kind string) (tea.Model, tea.Cmd) {
 // "edit via chat" action.
 func (m Model) pushCollectionDetail(meta collectionMeta, e CollectionEntry) Model {
 	lvl := menuLevel{title: e.Title, hint: e.Detail}
+	// A runnable entry (a workflow recipe) leads with "Run": it closes the menu and sends the recipe
+	// to the agent as a goal, echoing only a short label so the transcript stays readable.
+	if e.Body != "" {
+		lvl.items = append(lvl.items, menuItem{
+			label: "▶ Run " + meta.singular,
+			desc:  "send this recipe to the agent now",
+			run: func(mm Model) (Model, tea.Cmd) {
+				mm = mm.closeMenu()
+				if mm.running {
+					return mm, nil
+				}
+				mm.scrollOffset = 0
+				mm.transcript = append(mm.transcript, entry{"user", "▶ " + meta.singular + ": " + e.Title})
+				tm, cmd := mm.dispatchGoal(e.Body, mm.modeOrDefault())
+				return tm.(Model), cmd
+			},
+		})
+	}
 	if e.Path != "" {
 		lvl.items = append(lvl.items, menuItem{label: "File", desc: e.Path}) // info row (nil run)
 	}

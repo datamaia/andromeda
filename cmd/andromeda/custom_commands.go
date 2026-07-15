@@ -12,10 +12,13 @@ import (
 // customCommandDirs are the workspace-relative directories scanned for user-authored slash commands,
 // in precedence order (first occurrence of a name wins). Each command is a Markdown file whose name
 // (without .md) is the command name; an optional YAML front matter supplies a description. Commands
-// are agent capabilities, so `.agents/commands` is the home; `.claude/commands` is kept for compat.
+// are agent capabilities, so `.agents/commands` is the home; `.andromeda/commands` is the local
+// surface, and `.claude`/`.codex` are recognized for cross-tool compatibility.
 var customCommandDirs = []string{
 	".agents/commands",
+	".andromeda/commands",
 	".claude/commands",
+	".codex/commands",
 }
 
 // discoverCustomCommands loads user-defined slash commands from the workspace. Templates support
