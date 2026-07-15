@@ -112,6 +112,10 @@ type Model struct {
 	// color theme name ("dark" | "light"), switched live by /theme.
 	theme string
 
+	// showDetails toggles verbose tool logging (/details): when on, each tool step shows its full
+	// input and a longer result excerpt instead of the compact one-line summary. Session-local.
+	showDetails bool
+
 	// user-authored slash commands (/W5), discovered by the driver and merged into the palette.
 	customCommands []CustomCommand
 
@@ -270,6 +274,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.showModelPicker(msg.models)
 	case noticeMsg:
 		return m.sys(msg.text), nil
+	case EditorMsg:
+		return m.applyEditor(msg)
 	case tea.PasteMsg:
 		return m.handlePaste(msg.Content)
 	case tea.MouseWheelMsg:

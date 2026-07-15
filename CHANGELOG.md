@@ -35,6 +35,11 @@ Deep session and context commands.
 - **`/share` and `/unshare`.** `/share` uploads the transcript as a **secret** GitHub gist via the
   `gh` CLI and prints the URL; `/unshare` deletes it again. The gist id is remembered per workspace.
   Both state plainly that content is uploaded, and never publish a public gist.
+- **`/details` verbose tool logging.** Toggle between the compact one-line tool log and a verbose
+  view that shows each tool call's full arguments and a longer result excerpt — useful for following
+  exactly what the agent did.
+- **`/editor`.** Compose your next prompt in `$EDITOR` (or `$VISUAL`): the composer's current text
+  seeds the buffer, and saving sends it as a goal — handy for long, multi-line instructions.
 
 ## [0.1.11] - 2026-07-15
 

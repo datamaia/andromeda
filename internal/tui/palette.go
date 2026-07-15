@@ -66,6 +66,10 @@ type Actions struct {
 	Advisor func(ctx context.Context, args string) string
 	Share   func(lines []string) string
 	Unshare func(ctx context.Context) string
+	// Editor (/editor) returns a command that suspends the TUI, runs $EDITOR on a temp file seeded
+	// with the composer text, and posts an EditorMsg with the composed prompt. The driver owns the
+	// process/filesystem work so the TUI stays exec-free.
+	Editor func(seed string) tea.Cmd
 }
 
 // WithActions wires the app-backed slash-command handlers.
@@ -86,6 +90,8 @@ func commandRegistry() []slashCommand {
 		{name: "help", desc: "getting started, modes, and keybindings", aliases: []string{"?"}, run: cmdHelp},
 		{name: "commands", desc: "every slash command with its aliases", run: cmdCommands},
 		{name: "keys", desc: "show keybindings", run: cmdKeys},
+		{name: "details", desc: "toggle verbose tool logging", aliases: []string{"verbose"}, run: cmdDetails},
+		{name: "editor", desc: "compose your next prompt in $EDITOR", run: cmdEditor},
 		{name: "clear", desc: "clear the conversation", aliases: []string{"reset", "new"}, run: cmdClear},
 		{name: "compact", desc: "summarize the conversation so far", aliases: []string{"summarize"}, run: cmdCompact},
 		{name: "autocompact", desc: "auto-summarize when the conversation grows large", run: cmdAutoCompact},
@@ -261,6 +267,8 @@ func argCandidates(name string) []string {
 		return []string{"on", "off", "status"}
 	case "advisor", "consult":
 		return []string{"model"}
+	case "details", "verbose":
+		return []string{"on", "off"}
 	}
 	return nil
 }

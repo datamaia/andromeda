@@ -56,6 +56,7 @@ func (s *tuiSession) sessionActions() tui.Actions {
 		Advisor:       s.advisorAction,
 		Share:         s.shareAction,
 		Unshare:       s.unshareAction,
+		Editor:        s.editorAction,
 	}
 }
 
