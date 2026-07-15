@@ -57,6 +57,8 @@ func (s *tuiSession) sessionActions() tui.Actions {
 		Share:         s.shareAction,
 		Unshare:       s.unshareAction,
 		Editor:        s.editorAction,
+		Undo:          s.undoAction,
+		Redo:          s.redoAction,
 	}
 }
 

@@ -70,6 +70,10 @@ type Actions struct {
 	// with the composer text, and posts an EditorMsg with the composed prompt. The driver owns the
 	// process/filesystem work so the TUI stays exec-free.
 	Editor func(seed string) tea.Cmd
+	// Undo (/undo) reverts the working tree to the git snapshot taken before the last agent turn;
+	// Redo (/redo) re-applies it. Both return a status line.
+	Undo func(ctx context.Context) string
+	Redo func(ctx context.Context) string
 }
 
 // WithActions wires the app-backed slash-command handlers.
@@ -93,6 +97,8 @@ func commandRegistry() []slashCommand {
 		{name: "details", desc: "toggle verbose tool logging", aliases: []string{"verbose"}, run: cmdDetails},
 		{name: "editor", desc: "compose your next prompt in $EDITOR", run: cmdEditor},
 		{name: "clear", desc: "clear the conversation", aliases: []string{"reset", "new"}, run: cmdClear},
+		{name: "undo", desc: "revert the last change to the workspace", run: cmdUndo},
+		{name: "redo", desc: "re-apply a change reverted by /undo", run: cmdRedo},
 		{name: "compact", desc: "summarize the conversation so far", aliases: []string{"summarize"}, run: cmdCompact},
 		{name: "autocompact", desc: "auto-summarize when the conversation grows large", run: cmdAutoCompact},
 		{name: "status", desc: "show provider, model, mode, and session", run: cmdStatus},

@@ -58,6 +58,11 @@ type tuiSession struct {
 	// autoCompact mirrors the workspace setting (.andromeda/settings.toml): when true, the history is
 	// summarized before a turn once it grows past autoCompactTurns. Toggled by /autocompact.
 	autoCompact bool
+
+	// undoStack/redoStack hold git tree SHAs of working-tree checkpoints for /undo and /redo. A
+	// pre-turn snapshot is pushed to undoStack before each agent turn; only touched on the UI thread.
+	undoStack []string
+	redoStack []string
 }
 
 func (s *tuiSession) build() error {

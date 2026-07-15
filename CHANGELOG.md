@@ -8,6 +8,14 @@ Commit history by the release automation (ADR-013) and committed at release time
 
 ## [Unreleased]
 
+### Added
+
+- **`/undo` and `/redo`.** The workspace is snapshotted (a git tree object, via a throwaway index —
+  your real index, branch, and stash are never touched) before each agent turn, so `/undo` reverts
+  that turn's file changes: edits roll back, deleted files return, and files the agent created are
+  removed — while `.gitignored` files are left strictly alone. `/redo` re-applies. Requires a git
+  repository; both are refused mid-run so a restore never races the agent's own writes.
+
 ## [0.1.12] - 2026-07-15
 
 Deep session and context commands.

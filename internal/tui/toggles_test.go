@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"context"
 	"errors"
 	"strings"
 	"testing"
@@ -104,5 +105,36 @@ func TestApplyEditor(t *testing.T) {
 	nm, _ = running.applyEditor(EditorMsg{Text: "x"})
 	if !strings.Contains(lastText(nm.(Model)), "finish the current run") {
 		t.Fatalf("editor mid-run: %q", lastText(nm.(Model)))
+	}
+}
+
+func TestCmdUndoRedo(t *testing.T) {
+	m := New("ollama", "llama3", nil).WithActions(Actions{
+		Undo: func(_ context.Context) string { return "undo · reverted the workspace" },
+		Redo: func(_ context.Context) string { return "redo · re-applied the change" },
+	})
+	if nm, _ := cmdUndo(m, ""); !strings.Contains(lastText(nm.(Model)), "reverted") {
+		t.Fatalf("undo: %q", lastText(nm.(Model)))
+	}
+	if nm, _ := cmdRedo(m, ""); !strings.Contains(lastText(nm.(Model)), "re-applied") {
+		t.Fatalf("redo: %q", lastText(nm.(Model)))
+	}
+	// Refused mid-run so a restore never races the agent's writes.
+	m.running = true
+	if nm, _ := cmdUndo(m, ""); !strings.Contains(lastText(nm.(Model)), "interrupt the current run") {
+		t.Fatalf("undo mid-run: %q", lastText(nm.(Model)))
+	}
+	if nm, _ := cmdRedo(m, ""); !strings.Contains(lastText(nm.(Model)), "interrupt the current run") {
+		t.Fatalf("redo mid-run: %q", lastText(nm.(Model)))
+	}
+}
+
+func TestCmdUndoRedoUnavailable(t *testing.T) {
+	m := New("ollama", "llama3", nil)
+	if nm, _ := cmdUndo(m, ""); !strings.Contains(lastText(nm.(Model)), "not available") {
+		t.Fatalf("undo unavailable: %q", lastText(nm.(Model)))
+	}
+	if nm, _ := cmdRedo(m, ""); !strings.Contains(lastText(nm.(Model)), "not available") {
+		t.Fatalf("redo unavailable: %q", lastText(nm.(Model)))
 	}
 }
