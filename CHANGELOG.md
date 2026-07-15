@@ -8,6 +8,8 @@ Commit history by the release automation (ADR-013) and committed at release time
 
 ## [Unreleased]
 
+## [0.1.12] - 2026-07-15
+
 Deep session and context commands.
 
 ### Added
