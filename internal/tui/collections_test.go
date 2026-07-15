@@ -11,7 +11,7 @@ import (
 // With no entries, a collection menu shows a friendly empty state and still offers "Create".
 func TestCollectionEmptyState(t *testing.T) {
 	m := New("ollama", "llama3", nil).WithActions(Actions{
-		Collection: func(_ context.Context, kind string) CollectionView {
+		Collection: func(_ context.Context, _ string) CollectionView {
 			return CollectionView{Empty: "No skills yet.", Create: "they live under .agents/skills/"}
 		},
 	})
@@ -37,14 +37,14 @@ func TestCollectionEmptyState(t *testing.T) {
 // Existing entries are listed and can be drilled into (breadcrumb + detail), and esc goes back.
 func TestCollectionListAndDrillIn(t *testing.T) {
 	m := New("ollama", "llama3", nil).WithActions(Actions{
-		Collection: func(_ context.Context, kind string) CollectionView {
+		Collection: func(_ context.Context, _ string) CollectionView {
 			return CollectionView{Entries: []CollectionEntry{
 				{Title: "web-search@1.0.0", Detail: "search the web", Path: ".agents/skills/web-search"},
 			}}
 		},
 	})
 	nm, _ := cmdSkills(m, "")
-	var tm tea.Model = nm
+	tm := nm
 	// First item is the entry; drill in.
 	tm, _ = tm.Update(key(tea.KeyEnter))
 	got := tm.(Model)
@@ -74,7 +74,7 @@ func TestCollectionListAndDrillIn(t *testing.T) {
 // "Create via chat" seeds the prompt for the agent and closes the menu.
 func TestCollectionCreateSeedsPrompt(t *testing.T) {
 	m := New("ollama", "llama3", nil).WithActions(Actions{
-		Collection: func(_ context.Context, kind string) CollectionView { return CollectionView{} },
+		Collection: func(_ context.Context, _ string) CollectionView { return CollectionView{} },
 	})
 	nm, _ := cmdSkills(m, "")
 	// The only item is Create; select it.

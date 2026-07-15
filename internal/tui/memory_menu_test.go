@@ -61,7 +61,7 @@ func TestMemoryMenuListDrillAndDelete(t *testing.T) {
 		},
 	})
 	nm, _ := cmdMemory(m, "")
-	var tm tea.Model = nm
+	tm := nm
 	tm, _ = tm.Update(key(tea.KeyEnter)) // drill into the note
 	got := tm.(Model)
 	if len(got.menu) != 2 || got.menu[1].title != "Auth chunking" {
