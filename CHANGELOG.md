@@ -8,6 +8,30 @@ Commit history by the release automation (ADR-013) and committed at release time
 
 ## [Unreleased]
 
+## [0.1.9] - 2026-07-15
+
+Provider reach and command-parity groundwork.
+
+### Added
+
+- **AWS Kiro provider.** A new `kiro` provider reaches AWS Kiro's models through a local
+  OpenAI-compatible gateway (kiro-gateway) using your Kiro / AWS Builder ID sign-in, with its model
+  list (Claude Sonnet 4.5/4, Claude Haiku 4.5, GLM-5, DeepSeek-V3.2, MiniMax M2.5/M2.1,
+  Qwen3-Coder-Next) selectable even before the gateway is running. Kiro exposes no official public
+  API; this path is unofficial, and Amazon Bedrock is the sanctioned alternative for the same models.
+- **Working-directory commands.** `/add-dir <path>` adds an extra directory whose files join
+  `@`-mention completion; `/cd <path>` moves the session's working directory, updating the header and
+  refreshing file/skill completion.
+- **Command aliases.** `/new` (→ clear), `/models` (→ model), `/summarize` (→ compact).
+
+### Changed
+
+- **`/help` and `/commands` are now distinct.** `/help` is an orientation guide (modes, the `/ @ $`
+  sigils, keybindings); `/commands` is the exhaustive reference with each command's aliases.
+- **A "thinking" animation.** The header shows a calmer, distinct spinner while the model reasons
+  between steps — separate from the busy "working" spin (a tool executing) and "responding"
+  (streaming) — so a multi-step turn reads clearly.
+
 ## [0.1.8] - 2026-07-15
 
 Skills, workflows, and command permissions.

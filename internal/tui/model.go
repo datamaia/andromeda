@@ -209,9 +209,32 @@ func spinnerTick() tea.Cmd {
 
 var spinnerFrames = []string{"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"}
 
-// spinnerFrame is the current spinner glyph.
+// thinkingFrames is a distinct, calmer animation for the reasoning phases — a single dot orbiting,
+// which reads as "pondering" rather than the busy full-braille spin used while a tool executes or
+// text streams. It marks the between-steps thinking that dominates a multi-tool turn.
+var thinkingFrames = []string{"⠈", "⠐", "⠠", "⢀", "⡀", "⠄", "⠂", "⠁"}
+
+// spinnerFrame is the current spinner glyph, chosen by run phase: the orbiting "thinking" dot while
+// the model reasons, the busy braille spin while a tool runs or text streams.
 func (m Model) spinnerFrame() string {
+	if _, thinking := m.runPhase(); thinking {
+		return thinkingFrames[m.spinner%len(thinkingFrames)]
+	}
 	return spinnerFrames[m.spinner%len(spinnerFrames)]
+}
+
+// runPhase maps the run state to a human label and whether it is a "thinking" (reasoning) phase.
+// A turn alternates thinking → working (tool) → thinking → … → responding (streamed answer), so the
+// header animation reflects what the agent is actually doing across a multi-step thread.
+func (m Model) runPhase() (label string, thinking bool) {
+	switch m.state {
+	case "streaming":
+		return "responding", false
+	case "working":
+		return "working", false
+	default: // "running" at turn start, "thinking" after a tool result
+		return "thinking", true
+	}
 }
 
 // Init implements tea.Model. It starts the status-bar clock (once per second) and the fluid
@@ -637,10 +660,7 @@ func (m Model) bodyString() string {
 func (m Model) footerString() string {
 	var b strings.Builder
 	if m.running {
-		status := "working"
-		if m.state == "streaming" {
-			status = "responding"
-		}
+		status, _ := m.runPhase()
 		b.WriteString(m.wrap(m.styles.Agent.Render(m.spinnerFrame()+" ")+
 			m.styles.Muted.Render(status+m.runElapsed()+" · esc to interrupt")) + "\n")
 	}

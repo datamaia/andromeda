@@ -179,9 +179,11 @@ func (m Model) appendToolStep(t *ToolStep) Model {
 				m.transcript[m.toolIdx].text += "\n  ⎿  " + s
 			}
 		}
+		m.state = "thinking" // the tool is done; the model now reasons about the result
 	default: // "call"
 		m.transcript = append(m.transcript, entry{"tool", toolCallLabel(t.Name, t.Input)})
 		m.toolIdx = len(m.transcript) - 1
+		m.state = "working" // a tool is executing
 	}
 	m.streamIdx = -1 // the next content delta starts a new agent line below the log
 	return m

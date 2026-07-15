@@ -35,6 +35,7 @@ type ProviderInfo struct {
 	Reasoning    bool         // exposes configurable reasoning/effort (model-dependent)
 	DefaultModel string       // a sensible starting model ("" = user must choose / discover)
 	Note         string       // short description
+	Models       []string     // curated model list, surfaced when live /models discovery is unavailable
 }
 
 // catalog is ordered for display: local first, then hosted key-based providers.
@@ -94,6 +95,23 @@ var catalog = []ProviderInfo{
 		ID: "huggingface", Display: "Hugging Face", Kind: KindOpenAICompat,
 		BaseURL: "https://router.huggingface.co/v1", KeyEnv: "HF_TOKEN", KeyRequired: true,
 		Note: "Inference Providers router",
+	},
+	{
+		// AWS Kiro (the agentic IDE, successor to Amazon Q / CodeWhisperer) has no official public
+		// model-invocation API; its models run on the AWS CodeWhisperer/Q backend behind a Kiro / AWS
+		// Builder ID sign-in. In practice they are reached from third-party tools through a local
+		// OpenAI-compatible gateway (e.g. kiro-gateway on :8000) that presents Kiro's session as
+		// /v1/chat/completions. This entry points at that gateway; it is unofficial and depends on the
+		// user running the gateway with their own Kiro credentials. Amazon Bedrock is the official
+		// alternative for the same Claude/Nova models.
+		ID: "kiro", Display: "AWS Kiro (gateway)", Kind: KindOpenAICompat,
+		BaseURL: "http://localhost:8000/v1", KeyEnv: "KIRO_API_KEY", Local: true, Reasoning: true,
+		DefaultModel: "claude-sonnet-4-5",
+		Models: []string{
+			"claude-sonnet-4-5", "claude-haiku-4-5", "claude-sonnet-4",
+			"glm-5", "deepseek-v3.2", "minimax-m2.5", "minimax-m2.1", "qwen3-coder-next",
+		},
+		Note: "AWS Kiro models via a local OpenAI-compatible gateway (unofficial; needs kiro-gateway + your Kiro sign-in)",
 	},
 }
 

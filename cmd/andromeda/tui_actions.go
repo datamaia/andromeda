@@ -42,6 +42,8 @@ func (s *tuiSession) sessionActions() tui.Actions {
 		Skills:      s.skillListAction,
 		Permission:  s.permissionAction,
 		Permissions: s.permissionView,
+		AddDir:      s.addDirAction,
+		Cd:          s.cdAction,
 	}
 }
 
@@ -574,14 +576,14 @@ func (s *tuiSession) pluginCollection() tui.CollectionView {
 
 func (s *tuiSession) modelsAction(ctx context.Context) []string {
 	if s.prov == nil {
-		return nil
+		return s.fallbackModels()
 	}
 	// Bound discovery so a slow or unresponsive provider can't stall model selection.
 	ctx, cancel := context.WithTimeout(ctx, 8*time.Second)
 	defer cancel()
 	descs, err := s.prov.DiscoverModels(ctx)
 	if err != nil {
-		return nil
+		return s.fallbackModels()
 	}
 	ids := make([]string, 0, len(descs))
 	for _, d := range descs {
@@ -589,8 +591,21 @@ func (s *tuiSession) modelsAction(ctx context.Context) []string {
 			ids = append(ids, d.ID)
 		}
 	}
+	if len(ids) == 0 {
+		return s.fallbackModels()
+	}
 	sort.Strings(ids)
 	return ids
+}
+
+// fallbackModels returns the current provider's curated model list from the catalog, used when live
+// /models discovery is unavailable — e.g. Kiro, whose models are only reachable once its local
+// gateway is running, so the user can still see and pick them beforehand.
+func (s *tuiSession) fallbackModels() []string {
+	if info, ok := app.LookupProvider(s.cfg.provider); ok && len(info.Models) > 0 {
+		return append([]string(nil), info.Models...)
+	}
+	return nil
 }
 
 // chatModelUsable filters out models the agent cannot drive as a chat/completions model
