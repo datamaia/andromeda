@@ -51,6 +51,8 @@ func (s *tuiSession) sessionActions() tui.Actions {
 		Sessions:      s.sessionsAction,
 		SessionTree:   s.sessionTreeAction,
 		ResumeSession: s.resumeSessionAction,
+		Compact:       s.compactAction,
+		AutoCompact:   s.autoCompactAction,
 	}
 }
 

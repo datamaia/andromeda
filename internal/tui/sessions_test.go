@@ -129,3 +129,61 @@ func TestCmdSessionsUnavailable(t *testing.T) {
 		t.Fatalf("sessions unavailable: %q", lastText(nm.(Model)))
 	}
 }
+
+func TestCmdCompactAsync(t *testing.T) {
+	var called bool
+	m := New("ollama", "llama3", nil).WithActions(Actions{
+		Compact: func(_ context.Context) string { called = true; return "compacted 6 messages into a summary" },
+	})
+	nm, cmd := cmdCompact(m, "")
+	// It shows a progress line immediately and defers the real work to an off-thread command.
+	if !strings.Contains(lastText(nm.(Model)), "summarizing") {
+		t.Fatalf("compact progress line: %q", lastText(nm.(Model)))
+	}
+	if cmd == nil {
+		t.Fatal("compact must run off the UI thread")
+	}
+	msg := cmd() // execute the deferred work
+	if !called {
+		t.Fatal("compact action not invoked")
+	}
+	nt, ok := msg.(noticeMsg)
+	if !ok || !strings.Contains(nt.text, "compacted") {
+		t.Fatalf("compact result notice: %+v", msg)
+	}
+}
+
+func TestCmdCompactUnavailable(t *testing.T) {
+	m := New("ollama", "llama3", nil) // no Compact action
+	nm, _ := cmdCompact(m, "")
+	if !strings.Contains(lastText(nm.(Model)), "not available") {
+		t.Fatalf("compact unavailable: %q", lastText(nm.(Model)))
+	}
+}
+
+func TestCmdAutoCompact(t *testing.T) {
+	var got string
+	m := New("ollama", "llama3", nil).WithActions(Actions{
+		AutoCompact: func(_ context.Context, args string) string { got = args; return "autocompact ON" },
+	})
+	nm, _ := cmdAutoCompact(m, "on")
+	if got != "on" || !strings.Contains(lastText(nm.(Model)), "autocompact ON") {
+		t.Fatalf("autocompact: arg=%q out=%q", got, lastText(nm.(Model)))
+	}
+}
+
+func TestNoticeEventAppendsSystemLine(t *testing.T) {
+	m := New("ollama", "llama3", nil)
+	m.running = true
+	m.agentEvents = make(chan AgentEvent, 1)
+	nm, _ := m.handleAgentEvent(agentEventMsg{ev: AgentEvent{Notice: "auto-compact: trimmed"}})
+	var found bool
+	for _, e := range nm.(Model).transcript {
+		if e.role == "system" && strings.Contains(e.text, "auto-compact: trimmed") {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatal("a Notice event should append a system line and keep the run alive")
+	}
+}

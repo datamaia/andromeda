@@ -21,6 +21,7 @@ type AgentEvent struct {
 	Delta     string           // a streamed chunk of assistant text (non-terminal)
 	Tool      *ToolStep        // a tool call starting or its result (non-terminal)
 	Approval  *ApprovalRequest // non-nil: the run is paused until the user answers
+	Notice    string           // an out-of-band system note during a run (e.g. auto-compaction); non-terminal
 	Final     string           // the run's final text (terminal, when the others are unset)
 	Err       error            // the run failed (terminal)
 	InTokens  int              // input tokens consumed by the run (reported on the terminal event)
@@ -128,6 +129,9 @@ func (m Model) handleAgentEvent(msg agentEventMsg) (tea.Model, tea.Cmd) {
 		m.approvalCursor = 0
 		m.state = "awaiting approval"
 		return m, nil // wait for the user; do not re-subscribe yet
+	case msg.ev.Notice != "":
+		m.transcript = append(m.transcript, entry{"system", msg.ev.Notice})
+		return m, waitAgent(m.agentEvents)
 	}
 	// terminal event: canonicalize the streamed line (or append the result), then settle.
 	if msg.ev.Err != nil {

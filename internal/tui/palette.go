@@ -54,6 +54,11 @@ type Actions struct {
 	// ResumeSession (/sessions resume <id>) swaps the live conversation to a saved session. It
 	// returns the transcript entries to re-seed, ok=false with a status on failure.
 	ResumeSession func(ctx context.Context, id string) (entries []HistoryEntry, ok bool, status string)
+	// Compact (/compact) summarizes the conversation via the provider and replaces the agent's
+	// cross-turn context with the summary; it returns a status line and may block on the network, so
+	// callers run it off the UI thread. AutoCompact (/autocompact) toggles automatic compaction.
+	Compact     func(ctx context.Context) string
+	AutoCompact func(ctx context.Context, args string) string
 }
 
 // WithActions wires the app-backed slash-command handlers.
@@ -76,6 +81,7 @@ func commandRegistry() []slashCommand {
 		{name: "keys", desc: "show keybindings", run: cmdKeys},
 		{name: "clear", desc: "clear the conversation", aliases: []string{"reset", "new"}, run: cmdClear},
 		{name: "compact", desc: "summarize the conversation so far", aliases: []string{"summarize"}, run: cmdCompact},
+		{name: "autocompact", desc: "auto-summarize when the conversation grows large", run: cmdAutoCompact},
 		{name: "status", desc: "show provider, model, mode, and session", run: cmdStatus},
 		{name: "add-dir", desc: "add a working directory to the session", run: cmdAddDir},
 		{name: "cd", desc: "change the session working directory", run: cmdCd},
@@ -241,6 +247,8 @@ func argCandidates(name string) []string {
 		return []string{"build", "open", "show", "adjust", "rm"}
 	case "sessions", "session":
 		return []string{"list", "resume", "rm"}
+	case "autocompact":
+		return []string{"on", "off", "status"}
 	}
 	return nil
 }
@@ -548,15 +556,26 @@ func cmdClear(m Model, _ string) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+// cmdCompact summarizes the conversation for real: the driver asks the provider to condense the
+// history and replaces the agent's cross-turn context with the summary. The call may hit the
+// network, so it runs off the UI thread and reports the result as a notice.
 func cmdCompact(m Model, _ string) (tea.Model, tea.Cmd) {
-	n := 0
-	for _, e := range m.transcript {
-		if e.role == "user" || e.role == "agent" {
-			n++
-		}
+	if m.actions.Compact == nil {
+		return m.unavailable("compact"), nil
 	}
-	m.transcript = []entry{{"system", fmt.Sprintf("conversation compacted (%d messages summarized)", n)}}
-	return m, nil
+	fn := m.actions.Compact
+	return m.sys("summarizing the conversation…"), func() tea.Msg {
+		return noticeMsg{text: fn(context.Background())}
+	}
+}
+
+// cmdAutoCompact toggles automatic compaction (persisted per workspace). Grammar: on | off | status
+// | (bare toggles).
+func cmdAutoCompact(m Model, args string) (tea.Model, tea.Cmd) {
+	if m.actions.AutoCompact == nil {
+		return m.unavailable("autocompact"), nil
+	}
+	return m.sys(m.actions.AutoCompact(context.Background(), strings.TrimSpace(args))), nil
 }
 
 func cmdStatus(m Model, args string) (tea.Model, tea.Cmd) {

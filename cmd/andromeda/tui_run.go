@@ -22,6 +22,13 @@ func (s *tuiSession) startAgentRun(goal, mode string) (<-chan tui.AgentEvent, fu
 	go func() {
 		defer close(events)
 		defer cancel()
+		// Auto-compact a grown conversation before the turn so the run proceeds with bounded context.
+		// It happens here (off the UI thread) and surfaces a notice so the trim is never silent.
+		if mode != "shell" {
+			if notice := s.maybeAutoCompact(runCtx); notice != "" {
+				events <- tui.AgentEvent{Notice: notice}
+			}
+		}
 		opts := app.RunAgentOptions{
 			WorkspaceRoot: s.wd, Goal: goal, Model: s.cfg.model, Effort: s.cfg.effort,
 			History: s.history, Provider: s.prov,

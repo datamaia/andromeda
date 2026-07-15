@@ -21,6 +21,13 @@ Deep session and context commands.
 - **`/btw` notes.** `/btw <note>` queues an out-of-band "by the way" that is folded into your next
   message to the agent — context without triggering a reply now. Multiple notes stack and clear once
   sent.
+- **Real conversation compaction.** `/compact` now actually summarizes: it asks the provider to
+  condense the conversation and replaces the agent's cross-turn context with the summary (encoded as
+  a valid user→assistant pair, so strict-alternation providers keep working), trimming token cost
+  while preserving decisions, changes, and open tasks. It runs off the UI thread.
+- **`/autocompact`.** Toggle automatic compaction (persisted per workspace in
+  `.andromeda/settings.toml`): once a conversation grows past a turn threshold, it is summarized
+  before the next turn, with a visible notice so the trim is never silent.
 
 ## [0.1.11] - 2026-07-15
 
