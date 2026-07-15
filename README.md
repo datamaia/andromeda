@@ -37,8 +37,13 @@ provider; your credentials stay in your OS keychain and never leave your machine
 brew install datamaia/tap/andromeda
 ```
 
-Homebrew taps the formula, verifies the checksum, and installs `andromeda` onto your `PATH`.
+Homebrew taps the cask, verifies the checksum, and links `andromeda` onto your `PATH`.
 Upgrade later with `brew upgrade andromeda`.
+
+> **Untrusted tap?** Recent Homebrew versions ask you to trust a third-party tap before
+> installing its casks. If you see `Refusing to load cask … from untrusted tap`, run
+> `brew trust datamaia/tap` once, then re-run the install. (The `curl` script below needs no
+> trust step.)
 
 ### Linux / macOS (script)
 
