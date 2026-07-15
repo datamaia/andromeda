@@ -59,6 +59,13 @@ type Actions struct {
 	// callers run it off the UI thread. AutoCompact (/autocompact) toggles automatic compaction.
 	Compact     func(ctx context.Context) string
 	AutoCompact func(ctx context.Context, args string) string
+	// Advisor (/advisor) consults a second/stronger model for a one-off opinion without adding it to
+	// the conversation; args is the question or a "model <name>" subcommand. Share (/share) uploads
+	// the transcript as a secret gist; Unshare (/unshare) deletes the last one. All may hit the
+	// network, so callers run them off the UI thread.
+	Advisor func(ctx context.Context, args string) string
+	Share   func(lines []string) string
+	Unshare func(ctx context.Context) string
 }
 
 // WithActions wires the app-backed slash-command handlers.
@@ -100,6 +107,9 @@ func commandRegistry() []slashCommand {
 		{name: "permission", desc: "pre-approve or block shell commands (allow/deny)", aliases: []string{"perms", "allowlist"}, run: cmdPermission},
 		{name: "init", desc: "scaffold AGENTS.md, andromeda.toml, .agents/ and .andromeda/", run: cmdInit},
 		{name: "export", desc: "save the transcript to a file", run: cmdExport},
+		{name: "advisor", desc: "ask a stronger model for a second opinion", aliases: []string{"consult"}, run: cmdAdvisor},
+		{name: "share", desc: "upload the transcript as a secret gist", run: cmdShare},
+		{name: "unshare", desc: "delete the gist made by /share", run: cmdUnshare},
 		{name: "doctor", desc: "run environment checks", run: cmdDoctor},
 		{name: "update", desc: "check for updates", run: cmdUpdate},
 		{name: "memory", desc: "manage workspace memory", aliases: []string{"mem"}, run: cmdMemory},
@@ -249,6 +259,8 @@ func argCandidates(name string) []string {
 		return []string{"list", "resume", "rm"}
 	case "autocompact":
 		return []string{"on", "off", "status"}
+	case "advisor", "consult":
+		return []string{"model"}
 	}
 	return nil
 }

@@ -4,6 +4,8 @@ import (
 	"context"
 	"strings"
 	"testing"
+
+	tea "charm.land/bubbletea/v2"
 )
 
 func TestCmdBtwQueuesNote(t *testing.T) {
@@ -185,5 +187,69 @@ func TestNoticeEventAppendsSystemLine(t *testing.T) {
 	}
 	if !found {
 		t.Fatal("a Notice event should append a system line and keep the run alive")
+	}
+}
+
+func TestCmdAdvisorSyncAndAsync(t *testing.T) {
+	calls := 0
+	m := New("ollama", "llama3", nil).WithActions(Actions{
+		Advisor: func(_ context.Context, args string) string {
+			calls++
+			if strings.HasPrefix(args, "model") {
+				return "advisor model set"
+			}
+			return "advisor · x\n\nuse a queue"
+		},
+	})
+	// Config subcommand is synchronous (no provider call → no deferred cmd).
+	nm, cmd := cmdAdvisor(m, "model big")
+	if cmd != nil || !strings.Contains(lastText(nm.(Model)), "advisor model set") {
+		t.Fatalf("advisor model should be sync: cmd=%v out=%q", cmd, lastText(nm.(Model)))
+	}
+	// A real question runs off-thread.
+	nm, cmd = cmdAdvisor(m, "should I shard?")
+	if cmd == nil || !strings.Contains(lastText(nm.(Model)), "consulting") {
+		t.Fatalf("advisor question should be async: %q", lastText(nm.(Model)))
+	}
+	msg := cmd()
+	if nt, ok := msg.(noticeMsg); !ok || !strings.Contains(nt.text, "use a queue") {
+		t.Fatalf("advisor notice: %+v", msg)
+	}
+}
+
+func TestCmdShareUnshareAsync(t *testing.T) {
+	var shared, unshared bool
+	m := New("ollama", "llama3", nil).WithActions(Actions{
+		Share:   func(_ []string) string { shared = true; return "shared as gist" },
+		Unshare: func(_ context.Context) string { unshared = true; return "deleted gist" },
+	})
+	nm, cmd := cmdShare(m, "")
+	if cmd == nil || !strings.Contains(lastText(nm.(Model)), "uploading") {
+		t.Fatalf("share should be async: %q", lastText(nm.(Model)))
+	}
+	if nt, ok := cmd().(noticeMsg); !ok || !shared || !strings.Contains(nt.text, "shared") {
+		t.Fatalf("share notice: shared=%v", shared)
+	}
+	nm, cmd = cmdUnshare(m, "")
+	if cmd == nil || !strings.Contains(lastText(nm.(Model)), "removing") {
+		t.Fatalf("unshare should be async: %q", lastText(nm.(Model)))
+	}
+	if nt, ok := cmd().(noticeMsg); !ok || !unshared || !strings.Contains(nt.text, "deleted") {
+		t.Fatalf("unshare notice: unshared=%v", unshared)
+	}
+}
+
+func TestCmdAdvisorShareUnavailable(t *testing.T) {
+	m := New("ollama", "llama3", nil)
+	for _, tc := range []struct {
+		name string
+		fn   func(Model, string) (tea.Model, tea.Cmd)
+	}{
+		{"advisor", cmdAdvisor}, {"share", cmdShare}, {"unshare", cmdUnshare},
+	} {
+		nm, _ := tc.fn(m, "")
+		if !strings.Contains(lastText(nm.(Model)), "not available") {
+			t.Fatalf("%s unavailable: %q", tc.name, lastText(nm.(Model)))
+		}
 	}
 }

@@ -28,6 +28,13 @@ Deep session and context commands.
 - **`/autocompact`.** Toggle automatic compaction (persisted per workspace in
   `.andromeda/settings.toml`): once a conversation grows past a turn threshold, it is summarized
   before the next turn, with a visible notice so the trim is never silent.
+- **`/advisor` — a second opinion.** `/advisor <question>` consults a stronger model for focused
+  review (risks, better approaches, trade-offs) using the current conversation as context, without
+  adding the exchange to the agent's history. `/advisor model <name>` pins the model to consult
+  (must be served by the current provider); persisted per workspace.
+- **`/share` and `/unshare`.** `/share` uploads the transcript as a **secret** GitHub gist via the
+  `gh` CLI and prints the URL; `/unshare` deletes it again. The gist id is remembered per workspace.
+  Both state plainly that content is uploaded, and never publish a public gist.
 
 ## [0.1.11] - 2026-07-15
 

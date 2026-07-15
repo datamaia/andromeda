@@ -25,6 +25,10 @@ type Settings struct {
 	// AutoCompact summarizes the conversation automatically once it grows large, before the next
 	// agent turn, to keep the context (and token cost) bounded. Toggled by /autocompact.
 	AutoCompact bool `toml:"auto_compact"`
+	// AdvisorModel is the model /advisor consults for a second opinion; empty means the current model.
+	AdvisorModel string `toml:"advisor_model"`
+	// LastGist is the id of the most recent gist created by /share, so /unshare can delete it.
+	LastGist string `toml:"last_gist"`
 }
 
 // file wraps Settings under a [settings] table for a self-describing on-disk layout.

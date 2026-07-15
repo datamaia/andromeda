@@ -74,3 +74,42 @@ func cmdSessions(m Model, args string) (tea.Model, tea.Cmd) {
 	}
 	return m.sys(m.actions.Sessions(context.Background(), args)), nil
 }
+
+// cmdAdvisor (/advisor) consults a second opinion. Config/usage replies are synchronous; a real
+// question hits the provider, so it runs off the UI thread and reports back as a notice.
+func cmdAdvisor(m Model, args string) (tea.Model, tea.Cmd) {
+	if m.actions.Advisor == nil {
+		return m.unavailable("advisor"), nil
+	}
+	q := strings.TrimSpace(args)
+	fn := m.actions.Advisor
+	if q == "" || q == "model" || strings.HasPrefix(q, "model ") {
+		return m.sys(fn(context.Background(), q)), nil
+	}
+	return m.sys("consulting the advisor…"), func() tea.Msg {
+		return noticeMsg{text: fn(context.Background(), q)}
+	}
+}
+
+// cmdShare (/share) uploads the transcript as a secret gist off the UI thread.
+func cmdShare(m Model, _ string) (tea.Model, tea.Cmd) {
+	if m.actions.Share == nil {
+		return m.unavailable("share"), nil
+	}
+	lines := m.Transcript()
+	fn := m.actions.Share
+	return m.sys("uploading transcript to a secret gist…"), func() tea.Msg {
+		return noticeMsg{text: fn(lines)}
+	}
+}
+
+// cmdUnshare (/unshare) deletes the gist created by /share off the UI thread.
+func cmdUnshare(m Model, _ string) (tea.Model, tea.Cmd) {
+	if m.actions.Unshare == nil {
+		return m.unavailable("unshare"), nil
+	}
+	fn := m.actions.Unshare
+	return m.sys("removing shared gist…"), func() tea.Msg {
+		return noticeMsg{text: fn(context.Background())}
+	}
+}
