@@ -42,6 +42,8 @@ func (s *tuiSession) sessionActions() tui.Actions {
 		Skills:      s.skillListAction,
 		Permission:  s.permissionAction,
 		Permissions: s.permissionView,
+		AddDir:      s.addDirAction,
+		Cd:          s.cdAction,
 	}
 }
 

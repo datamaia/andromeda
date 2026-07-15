@@ -45,6 +45,10 @@ type tuiSession struct {
 	// graphURL is the address of the graph viewer once /graph open has started it; empty until then.
 	// The server runs for the program lifetime (bound to s.ctx), so a second open just reopens it.
 	graphURL string
+
+	// extraDirs are additional working directories added with /add-dir; their files join @-mention
+	// completion alongside the primary workspace (s.wd).
+	extraDirs []string
 }
 
 func (s *tuiSession) build() error {
@@ -118,6 +122,9 @@ func gitBranch(ctx context.Context, wd string) string {
 // count. Best-effort — git failures simply omit those lines.
 func (s *tuiSession) contextAction(ctx context.Context) []string {
 	lines := []string{fmt.Sprintf("%-12s%s", "workspace", s.wd)}
+	for _, d := range s.extraDirs {
+		lines = append(lines, fmt.Sprintf("%-12s%s", "+dir", d))
+	}
 	if b := gitBranch(ctx, s.wd); b != "" {
 		lines = append(lines, fmt.Sprintf("%-12s%s", "branch", b))
 	}
@@ -240,15 +247,30 @@ func messageText(m ports.Message) string {
 // ls-files` (fast, honors .gitignore) and falls back to a bounded directory walk that skips VCS and
 // dependency directories.
 func (s *tuiSession) listFiles(ctx context.Context) []string {
-	if out, err := exec.CommandContext(ctx, "git", "-C", s.wd, "ls-files").Output(); err == nil { //nolint:gosec // fixed 'git' command; s.wd is the workspace path
+	files := filesIn(ctx, s.wd, "")
+	// Files from each /add-dir directory join the list, prefixed by the directory's base name so they
+	// are distinguishable and usable as @-mentions.
+	for _, dir := range s.extraDirs {
+		files = append(files, filesIn(ctx, dir, filepath.Base(dir)+"/")...)
+	}
+	return files
+}
+
+// filesIn lists a directory's files (git ls-files when it is a repo, else a bounded walk), each
+// prefixed with prefix. Directories that only add noise are skipped in the walk fallback.
+func filesIn(ctx context.Context, dir, prefix string) []string {
+	if out, err := exec.CommandContext(ctx, "git", "-C", dir, "ls-files").Output(); err == nil { //nolint:gosec // fixed 'git' command; dir is a workspace path
 		lines := strings.Split(strings.TrimSpace(string(out)), "\n")
 		if len(lines) > 0 && lines[0] != "" {
+			for i := range lines {
+				lines[i] = prefix + lines[i]
+			}
 			return lines
 		}
 	}
 	const maxFiles = 20000
 	var files []string
-	_ = filepath.WalkDir(s.wd, func(p string, d os.DirEntry, err error) error {
+	_ = filepath.WalkDir(dir, func(p string, d os.DirEntry, err error) error {
 		if err != nil {
 			return nil
 		}
@@ -259,8 +281,8 @@ func (s *tuiSession) listFiles(ctx context.Context) []string {
 			}
 			return nil
 		}
-		if rel, err := filepath.Rel(s.wd, p); err == nil {
-			files = append(files, rel)
+		if rel, err := filepath.Rel(dir, p); err == nil {
+			files = append(files, prefix+rel)
 		}
 		if len(files) >= maxFiles {
 			return filepath.SkipAll
@@ -268,6 +290,49 @@ func (s *tuiSession) listFiles(ctx context.Context) []string {
 		return nil
 	})
 	return files
+}
+
+// resolvePath resolves a possibly ~- or relative path against the current working directory.
+func (s *tuiSession) resolvePath(p string) string {
+	if strings.HasPrefix(p, "~/") {
+		if home, err := os.UserHomeDir(); err == nil {
+			p = filepath.Join(home, p[2:])
+		}
+	}
+	if filepath.IsAbs(p) {
+		return filepath.Clean(p)
+	}
+	return filepath.Join(s.wd, p)
+}
+
+// addDirAction backs /add-dir: it validates the path is a directory and adds it to the session's
+// extra working directories (de-duplicated).
+func (s *tuiSession) addDirAction(_ context.Context, path string) string {
+	abs := s.resolvePath(path)
+	if info, err := os.Stat(abs); err != nil || !info.IsDir() {
+		return "add-dir: not a directory: " + path
+	}
+	if abs == s.wd {
+		return "add-dir: that is already the working directory"
+	}
+	for _, d := range s.extraDirs {
+		if d == abs {
+			return "add-dir: already added: " + abs
+		}
+	}
+	s.extraDirs = append(s.extraDirs, abs)
+	return "added working directory: " + abs
+}
+
+// cdAction backs /cd: it validates the path is a directory and moves the session there, so later runs
+// and completions use the new root. Returns (resolvedDir, gitBranch, status); dir is empty on error.
+func (s *tuiSession) cdAction(ctx context.Context, path string) (string, string, string) {
+	abs := s.resolvePath(path)
+	if info, err := os.Stat(abs); err != nil || !info.IsDir() {
+		return "", "", "cd: not a directory: " + path
+	}
+	s.wd = abs
+	return abs, gitBranch(ctx, abs), "working directory → " + abs
 }
 
 // providerChoices adapts the app catalog into the TUI's menu entries.

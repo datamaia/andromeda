@@ -34,6 +34,11 @@ type Actions struct {
 	// Permissions returns the current allow/deny policy for the interactive menu.
 	Permission  func(ctx context.Context, args string) string
 	Permissions func(ctx context.Context) PermissionView
+	// AddDir adds an extra working directory (its files join @-mention completion); returns a status.
+	AddDir func(ctx context.Context, path string) string
+	// Cd changes the session working directory; returns (resolvedDir, gitBranch, status). resolvedDir
+	// is empty on error so the caller leaves the displayed workspace unchanged.
+	Cd func(ctx context.Context, path string) (dir, branch, status string)
 }
 
 // WithActions wires the app-backed slash-command handlers.
@@ -54,10 +59,12 @@ func commandRegistry() []slashCommand {
 		{name: "help", desc: "getting started, modes, and keybindings", aliases: []string{"?"}, run: cmdHelp},
 		{name: "commands", desc: "every slash command with its aliases", run: cmdCommands},
 		{name: "keys", desc: "show keybindings", run: cmdKeys},
-		{name: "clear", desc: "clear the conversation", aliases: []string{"reset"}, run: cmdClear},
-		{name: "compact", desc: "summarize the conversation so far", run: cmdCompact},
+		{name: "clear", desc: "clear the conversation", aliases: []string{"reset", "new"}, run: cmdClear},
+		{name: "compact", desc: "summarize the conversation so far", aliases: []string{"summarize"}, run: cmdCompact},
 		{name: "status", desc: "show provider, model, mode, and session", run: cmdStatus},
-		{name: "model", desc: "choose the model (/model <name> to set)", run: cmdModel},
+		{name: "add-dir", desc: "add a working directory to the session", run: cmdAddDir},
+		{name: "cd", desc: "change the session working directory", run: cmdCd},
+		{name: "model", desc: "choose the model (/model <name> to set)", aliases: []string{"models"}, run: cmdModel},
 		{name: "effort", desc: "reasoning effort (minimal|low|medium|high)", run: cmdEffort},
 		{name: "theme", desc: "color theme (dark|light)", run: cmdTheme},
 		{name: "provider", desc: "choose the provider", run: cmdProvider},

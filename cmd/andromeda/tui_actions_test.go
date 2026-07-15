@@ -132,6 +132,49 @@ func TestFallbackModelsKiro(t *testing.T) {
 	}
 }
 
+func TestAddDirAndCdActions(t *testing.T) {
+	wd := t.TempDir()
+	extra := t.TempDir()
+	if err := os.WriteFile(filepath.Join(extra, "note.txt"), []byte("hi"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	s := &tuiSession{wd: wd}
+
+	if msg := s.addDirAction(context.Background(), extra); !strings.Contains(msg, "added working directory") {
+		t.Fatalf("add-dir: %q", msg)
+	}
+	if len(s.extraDirs) != 1 {
+		t.Fatalf("extraDirs = %v", s.extraDirs)
+	}
+	if msg := s.addDirAction(context.Background(), extra); !strings.Contains(msg, "already added") {
+		t.Fatalf("add-dir dedup: %q", msg)
+	}
+	if msg := s.addDirAction(context.Background(), filepath.Join(wd, "nope")); !strings.Contains(msg, "not a directory") {
+		t.Fatalf("add-dir invalid: %q", msg)
+	}
+	// The extra directory's files join the @-mention list.
+	var found bool
+	for _, f := range s.listFiles(context.Background()) {
+		if strings.HasSuffix(f, "note.txt") {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatal("listFiles should include the extra directory's files")
+	}
+
+	dir, _, status := s.cdAction(context.Background(), extra)
+	if dir != extra || !strings.Contains(status, "working directory") {
+		t.Fatalf("cd: dir=%q status=%q", dir, status)
+	}
+	if s.wd != extra {
+		t.Fatalf("cd did not move wd: %q", s.wd)
+	}
+	if d, _, status := s.cdAction(context.Background(), filepath.Join(extra, "nope")); d != "" || !strings.Contains(status, "not a directory") {
+		t.Fatalf("cd invalid: d=%q status=%q", d, status)
+	}
+}
+
 func TestConfigStrings(t *testing.T) {
 	cases := []struct {
 		in   any
