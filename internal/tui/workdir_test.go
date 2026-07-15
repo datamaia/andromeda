@@ -34,6 +34,22 @@ func TestCmdCdError(t *testing.T) {
 	}
 }
 
+func TestClearResetsSession(t *testing.T) {
+	called := false
+	m := New("ollama", "llama3", nil).WithActions(Actions{
+		ResetSession: func(_ context.Context) { called = true },
+	})
+	m.transcript = append(m.transcript, entry{"user", "hi"}, entry{"agent", "yo"})
+	nm, _ := cmdClear(m, "")
+	if !called {
+		t.Fatal("/clear should reset the driver's cross-turn history, not just the display")
+	}
+	got := nm.(Model)
+	if len(got.transcript) != 1 || got.transcript[0].role != "system" {
+		t.Fatalf("/clear should leave a single system line, got %+v", got.transcript)
+	}
+}
+
 func TestCmdAddDirUsage(t *testing.T) {
 	m := New("ollama", "llama3", nil)
 	nm, _ := cmdAddDir(m, "")
