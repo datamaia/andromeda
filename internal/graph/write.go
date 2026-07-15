@@ -1,6 +1,7 @@
 package graph
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -8,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 
 	"github.com/datamaia/andromeda/internal/ontology"
 )
@@ -18,6 +20,7 @@ import (
 // graph along with the output directory.
 func Write(root string, m *ontology.Model) (*Graph, string, error) {
 	g := Build(m)
+	g.populateSummaries(root)
 	dir := Dir(root)
 
 	// Reset the group notes directory so removed groups don't leave orphan files behind.
@@ -44,6 +47,75 @@ func Write(root string, m *ontology.Model) (*Graph, string, error) {
 		return nil, "", err
 	}
 	return g, dir, nil
+}
+
+// populateSummaries reads a short head excerpt from each text file node and stores it as the node's
+// Summary, so the viewer can show an Obsidian-style preview on hover. Binary, oversized, and unreadable
+// files are skipped (Summary stays empty). Deterministic given file contents.
+func (g *Graph) populateSummaries(root string) {
+	for i := range g.Nodes {
+		n := &g.Nodes[i]
+		if n.Path == "" || !summarizableKind(n.Kind) {
+			continue
+		}
+		if s := fileSummary(filepath.Join(root, filepath.FromSlash(n.Path))); s != "" {
+			n.Summary = s
+		}
+	}
+}
+
+// summarizableKind reports whether a node kind is text worth previewing.
+func summarizableKind(kind string) bool {
+	switch kind {
+	case "doc", "code", "config", "data":
+		return true
+	}
+	return false
+}
+
+// fileSummary returns a one-line preview from the head of a text file: a frontmatter description when
+// present, else the first meaningful (de-marked, non-empty) line, capped in length. Binary files and
+// read errors yield "".
+func fileSummary(path string) string {
+	data, err := os.ReadFile(path) //nolint:gosec // path is a workspace-relative file under root
+	if err != nil {
+		return ""
+	}
+	if len(data) > 8192 {
+		data = data[:8192]
+	}
+	if bytes.IndexByte(data, 0) >= 0 { // NUL byte ⇒ treat as binary, skip
+		return ""
+	}
+	inFront := false
+	for i, raw := range strings.Split(string(data), "\n") {
+		line := strings.TrimSpace(raw)
+		if i == 0 && line == "---" { // YAML frontmatter opens
+			inFront = true
+			continue
+		}
+		if inFront {
+			if line == "---" {
+				inFront = false
+			} else if v, ok := strings.CutPrefix(line, "description:"); ok {
+				return clip(strings.Trim(strings.TrimSpace(v), `"'`), 160)
+			}
+			continue
+		}
+		if s := strings.TrimSpace(strings.TrimLeft(line, "#>/*-! \t")); s != "" {
+			return clip(s, 160)
+		}
+	}
+	return ""
+}
+
+// clip truncates s to at most n runes, appending an ellipsis when it was longer.
+func clip(s string, n int) string {
+	r := []rune(s)
+	if len(r) <= n {
+		return s
+	}
+	return strings.TrimSpace(string(r[:n])) + "…"
 }
 
 // Remove deletes the generated graph directory. Missing is not an error.

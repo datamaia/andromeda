@@ -8,6 +8,21 @@ Commit history by the release automation (ADR-013) and committed at release time
 
 ## [Unreleased]
 
+## [0.1.10] - 2026-07-15
+
+Workspace maps the agent (and you) can navigate faster.
+
+### Added
+
+- **The agent knows about workspace maps.** When the deterministic ontology
+  (`.andromeda/ontology/project.ttl`) or the visual graph (`.andromeda/graph/`) exist, a pointer is
+  folded into the agent's system prompt — alongside `AGENTS.md` and the memory index — so it orients
+  via the precomputed map instead of exploring the tree blindly.
+- **Obsidian-style graph previews.** Hovering a node in the `/graph` viewer now shows a short summary
+  of the file it maps — a frontmatter `description` when present, otherwise the first meaningful line
+  — so you can read the graph without opening each file. Summaries are computed at build time and
+  HTML-escaped.
+
 ## [0.1.9] - 2026-07-15
 
 Provider reach and command-parity groundwork.

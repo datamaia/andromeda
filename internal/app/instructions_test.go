@@ -7,6 +7,33 @@ import (
 	"testing"
 )
 
+func TestProjectMapsDetectsArtifacts(t *testing.T) {
+	dir := t.TempDir()
+	if got := projectMaps(dir); got != "" {
+		t.Fatalf("no maps should yield empty, got %q", got)
+	}
+	// Create the ontology map.
+	ttl := filepath.Join(dir, ".andromeda", "ontology")
+	if err := os.MkdirAll(ttl, 0o750); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(ttl, "project.ttl"), []byte("@prefix x: <y> ."), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	got := projectMaps(dir)
+	if !strings.Contains(got, "project.ttl") {
+		t.Fatalf("ontology should be detected, got %q", got)
+	}
+	// withMaps folds it into the system prompt with the navigation instruction.
+	sys := withMaps("BASE", got)
+	if !strings.Contains(sys, "BASE") || !strings.Contains(sys, "navigate the") || !strings.Contains(sys, "project.ttl") {
+		t.Fatalf("withMaps output = %q", sys)
+	}
+	if withMaps("BASE", "") != "BASE" {
+		t.Fatal("empty maps should not alter the base prompt")
+	}
+}
+
 func TestProjectInstructionsReadsAgentsFile(t *testing.T) {
 	dir := t.TempDir()
 	if got := projectInstructions(dir); got != "" {

@@ -42,6 +42,7 @@
     border-radius:8px;padding:.4rem .6rem;font-size:.78rem;z-index:5;max-width:340px;display:none}
   #tip .p{color:var(--violet-soft);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
   #tip .s{color:var(--muted);display:block;margin-top:.2rem}
+  #tip .sum{color:#cfc9c0;display:block;margin-top:.35rem;font-style:italic;line-height:1.3}
   #empty{position:fixed;inset:0;display:none;align-items:center;justify-content:center;
     flex-direction:column;gap:.5rem;color:var(--muted);text-align:center;padding:2rem}
   #empty .cat{font-size:2rem}
@@ -254,8 +255,9 @@ canvas.addEventListener("mousemove", e => {
   if (panning){ view.x += px-last.x; view.y += py-last.y; last={x:px,y:py}; return; }
   const n = pick(px,py); hover = n; neighborCache.clear();
   if (n){ tip.style.display="block"; tip.style.left=(px+14)+"px"; tip.style.top=(py+14)+"px";
-    tip.innerHTML = `<span class="p">${n.path||n.label}</span>`+
-      `<span class="s">${n.kind}${n.size?` · ${fmtBytes(n.size)}`:""}</span>`;
+    tip.innerHTML = `<span class="p">${esc(n.path||n.label)}</span>`+
+      `<span class="s">${esc(n.kind)}${n.size?` · ${fmtBytes(n.size)}`:""}</span>`+
+      (n.summary?`<span class="sum">${esc(n.summary)}</span>`:"");
     canvas.style.cursor="pointer"; }
   else { tip.style.display="none"; canvas.style.cursor = panning?"grabbing":"grab"; }
 });
@@ -278,6 +280,8 @@ canvas.addEventListener("wheel", e => {
 
 function fmtBytes(b){ if(b<1024)return b+" B"; if(b<1048576)return (b/1024).toFixed(1)+" KB";
   return (b/1048576).toFixed(1)+" MB"; }
+// esc HTML-escapes untrusted text (node summaries come from file contents) before it goes into the tooltip.
+function esc(s){ return String(s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
 
 document.getElementById("zin").onclick = ()=>{view.k=Math.min(6,view.k*1.2)};
 document.getElementById("zout").onclick = ()=>{view.k=Math.max(0.15,view.k/1.2)};
