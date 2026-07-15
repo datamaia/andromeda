@@ -173,11 +173,21 @@ func (s *tuiSession) selectProvider(id string) (string, error) {
 	if info.DefaultModel != "" {
 		s.cfg.model = info.DefaultModel
 	}
+	s.rememberChoice()
 	return s.cfg.model, nil
 }
 
 // selectModel records the model the user chose so the agent runs on it (not the provider default).
-func (s *tuiSession) selectModel(id string) { s.cfg.model = id }
+func (s *tuiSession) selectModel(id string) {
+	s.cfg.model = id
+	s.rememberChoice()
+}
+
+// rememberChoice persists the current provider/model as the global default for the next launch
+// (best-effort — a returning user is dropped back into their last setup instead of re-onboarding).
+func (s *tuiSession) rememberChoice() {
+	_ = app.SavePrefs(app.Prefs{Provider: s.cfg.provider, Model: s.cfg.model})
+}
 
 // persistSession saves the current conversation to disk (best-effort). It no-ops on an empty history
 // or when the store is unavailable, so a run never fails because persistence did.
@@ -304,8 +314,27 @@ func launchTUIResume(ctx context.Context, cfg tuiConfig, onboard bool, resumeID 
 		onboard = false // a resumed session already has a provider and model
 	}
 
-	if err := sess.build(); err != nil {
-		return err
+	// Remember the last provider/model the user actually used: on a bare onboarding launch, default
+	// to it and skip the picker when it builds cleanly. A missing key / signed-out provider falls
+	// back to onboarding from the safe defaults so the user can fix it.
+	if onboard {
+		if p, err := app.LoadPrefs(); err == nil && p.Provider != "" {
+			saved := sess.cfg
+			sess.cfg.provider = p.Provider
+			if p.Model != "" {
+				sess.cfg.model = p.Model
+			}
+			if sess.build() == nil {
+				onboard = false
+			} else {
+				sess.cfg = saved // couldn't use the remembered provider; onboard from defaults
+			}
+		}
+	}
+	if sess.prov == nil {
+		if err := sess.build(); err != nil {
+			return err
+		}
 	}
 	m := tui.New(sess.cfg.provider, sess.cfg.model, sess.respond).
 		WithVersion(buildinfo.Get().Version).
