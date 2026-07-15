@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"context"
 	"strings"
 
 	tea "charm.land/bubbletea/v2"
@@ -23,6 +24,28 @@ func cmdDetails(m Model, args string) (tea.Model, tea.Cmd) {
 		return m.sys("tool details ON — each step shows its full arguments and a longer result excerpt"), nil
 	}
 	return m.sys("tool details OFF — tool steps show a compact one-line summary"), nil
+}
+
+// cmdUndo (/undo) reverts the working tree to before the last agent turn; cmdRedo (/redo) re-applies
+// it. Both are refused mid-run so a restore never races the agent's own file writes.
+func cmdUndo(m Model, _ string) (tea.Model, tea.Cmd) {
+	if m.actions.Undo == nil {
+		return m.unavailable("undo"), nil
+	}
+	if m.running {
+		return m.sys("finish or interrupt the current run before undoing"), nil
+	}
+	return m.sys(m.actions.Undo(context.Background())), nil
+}
+
+func cmdRedo(m Model, _ string) (tea.Model, tea.Cmd) {
+	if m.actions.Redo == nil {
+		return m.unavailable("redo"), nil
+	}
+	if m.running {
+		return m.sys("finish or interrupt the current run before redoing"), nil
+	}
+	return m.sys(m.actions.Redo(context.Background())), nil
 }
 
 // cmdEditor (/editor) opens $EDITOR to compose a prompt; on save the composed text is sent as a

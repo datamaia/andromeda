@@ -8,6 +8,26 @@ Commit history by the release automation (ADR-013) and committed at release time
 
 ## [Unreleased]
 
+## [0.1.13] - 2026-07-15
+
+Undo/redo and background orchestration.
+
+### Added
+
+- **`/background`.** Launch an unattended agent for a goal as a detached process that logs to
+  `.andromeda/background/` while the composer stays free. Because a background agent cannot answer
+  approval prompts, it runs with workspace write granted by default (revertible with `/undo`) and
+  command execution only when you add `--exec`; the grants are stated in the confirmation.
+- **`/autofix-pr`.** Inspect a pull request's failing CI checks (via `gh`) and, when any are red,
+  hand the agent a concrete fix goal listing them and start a normal (approval-gated) fix turn. It
+  diagnoses and fixes locally — it never commits or pushes. With no argument it targets the current
+  branch's PR.
+- **`/undo` and `/redo`.** The workspace is snapshotted (a git tree object, via a throwaway index —
+  your real index, branch, and stash are never touched) before each agent turn, so `/undo` reverts
+  that turn's file changes: edits roll back, deleted files return, and files the agent created are
+  removed — while `.gitignored` files are left strictly alone. `/redo` re-applies. Requires a git
+  repository; both are refused mid-run so a restore never races the agent's own writes.
+
 ## [0.1.12] - 2026-07-15
 
 Deep session and context commands.

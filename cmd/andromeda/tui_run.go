@@ -17,6 +17,9 @@ import (
 // interactively (state-changing actions prompt); plan mode runs strictly read-only.
 func (s *tuiSession) startAgentRun(goal, mode string) (<-chan tui.AgentEvent, func()) {
 	goal = s.foldPendingNotes(goal)
+	if mode == "agent" {
+		s.checkpointBeforeTurn() // snapshot the working tree so /undo can revert this turn's edits
+	}
 	events := make(chan tui.AgentEvent, 16)
 	runCtx, cancel := context.WithCancel(s.ctx)
 	go func() {

@@ -70,6 +70,16 @@ type Actions struct {
 	// with the composer text, and posts an EditorMsg with the composed prompt. The driver owns the
 	// process/filesystem work so the TUI stays exec-free.
 	Editor func(seed string) tea.Cmd
+	// Undo (/undo) reverts the working tree to the git snapshot taken before the last agent turn;
+	// Redo (/redo) re-applies it. Both return a status line.
+	Undo func(ctx context.Context) string
+	Redo func(ctx context.Context) string
+	// Background (/background) launches an unattended agent for a goal as a detached process and
+	// returns a status. AutofixPR (/autofix-pr) inspects a PR's failing CI and returns a fix goal for
+	// the TUI to dispatch (empty goal → nothing to fix; status always explains). Both may hit the
+	// network, so callers run them off the UI thread.
+	Background func(ctx context.Context, args string) string
+	AutofixPR  func(ctx context.Context, args string) (goal, status string)
 }
 
 // WithActions wires the app-backed slash-command handlers.
@@ -93,6 +103,8 @@ func commandRegistry() []slashCommand {
 		{name: "details", desc: "toggle verbose tool logging", aliases: []string{"verbose"}, run: cmdDetails},
 		{name: "editor", desc: "compose your next prompt in $EDITOR", run: cmdEditor},
 		{name: "clear", desc: "clear the conversation", aliases: []string{"reset", "new"}, run: cmdClear},
+		{name: "undo", desc: "revert the last change to the workspace", run: cmdUndo},
+		{name: "redo", desc: "re-apply a change reverted by /undo", run: cmdRedo},
 		{name: "compact", desc: "summarize the conversation so far", aliases: []string{"summarize"}, run: cmdCompact},
 		{name: "autocompact", desc: "auto-summarize when the conversation grows large", run: cmdAutoCompact},
 		{name: "status", desc: "show provider, model, mode, and session", run: cmdStatus},
@@ -114,6 +126,8 @@ func commandRegistry() []slashCommand {
 		{name: "init", desc: "scaffold AGENTS.md, andromeda.toml, .agents/ and .andromeda/", run: cmdInit},
 		{name: "export", desc: "save the transcript to a file", run: cmdExport},
 		{name: "advisor", desc: "ask a stronger model for a second opinion", aliases: []string{"consult"}, run: cmdAdvisor},
+		{name: "background", desc: "run a goal unattended in the background", aliases: []string{"bg"}, run: cmdBackground},
+		{name: "autofix-pr", desc: "diagnose a PR's failing CI and start a fix", run: cmdAutofixPR},
 		{name: "share", desc: "upload the transcript as a secret gist", run: cmdShare},
 		{name: "unshare", desc: "delete the gist made by /share", run: cmdUnshare},
 		{name: "doctor", desc: "run environment checks", run: cmdDoctor},

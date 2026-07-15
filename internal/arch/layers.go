@@ -57,6 +57,7 @@ var PackageLayer = map[string]Layer{
 	"skill":        L3Engine,
 	"permstore":    L3Engine, // workspace command allow/deny store (.andromeda/permissions.toml)
 	"settingstore": L3Engine, // workspace UI settings store (.andromeda/settings.toml)
+	"checkpoint":   L3Engine, // git-snapshot working-tree checkpoints for /undo and /redo
 	"tui":          L5Driver,
 	"auth":         L3Engine,
 	"updater":      L3Engine,
