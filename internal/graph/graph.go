@@ -21,12 +21,13 @@ const graphSubdir = "graph"
 
 // Node is a vertex in the workspace graph: the project root, a directory, or a file.
 type Node struct {
-	ID    string `json:"id"`    // stable identity: "project", "d/<dir>", or "f/<path>"
-	Label string `json:"label"` // display name (base name)
-	Kind  string `json:"kind"`  // project | directory | code | doc | config | data | asset | other
-	Path  string `json:"path"`  // workspace-relative path ("" for the project node)
-	Group string `json:"group"` // top-level directory, for clustering/coloring ("" at the root)
-	Size  int64  `json:"size"`  // byte size for files (0 for project/directories)
+	ID      string `json:"id"`                // stable identity: "project", "d/<dir>", or "f/<path>"
+	Label   string `json:"label"`             // display name (base name)
+	Kind    string `json:"kind"`              // project | directory | code | doc | config | data | asset | other
+	Path    string `json:"path"`              // workspace-relative path ("" for the project node)
+	Group   string `json:"group"`             // top-level directory, for clustering/coloring ("" at the root)
+	Size    int64  `json:"size"`              // byte size for files (0 for project/directories)
+	Summary string `json:"summary,omitempty"` // a short excerpt of a text file, shown on hover (Obsidian-style)
 }
 
 // Edge is a directed containment relationship: From contains To.
