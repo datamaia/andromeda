@@ -23,7 +23,7 @@ type Responder func(goal, mode string) string
 
 // entry is one transcript line.
 type entry struct {
-	role string // "user" | "agent" | "system"
+	role string // "user" | "agent" | "tool" | "system" | "greeting"
 	text string
 }
 
@@ -34,6 +34,7 @@ type Model struct {
 	input      string
 	provider   string
 	model      string
+	version    string // andromeda version shown in the header (injected via WithVersion)
 	effort     string // reasoning effort, shown in the status bar only when set
 	state      string
 	started    time.Time
@@ -167,9 +168,11 @@ func New(provider, model string, respond Responder) Model {
 		streamIdx: -1,
 		toolIdx:   -1,
 	}
-	// The start screen shows the brand splash (mascot + tagline); this system line is what remains
-	// once the conversation begins, so it stays tagline-free to avoid duplicating the splash.
-	m.transcript = append(m.transcript, entry{"system", "session ready · type a goal, enter to send"})
+	// The start screen shows the brand splash (mascot + tagline). This greeting is rendered *by* the
+	// splash, so it carries the "greeting" role: it never prints as a transcript line, and — crucially
+	// — it does not count as content, so the splash yields to the transcript the instant a command
+	// emits output (see hasContent / bodyString).
+	m.transcript = append(m.transcript, entry{"greeting", "session ready · type a goal, enter to send"})
 	return m
 }
 
@@ -552,9 +555,10 @@ func (m Model) render() string {
 // system lines wrapped to the terminal width.
 func (m Model) bodyString() string {
 	var b strings.Builder
-	// The splash is the start-screen greeting; hide it while the command palette is open or a
+	// The splash is the start-screen greeting; it shows only until there is real content to display
+	// (a conversation turn OR any command output). It is also hidden while the palette is open or a
 	// sign-in is in flight, so the command list / progress messages and the prompt stay on screen.
-	showSplash := m.atStart() && m.menuKind() == "" && !m.atActive() && !m.authing
+	showSplash := !m.hasContent() && m.menuKind() == "" && !m.atActive() && !m.authing
 	if showSplash {
 		b.WriteString(m.Splash(m.width))
 	}
@@ -566,10 +570,11 @@ func (m Model) bodyString() string {
 			b.WriteString(m.wrap(m.styles.Agent.Render("andromeda ▸ ")+renderMarkdown(e.text, m.styles)) + "\n")
 		case "tool":
 			b.WriteString(m.wrap(m.styles.Tool.Render("  "+e.text)) + "\n")
-		default:
-			if !showSplash {
-				b.WriteString(m.wrap(m.styles.Muted.Render(e.text)) + "\n")
-			}
+		case "greeting":
+			// Rendered by the splash; never shown as a transcript line.
+			continue
+		default: // system — command output and notices, always visible
+			b.WriteString(m.wrap(m.styles.Muted.Render(e.text)) + "\n")
 		}
 	}
 	return b.String()
@@ -587,14 +592,19 @@ func (m Model) footerString() string {
 		b.WriteString(m.wrap(m.styles.Agent.Render(m.spinnerFrame()+" ")+
 			m.styles.Muted.Render(status+m.runElapsed()+" · esc to interrupt")) + "\n")
 	}
-	if m.planReview {
+	switch {
+	case m.planReview:
 		b.WriteString(m.renderPlanReview())
-	} else if m.menuKind() != "" {
+	case m.menuKind() != "":
 		b.WriteString(m.renderPalette())
-	} else if m.atActive() {
+	case m.atActive():
 		b.WriteString(m.renderAtMenu())
+	default:
+		// A thin rule + blank line give the compose area room to breathe, so it reads like a proper
+		// chat box separated from the conversation above (only when no overlay owns the space).
+		b.WriteString(m.styles.Muted.Render(strings.Repeat("─", max(1, m.width))) + "\n\n")
 	}
-	b.WriteString(m.wrap(m.styles.Prompt.Render(m.promptSymbol())+m.input+"▏") + "\n")
+	b.WriteString(m.wrap(m.styles.Prompt.Render(m.promptSymbol())+m.input+"▏") + "\n\n")
 	b.WriteString(m.statusBar())
 	return b.String()
 }
@@ -698,14 +708,17 @@ func (m Model) promptSymbol() string {
 	}
 }
 
-// atStart reports whether the session has no user/agent exchanges yet (only the system banner).
-func (m Model) atStart() bool {
+// hasContent reports whether the transcript holds anything beyond the start-screen greeting: a
+// user/agent/tool line, or a system notice emitted by a command. Once true, the splash yields to the
+// transcript so command output and messages are actually visible (this is what makes slash commands
+// like /graph or /skills show their result immediately after launch).
+func (m Model) hasContent() bool {
 	for _, e := range m.transcript {
-		if e.role == "user" || e.role == "agent" {
-			return false
+		if e.role != "greeting" {
+			return true
 		}
 	}
-	return true
+	return false
 }
 
 // headerString is the persistent top banner: a live status the user can always see, even scrolled
@@ -713,8 +726,13 @@ func (m Model) atStart() bool {
 // branch, workspace, token usage, run state, and elapsed time; line 3 is a rule. Each line is
 // clamped to the terminal width so it never wraps or bleeds.
 func (m Model) headerString() string {
-	id := m.styles.Title.Render("▌ Andromeda") +
-		m.styles.Muted.Render(" · "+m.provider+" · "+m.model+" · "+m.modeOrDefault())
+	title := m.styles.Title.Render("▌ Andromeda")
+	if m.version != "" {
+		title += m.styles.Muted.Render(" " + m.version)
+	}
+	// The active mode is a colored badge (violet=agent, amber=plan, green=shell) so it's unmistakable.
+	id := title + "  " + modeBadge(m.modeOrDefault()) +
+		m.styles.Muted.Render("  · "+m.provider+" · "+m.model)
 	if m.effort != "" {
 		id += m.styles.Muted.Render(" · effort " + m.effort)
 	}
@@ -771,6 +789,12 @@ func humanCount(n int) string {
 	default:
 		return strconv.Itoa(n)
 	}
+}
+
+// WithVersion records the running andromeda version so the header can display it.
+func (m Model) WithVersion(v string) Model {
+	m.version = v
+	return m
 }
 
 // WithWorkspace records the workspace root and git branch (fetched once by the driver) for the

@@ -9,7 +9,34 @@ const (
 	ColorTertiary  = "#F5F2ED" // warm off-white
 	ColorNeutral   = "#121417" // near-black
 	ColorDanger    = "#FF6B6B" // accessible soft red (fixed in Volume 8)
+
+	// Per-mode accent colors, so the active interaction mode reads at a glance in the header badge.
+	ColorModeAgent = ColorPrimary // violet — the default working mode (may edit/run with approval)
+	ColorModePlan  = "#E4B36E"    // amber — proposing only, no changes are made
+	ColorModeShell = "#6EC18C"    // green — direct shell command execution
 )
+
+// modeColorHex is the accent color (hex) for an interaction mode.
+func modeColorHex(mode string) string {
+	switch mode {
+	case "plan":
+		return ColorModePlan
+	case "shell":
+		return ColorModeShell
+	default: // agent
+		return ColorModeAgent
+	}
+}
+
+// modeBadge renders a filled, high-contrast "<mode> mode" chip in the mode's accent color.
+func modeBadge(mode string) string {
+	return lipgloss.NewStyle().
+		Foreground(lipgloss.Color(ColorNeutral)).
+		Background(lipgloss.Color(modeColorHex(mode))).
+		Bold(true).
+		Padding(0, 1).
+		Render(mode + " mode")
+}
 
 // Styles holds the lipgloss styles derived from the brand tokens.
 type Styles struct {

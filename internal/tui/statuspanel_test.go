@@ -79,7 +79,7 @@ func TestWithHistoryReseedsTranscript(t *testing.T) {
 		{Role: "user", Text: "add a feature"},
 		{Role: "agent", Text: "here is what I did"},
 	})
-	if m.atStart() {
+	if !m.hasContent() {
 		t.Error("a resumed session should not show the start splash")
 	}
 	tr := m.Transcript()

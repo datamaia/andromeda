@@ -209,7 +209,7 @@ func (m Model) afterPick() (tea.Model, tea.Cmd) {
 	case "model":
 		if m.onboarding {
 			m.onboarding = false
-			m.transcript = append(m.transcript, entry{"system",
+			m.transcript = append(m.transcript, entry{"greeting",
 				"ready · " + m.provider + " · " + m.model + " — type a goal, enter to send"})
 			return m, nil
 		}

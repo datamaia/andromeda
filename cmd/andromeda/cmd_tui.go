@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/datamaia/andromeda/internal/app"
+	"github.com/datamaia/andromeda/internal/buildinfo"
 	"github.com/datamaia/andromeda/internal/ports"
 	"github.com/datamaia/andromeda/internal/tui"
 	"github.com/spf13/cobra"
@@ -307,6 +308,7 @@ func launchTUIResume(ctx context.Context, cfg tuiConfig, onboard bool, resumeID 
 		return err
 	}
 	m := tui.New(sess.cfg.provider, sess.cfg.model, sess.respond).
+		WithVersion(buildinfo.Get().Version).
 		WithProviderMenu(providerChoices(), sess.selectProvider).
 		WithModelSelect(sess.selectModel).
 		WithEffortSelect(sess.selectEffort).
