@@ -8,6 +8,32 @@ Commit history by the release automation (ADR-013) and committed at release time
 
 ## [Unreleased]
 
+## [0.1.8] - 2026-07-15
+
+Skills, workflows, and command permissions.
+
+### Added
+
+- **Skills that just work.** Andromeda now recognizes `SKILL.md` skills (YAML frontmatter plus an
+  instruction body — the convention shared with Claude Code and Codex) in addition to `skill.toml`,
+  and discovers them across `.agents`, `.claude`, `.codex`, and `.agent` (de-duplicated by name, with
+  the source shown). `/skills` lists everything it finds, and the create action scaffolds a
+  recognizable `SKILL.md` so a skill you make is a skill Andromeda sees.
+- **Inline skill invocation.** Type `$` in the composer to open a ranked menu of your skills;
+  selecting one inserts `$name`. On send, each referenced skill's instructions are folded into the
+  agent run and a line records the activation — the `$`-invocation convention Codex popularized.
+- **Runnable workflows.** `/workflows` now lists step-by-step Markdown recipes discovered under
+  `.agents/workflows`, `.andromeda/workflows`, `.windsurf/workflows`, and `.cursor/workflows`, and
+  can **Run** one (send the recipe to the agent as a goal), create, or edit it — the workflow
+  convention used by Cursor, Devin, and Windsurf.
+- **Command permissions from the TUI.** A new `/permission` menu manages the command allow/deny
+  lists — pre-approve vetted commands, or always refuse dangerous ones, matched by argv prefix.
+  Rules are stored in `.andromeda/permissions.toml` (both lists visible in the workspace) and merged
+  with `andromeda.toml`'s `[permission]` section at runtime, so changes take effect immediately.
+  Text form: `/permission allow <cmd>`, `deny <cmd>`, `rm allow|deny <cmd>`, `list`.
+- **Wider custom-command discovery.** User-authored slash commands are now also read from
+  `.andromeda/commands` and `.codex/commands`, alongside `.agents/commands` and `.claude/commands`.
+
 ## [0.1.7] - 2026-07-15
 
 Interactive TUI overhaul.

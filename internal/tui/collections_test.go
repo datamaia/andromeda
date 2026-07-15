@@ -83,7 +83,7 @@ func TestCollectionCreateSeedsPrompt(t *testing.T) {
 	if got.menuOpen() {
 		t.Error("selecting Create should close the menu")
 	}
-	if !strings.HasPrefix(got.input, "Create a new skill") {
-		t.Errorf("Create should seed the prompt, got %q", got.input)
+	if !strings.HasPrefix(got.input, "Create a skill") || !strings.Contains(got.input, "SKILL.md") {
+		t.Errorf("Create should seed a SKILL.md prompt, got %q", got.input)
 	}
 }

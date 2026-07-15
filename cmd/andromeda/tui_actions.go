@@ -14,10 +14,10 @@ import (
 	"github.com/datamaia/andromeda/internal/graph"
 	"github.com/datamaia/andromeda/internal/memnote"
 	"github.com/datamaia/andromeda/internal/ontology"
+	"github.com/datamaia/andromeda/internal/permstore"
 	"github.com/datamaia/andromeda/internal/ports"
 	"github.com/datamaia/andromeda/internal/skill"
 	"github.com/datamaia/andromeda/internal/tui"
-	"github.com/datamaia/andromeda/internal/workflow"
 )
 
 // sessionActions wires the TUI slash commands to the real app operations. Each handler returns the
@@ -25,21 +25,150 @@ import (
 // never tears down the session.
 func (s *tuiSession) sessionActions() tui.Actions {
 	return tui.Actions{
-		Doctor:     s.doctorAction,
-		Update:     s.updateAction,
-		Memory:     s.memoryAction,
-		MemoryList: s.memoryListAction,
-		Collection: s.collectionAction,
-		Models:     s.modelsAction,
-		Config:     s.configAction,
-		Logout:     s.logoutAction,
-		Export:     s.exportAction,
-		Init:       s.initAction,
-		Files:      s.listFiles,
-		Context:    s.contextAction,
-		Ontology:   s.ontologyAction,
-		Graph:      s.graphAction,
+		Doctor:      s.doctorAction,
+		Update:      s.updateAction,
+		Memory:      s.memoryAction,
+		MemoryList:  s.memoryListAction,
+		Collection:  s.collectionAction,
+		Models:      s.modelsAction,
+		Config:      s.configAction,
+		Logout:      s.logoutAction,
+		Export:      s.exportAction,
+		Init:        s.initAction,
+		Files:       s.listFiles,
+		Context:     s.contextAction,
+		Ontology:    s.ontologyAction,
+		Graph:       s.graphAction,
+		Skills:      s.skillListAction,
+		Permission:  s.permissionAction,
+		Permissions: s.permissionView,
 	}
+}
+
+// permissionView backs the /permission menu: the workspace-managed allow/deny rules (from
+// .andromeda/permissions.toml, removable in the menu) plus any inherited from andromeda.toml (shown
+// read-only), so the user sees the full effective command policy in one place.
+func (s *tuiSession) permissionView(ctx context.Context) tui.PermissionView {
+	v := tui.PermissionView{Path: relOr(s.wd, permstore.Path(s.wd))}
+	if r, err := permstore.Load(s.wd); err == nil {
+		for _, c := range r.Allow {
+			v.Allow = append(v.Allow, tui.PermRule{Command: c, Managed: true})
+		}
+		for _, c := range r.Deny {
+			v.Deny = append(v.Deny, tui.PermRule{Command: c, Managed: true})
+		}
+	}
+	if cfg, err := app.LoadedConfig(ctx, s.wd); err == nil {
+		for _, c := range configStrings(cfg.Values["permission.allow"]) {
+			v.Allow = append(v.Allow, tui.PermRule{Command: c})
+		}
+		for _, c := range configStrings(cfg.Values["permission.deny"]) {
+			v.Deny = append(v.Deny, tui.PermRule{Command: c})
+		}
+	}
+	return v
+}
+
+// permissionAction runs the /permission text subcommands, editing the .andromeda store and returning
+// a status line. Grammar: allow <cmd> · deny <cmd> · rm allow|deny <cmd> · list.
+func (s *tuiSession) permissionAction(ctx context.Context, args string) string {
+	fields := strings.Fields(args)
+	if len(fields) == 0 {
+		return s.permissionList(ctx)
+	}
+	switch fields[0] {
+	case "allow", "deny":
+		cmd := strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(args), fields[0]))
+		if cmd == "" {
+			return "usage: /permission " + fields[0] + " <command>   (e.g. " + fields[0] + " git status)"
+		}
+		if _, err := permstore.Add(s.wd, fields[0], cmd); err != nil {
+			return "permission: " + err.Error()
+		}
+		return "added to " + fields[0] + ": " + cmd + "  ·  saved to " + relOr(s.wd, permstore.Path(s.wd))
+	case "rm", "remove", "delete":
+		rest := strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(args), fields[0]))
+		rf := strings.Fields(rest)
+		if len(rf) < 2 || (rf[0] != "allow" && rf[0] != "deny") {
+			return "usage: /permission rm allow|deny <command>"
+		}
+		cmd := strings.TrimSpace(strings.TrimPrefix(rest, rf[0]))
+		if _, err := permstore.Remove(s.wd, rf[0], cmd); err != nil {
+			return "permission: " + err.Error()
+		}
+		return "removed from " + rf[0] + ": " + cmd
+	case "list", "show":
+		return s.permissionList(ctx)
+	default:
+		return "permission subcommands: allow <cmd> · deny <cmd> · rm allow|deny <cmd> · list"
+	}
+}
+
+// permissionList renders the effective command policy: managed rules from .andromeda plus any
+// inherited from andromeda.toml, with ✓ for allow and ✗ for deny.
+func (s *tuiSession) permissionList(ctx context.Context) string {
+	r, _ := permstore.Load(s.wd)
+	var b strings.Builder
+	fmt.Fprintf(&b, "permission · allow %d · deny %d  (%s)", len(r.Allow), len(r.Deny), relOr(s.wd, permstore.Path(s.wd)))
+	for _, c := range r.Allow {
+		fmt.Fprintf(&b, "\n  ✓ %s", c)
+	}
+	for _, c := range r.Deny {
+		fmt.Fprintf(&b, "\n  ✗ %s", c)
+	}
+	if cfg, err := app.LoadedConfig(ctx, s.wd); err == nil {
+		for _, c := range configStrings(cfg.Values["permission.allow"]) {
+			fmt.Fprintf(&b, "\n  ✓ %s  (andromeda.toml)", c)
+		}
+		for _, c := range configStrings(cfg.Values["permission.deny"]) {
+			fmt.Fprintf(&b, "\n  ✗ %s  (andromeda.toml)", c)
+		}
+	}
+	return b.String()
+}
+
+// configStrings coerces a resolved config value (a TOML string array or a single string) to a slice
+// of trimmed, non-empty strings — the driver-side mirror of app.configStringSlice.
+func configStrings(v any) []string {
+	var out []string
+	switch a := v.(type) {
+	case []string:
+		for _, sv := range a {
+			if sv = strings.TrimSpace(sv); sv != "" {
+				out = append(out, sv)
+			}
+		}
+	case []any:
+		for _, e := range a {
+			if sv, ok := e.(string); ok {
+				if sv = strings.TrimSpace(sv); sv != "" {
+					out = append(out, sv)
+				}
+			}
+		}
+	case string:
+		if sv := strings.TrimSpace(a); sv != "" {
+			out = append(out, sv)
+		}
+	}
+	return out
+}
+
+// skillListAction backs the $-mention skill invocation: it discovers the workspace's skills (across
+// .agents/.claude/.codex/.agent) and returns them with their instruction bodies so the TUI can both
+// complete "$name" and fold the selected skill's instructions into the run.
+func (s *tuiSession) skillListAction(_ context.Context) []tui.SkillNote {
+	ds := skill.Discover(s.wd)
+	out := make([]tui.SkillNote, 0, len(ds))
+	for _, d := range ds {
+		out = append(out, tui.SkillNote{
+			Name:        d.Manifest.Name,
+			Description: d.Manifest.Description,
+			Path:        d.Path,
+			Body:        d.Prompt,
+		})
+	}
+	return out
 }
 
 // ontologyAction backs the /ontology slash command: it scans the workspace and manages the
@@ -342,25 +471,20 @@ func (s *tuiSession) collectionAction(_ context.Context, kind string) tui.Collec
 }
 
 func (s *tuiSession) skillCollection() tui.CollectionView {
-	v := tui.CollectionView{Empty: "No skills yet.", Create: "they live under .agents/skills/<name>/skill.toml"}
-	dir := filepath.Join(s.wd, ".agents", "skills")
-	ents, err := os.ReadDir(dir)
-	if err != nil {
-		return v
+	v := tui.CollectionView{
+		Empty:  "No skills yet.",
+		Create: "add .agents/skills/<name>/SKILL.md (also scanned: .claude/.codex/.agent)",
 	}
-	for _, e := range ents {
-		if !e.IsDir() {
-			continue
+	for _, d := range skill.Discover(s.wd) {
+		title := d.Manifest.Name
+		if d.Manifest.Version != "" {
+			title = fmt.Sprintf("%s@%s", d.Manifest.Name, d.Manifest.Version)
 		}
-		sk, err := skill.Load(filepath.Join(dir, e.Name()))
-		if err != nil {
-			continue
+		detail := d.Manifest.Description
+		if d.Source != ".agents" { // note non-default sources so the origin is clear
+			detail = strings.TrimSpace(detail + "  ·  " + d.Source)
 		}
-		v.Entries = append(v.Entries, tui.CollectionEntry{
-			Title:  fmt.Sprintf("%s@%s", sk.Manifest.Name, sk.Manifest.Version),
-			Detail: sk.Manifest.Description,
-			Path:   filepath.Join(dir, e.Name()),
-		})
+		v.Entries = append(v.Entries, tui.CollectionEntry{Title: title, Detail: detail, Path: d.Path})
 	}
 	sort.Slice(v.Entries, func(i, j int) bool { return v.Entries[i].Title < v.Entries[j].Title })
 	return v
@@ -384,16 +508,52 @@ func (s *tuiSession) mcpCollection() tui.CollectionView {
 	return v
 }
 
+// workflowDirs are the workspace-relative directories scanned for step-by-step workflow recipes, in
+// precedence order (first name wins). A workflow is a Markdown file — optional YAML front matter
+// (description) plus numbered instructions — following the .windsurf/.cursor convention; .agents and
+// .andromeda are Andromeda's own homes.
+var workflowDirs = []string{".agents/workflows", ".andromeda/workflows", ".windsurf/workflows", ".cursor/workflows"}
+
 func (s *tuiSession) workflowCollection() tui.CollectionView {
 	v := tui.CollectionView{
-		Empty:  "No custom workflows.",
-		Create: "run the built-in SDD pipeline with: andromeda workflow run sdd",
+		Empty:  "No workflows yet.",
+		Create: "add a recipe at .agents/workflows/<name>.md (also scanned: .andromeda/.windsurf/.cursor)",
 	}
-	for i, name := range workflow.SDDStageNames() {
-		v.Entries = append(v.Entries, tui.CollectionEntry{
-			Title: name, Detail: fmt.Sprintf("built-in SDD stage %d", i+1),
-		})
+	seen := map[string]bool{}
+	for _, d := range workflowDirs {
+		dir := filepath.Join(s.wd, d)
+		ents, err := os.ReadDir(dir)
+		if err != nil {
+			continue
+		}
+		for _, e := range ents {
+			if e.IsDir() || !strings.HasSuffix(e.Name(), ".md") {
+				continue
+			}
+			name := strings.TrimSuffix(e.Name(), ".md")
+			if name == "" || seen[name] {
+				continue
+			}
+			data, err := os.ReadFile(filepath.Join(dir, e.Name())) //nolint:gosec // reads a discovered workflow file under the workspace
+			if err != nil {
+				continue
+			}
+			seen[name] = true
+			desc, body := parseFrontMatter(string(data))
+			body = strings.TrimSpace(body)
+			if strings.TrimSpace(desc) == "" {
+				desc = firstLine(body)
+			}
+			base := strings.SplitN(d, "/", 2)[0]
+			if base != ".agents" { // note non-default sources so the origin is clear
+				desc = strings.TrimSpace(desc + "  ·  " + base)
+			}
+			v.Entries = append(v.Entries, tui.CollectionEntry{
+				Title: name, Detail: desc, Path: filepath.Join(dir, e.Name()), Body: body,
+			})
+		}
 	}
+	sort.Slice(v.Entries, func(i, j int) bool { return v.Entries[i].Title < v.Entries[j].Title })
 	return v
 }
 
