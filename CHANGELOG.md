@@ -8,6 +8,10 @@ Commit history by the release automation (ADR-013) and committed at release time
 
 ## [Unreleased]
 
+## [0.1.13] - 2026-07-15
+
+Undo/redo and background orchestration.
+
 ### Added
 
 - **`/background`.** Launch an unattended agent for a goal as a detached process that logs to
