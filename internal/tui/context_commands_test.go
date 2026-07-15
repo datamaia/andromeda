@@ -8,20 +8,21 @@ import (
 	tea "charm.land/bubbletea/v2"
 )
 
-// /ontology with no argument opens the menu picker; the ontology ops are listed.
+// /ontology with no argument opens a navigable menu listing the ontology ops.
 func TestOntologyOpensMenu(t *testing.T) {
 	m := New("ollama", "llama3", nil)
 	nm, _ := cmdOntology(m, "")
 	got := nm.(Model)
-	if !got.pickerOpen || got.pickerKind != "ontology" {
-		t.Fatalf("/ontology should open the ontology picker, got open=%v kind=%q", got.pickerOpen, got.pickerKind)
+	if !got.menuOpen() {
+		t.Fatal("/ontology should open a navigable menu")
 	}
-	ids := make([]string, len(got.pickerItems))
-	for i, it := range got.pickerItems {
-		ids[i] = it.id
+	top := got.menu[len(got.menu)-1]
+	labels := make([]string, len(top.items))
+	for i, it := range top.items {
+		labels[i] = it.label
 	}
-	if strings.Join(ids, ",") != "build,show,adjust,rm" {
-		t.Errorf("ontology menu items = %v", ids)
+	if strings.Join(labels, ",") != "Build,Show,Adjust via chat,Delete" {
+		t.Errorf("ontology menu items = %v", labels)
 	}
 }
 
@@ -73,14 +74,17 @@ func TestGraphMenuSelectionRunsOp(t *testing.T) {
 	})
 	nm, _ := cmdGraph(m, "")
 	got := nm.(Model)
-	// Move to "open" (second item) and select it.
+	if !got.menuOpen() {
+		t.Fatal("/graph should open a navigable menu")
+	}
+	// Move to "Open viewer" (second item) and select it.
 	var tm tea.Model = got
 	tm, _ = tm.Update(key(tea.KeyDown))
 	tm, _ = tm.Update(key(tea.KeyEnter))
 	if called != "open" {
 		t.Errorf("selected op = %q, want open", called)
 	}
-	if tm.(Model).pickerOpen {
-		t.Error("picker should close after selecting an op")
+	if tm.(Model).menuOpen() {
+		t.Error("menu should close after selecting an op")
 	}
 }

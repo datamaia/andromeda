@@ -60,6 +60,10 @@ type Model struct {
 	onSelectProvider ProviderSelectFunc
 	onSelectModel    func(string) // propagate a model choice to the driver so the agent uses it
 
+	// navigable command menu (skills/mcp/workflows/plugins/ontology/graph/memory): a drill-in/back
+	// stack driven by commandmenu.go. Non-empty means a menu overlay is on screen.
+	menu []menuLevel
+
 	// modal selection list (provider or model): a generic overlay driven by menu.go.
 	pickerOpen   bool
 	pickerKind   string // "provider" | "model" — drives onboarding chaining and esc behaviour
@@ -330,6 +334,10 @@ func (m Model) handleKey(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 	if m.pickerOpen {
 		return m.handlePickerKey(msg)
 	}
+	// A navigable command menu captures keys while open (drill in / back / select).
+	if m.menuOpen() {
+		return m.handleMenuKey(msg)
+	}
 	// While a browser sign-in is in flight, ignore input (ctrl+c above still quits).
 	if m.authing {
 		return m, nil
@@ -533,6 +541,9 @@ func (m Model) render() string {
 	}
 	if m.pickerOpen {
 		return header + m.wrap(m.renderPicker()) + m.statusBar()
+	}
+	if m.menuOpen() {
+		return header + m.wrap(m.renderMenu()) + m.statusBar()
 	}
 	if m.statusPanel {
 		return header + m.wrap(m.renderStatusPanel()) + m.statusBar()

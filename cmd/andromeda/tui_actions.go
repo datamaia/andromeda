@@ -26,21 +26,19 @@ import (
 // never tears down the session.
 func (s *tuiSession) sessionActions() tui.Actions {
 	return tui.Actions{
-		Doctor:    s.doctorAction,
-		Update:    s.updateAction,
-		Memory:    s.memoryAction,
-		Workflows: s.workflowsAction,
-		MCP:       s.mcpAction,
-		Skills:    s.skillsAction,
-		Models:    s.modelsAction,
-		Config:    s.configAction,
-		Logout:    s.logoutAction,
-		Export:    s.exportAction,
-		Init:      s.initAction,
-		Files:     s.listFiles,
-		Context:   s.contextAction,
-		Ontology:  s.ontologyAction,
-		Graph:     s.graphAction,
+		Doctor:     s.doctorAction,
+		Update:     s.updateAction,
+		Memory:     s.memoryAction,
+		Collection: s.collectionAction,
+		Models:     s.modelsAction,
+		Config:     s.configAction,
+		Logout:     s.logoutAction,
+		Export:     s.exportAction,
+		Init:       s.initAction,
+		Files:      s.listFiles,
+		Context:    s.contextAction,
+		Ontology:   s.ontologyAction,
+		Graph:      s.graphAction,
 	}
 }
 
@@ -284,28 +282,29 @@ func formatMemory(recs []ports.MemoryRecord, err error) string {
 	return b.String()
 }
 
-func (s *tuiSession) workflowsAction(context.Context) string {
-	var b strings.Builder
-	b.WriteString("workflows · built-in SDD stages (run: andromeda workflow run sdd)")
-	for i, name := range workflow.SDDStageNames() {
-		fmt.Fprintf(&b, "\n  %2d. %s", i+1, name)
+// collectionAction backs the interactive /skills, /mcp, /workflows and /plugins menus, returning the
+// entries of each manageable capability set (with a friendly empty state when there are none).
+func (s *tuiSession) collectionAction(_ context.Context, kind string) tui.CollectionView {
+	switch kind {
+	case "skills":
+		return s.skillCollection()
+	case "mcp":
+		return s.mcpCollection()
+	case "workflows":
+		return s.workflowCollection()
+	case "plugins":
+		return s.pluginCollection()
 	}
-	return b.String()
+	return tui.CollectionView{}
 }
 
-func (s *tuiSession) mcpAction(context.Context) string {
-	// MCP servers are declared under [mcp.servers] in andromeda.toml (or as files under .agents/mcp/)
-	// and connected at agent start; none are wired into this session shell yet.
-	return "mcp · no servers connected in this session — declare them under [mcp.servers] in andromeda.toml or .agents/mcp/"
-}
-
-func (s *tuiSession) skillsAction(context.Context) string {
+func (s *tuiSession) skillCollection() tui.CollectionView {
+	v := tui.CollectionView{Empty: "No skills yet.", Create: "they live under .agents/skills/<name>/skill.toml"}
 	dir := filepath.Join(s.wd, ".agents", "skills")
 	ents, err := os.ReadDir(dir)
 	if err != nil {
-		return "skills · none found — add one under .agents/skills/<name>/skill.toml"
+		return v
 	}
-	var found []string
 	for _, e := range ents {
 		if !e.IsDir() {
 			continue
@@ -314,17 +313,60 @@ func (s *tuiSession) skillsAction(context.Context) string {
 		if err != nil {
 			continue
 		}
-		desc := sk.Manifest.Description
-		if desc != "" {
-			desc = " — " + desc
+		v.Entries = append(v.Entries, tui.CollectionEntry{
+			Title:  fmt.Sprintf("%s@%s", sk.Manifest.Name, sk.Manifest.Version),
+			Detail: sk.Manifest.Description,
+			Path:   filepath.Join(dir, e.Name()),
+		})
+	}
+	sort.Slice(v.Entries, func(i, j int) bool { return v.Entries[i].Title < v.Entries[j].Title })
+	return v
+}
+
+func (s *tuiSession) mcpCollection() tui.CollectionView {
+	v := tui.CollectionView{
+		Empty:  "No MCP servers configured.",
+		Create: "declare one under [mcp.servers] in andromeda.toml, or add a file in .agents/mcp/",
+	}
+	dir := filepath.Join(s.wd, ".agents", "mcp")
+	ents, _ := os.ReadDir(dir)
+	for _, e := range ents {
+		if e.IsDir() {
+			continue
 		}
-		found = append(found, fmt.Sprintf("%s@%s%s", sk.Manifest.Name, sk.Manifest.Version, desc))
+		v.Entries = append(v.Entries, tui.CollectionEntry{
+			Title: e.Name(), Detail: "MCP server config", Path: filepath.Join(dir, e.Name()),
+		})
 	}
-	if len(found) == 0 {
-		return "skills · none found — add one under .agents/skills/<name>/skill.toml"
+	return v
+}
+
+func (s *tuiSession) workflowCollection() tui.CollectionView {
+	v := tui.CollectionView{
+		Empty:  "No custom workflows.",
+		Create: "run the built-in SDD pipeline with: andromeda workflow run sdd",
 	}
-	sort.Strings(found)
-	return "skills · " + fmt.Sprint(len(found)) + " available\n  " + strings.Join(found, "\n  ")
+	for i, name := range workflow.SDDStageNames() {
+		v.Entries = append(v.Entries, tui.CollectionEntry{
+			Title: name, Detail: fmt.Sprintf("built-in SDD stage %d", i+1),
+		})
+	}
+	return v
+}
+
+func (s *tuiSession) pluginCollection() tui.CollectionView {
+	v := tui.CollectionView{
+		Empty:  "No plugins installed.",
+		Create: "declare one under [plugins] in andromeda.toml",
+	}
+	dir := filepath.Join(s.wd, ".agents", "plugins")
+	ents, _ := os.ReadDir(dir)
+	for _, e := range ents {
+		v.Entries = append(v.Entries, tui.CollectionEntry{
+			Title: e.Name(), Detail: "plugin", Path: filepath.Join(dir, e.Name()),
+		})
+	}
+	return v
 }
 
 func (s *tuiSession) modelsAction(ctx context.Context) []string {

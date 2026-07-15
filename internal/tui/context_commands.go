@@ -30,30 +30,38 @@ func cmdGraph(m Model, args string) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) openOntologyMenu() (tea.Model, tea.Cmd) {
-	items := []pickerItem{
-		{id: "build", display: "build", note: "scan & (re)write the .ttl ontology"},
-		{id: "show", display: "show", note: "print the current ontology"},
-		{id: "adjust", display: "adjust via chat", note: "describe a change for the agent"},
-		{id: "rm", display: "delete", note: "remove the generated ontology"},
-	}
-	m.pickerKind = "ontology"
-	return m.openPicker("Ontology · workspace map (.ttl)", items, "build", func(mm Model, id string) (Model, error) {
-		return mm.runOntologyOp(id), nil
+	return m.openMenu(menuLevel{
+		title: "Ontology · workspace map (.ttl)",
+		items: []menuItem{
+			{label: "Build", desc: "scan & (re)write the .ttl ontology", run: ontologyOpItem("build")},
+			{label: "Show", desc: "print the current ontology", run: ontologyOpItem("show")},
+			{label: "Adjust via chat", desc: "describe a change for the agent", run: ontologyOpItem("adjust")},
+			{label: "Delete", desc: "remove the generated ontology", run: ontologyOpItem("rm")},
+		},
 	})
 }
 
 func (m Model) openGraphMenu() (tea.Model, tea.Cmd) {
-	items := []pickerItem{
-		{id: "build", display: "build", note: "scan & (re)write the graph"},
-		{id: "open", display: "open viewer", note: "serve the interactive graph in your browser"},
-		{id: "show", display: "show", note: "print the graph overview"},
-		{id: "adjust", display: "adjust via chat", note: "describe a change for the agent"},
-		{id: "rm", display: "delete", note: "remove the generated graph"},
-	}
-	m.pickerKind = "graph"
-	return m.openPicker("Graph · visual workspace map", items, "build", func(mm Model, id string) (Model, error) {
-		return mm.runGraphOp(id), nil
+	return m.openMenu(menuLevel{
+		title: "Graph · visual workspace map",
+		items: []menuItem{
+			{label: "Build", desc: "scan & (re)write the graph", run: graphOpItem("build")},
+			{label: "Open viewer", desc: "serve the interactive graph in your browser", run: graphOpItem("open")},
+			{label: "Show", desc: "print the graph overview", run: graphOpItem("show")},
+			{label: "Adjust via chat", desc: "describe a change for the agent", run: graphOpItem("adjust")},
+			{label: "Delete", desc: "remove the generated graph", run: graphOpItem("rm")},
+		},
 	})
+}
+
+// ontologyOpItem / graphOpItem adapt a context-engineering op into a menu action: close the menu,
+// run the op (which appends its result or seeds a prompt), and stay put.
+func ontologyOpItem(op string) func(Model) (Model, tea.Cmd) {
+	return func(m Model) (Model, tea.Cmd) { return m.closeMenu().runOntologyOp(op), nil }
+}
+
+func graphOpItem(op string) func(Model) (Model, tea.Cmd) {
+	return func(m Model) (Model, tea.Cmd) { return m.closeMenu().runGraphOp(op), nil }
 }
 
 // runOntologyOp runs one ontology operation. "adjust" seeds the prompt with an editable goal so the

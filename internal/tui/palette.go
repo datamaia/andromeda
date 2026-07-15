@@ -12,21 +12,21 @@ import (
 // Actions are the app-backed operations slash commands invoke. The composition root wires them so
 // the TUI keeps no app/provider imports; a nil action degrades to an informative message.
 type Actions struct {
-	Doctor    func(ctx context.Context) string
-	Update    func(ctx context.Context) string
-	Memory    func(ctx context.Context, args string) string
-	Workflows func(ctx context.Context) string
-	MCP       func(ctx context.Context) string
-	Skills    func(ctx context.Context) string
-	Models    func(ctx context.Context) []string
-	Config    func(ctx context.Context) string
-	Logout    func(ctx context.Context, provider string) string
-	Export    func(lines []string) string
-	Init      func(ctx context.Context, provider, model string) string
-	Files     func(ctx context.Context) []string          // workspace files for @-mention completion
-	Context   func(ctx context.Context) []string          // workspace context lines for the /status panel
-	Ontology  func(ctx context.Context, op string) string // op: build|show|rm — deterministic .ttl map
-	Graph     func(ctx context.Context, op string) string // op: build|open|show|rm — visual map + viewer
+	Doctor func(ctx context.Context) string
+	Update func(ctx context.Context) string
+	Memory func(ctx context.Context, args string) string
+	// Collection returns the entries of a manageable capability set (kind: skills|mcp|workflows|
+	// plugins) for its interactive menu; a zero CollectionView renders an empty state.
+	Collection func(ctx context.Context, kind string) CollectionView
+	Models     func(ctx context.Context) []string
+	Config     func(ctx context.Context) string
+	Logout     func(ctx context.Context, provider string) string
+	Export     func(lines []string) string
+	Init       func(ctx context.Context, provider, model string) string
+	Files      func(ctx context.Context) []string          // workspace files for @-mention completion
+	Context    func(ctx context.Context) []string          // workspace context lines for the /status panel
+	Ontology   func(ctx context.Context, op string) string // op: build|show|rm — deterministic .ttl map
+	Graph      func(ctx context.Context, op string) string // op: build|open|show|rm — visual map + viewer
 }
 
 // WithActions wires the app-backed slash-command handlers.
@@ -65,8 +65,9 @@ func commandRegistry() []slashCommand {
 		{name: "workflows", desc: "list SDD workflows", aliases: []string{"workflow"}, run: cmdWorkflows},
 		{name: "ontology", desc: "build/inspect the workspace ontology (.ttl)", aliases: []string{"onto", "ttl"}, run: cmdOntology},
 		{name: "graph", desc: "build/serve a visual graph of the workspace", aliases: []string{"viz"}, run: cmdGraph},
-		{name: "mcp", desc: "MCP servers", run: cmdMCP},
-		{name: "skills", desc: "available skills", aliases: []string{"skill"}, run: cmdSkills},
+		{name: "mcp", desc: "manage MCP servers", run: cmdMCP},
+		{name: "skills", desc: "manage skills", aliases: []string{"skill"}, run: cmdSkills},
+		{name: "plugins", desc: "manage plugins", aliases: []string{"plugin"}, run: cmdPlugins},
 		{name: "goal", desc: "set and run a goal (/goal <text>)", run: cmdGoal},
 		{name: "loop", desc: "toggle loop mode", run: cmdLoop},
 		{name: "agent", desc: "switch to agent mode", run: cmdMode("agent")},
@@ -691,18 +692,6 @@ func cmdMemory(m Model, args string) (tea.Model, tea.Cmd) {
 		return m.unavailable("memory"), nil
 	}
 	return m.sys(m.actions.Memory(context.Background(), args)), nil
-}
-
-func cmdWorkflows(m Model, _ string) (tea.Model, tea.Cmd) {
-	return m.runAction("workflows", m.actions.Workflows), nil
-}
-
-func cmdMCP(m Model, _ string) (tea.Model, tea.Cmd) {
-	return m.runAction("mcp", m.actions.MCP), nil
-}
-
-func cmdSkills(m Model, _ string) (tea.Model, tea.Cmd) {
-	return m.runAction("skills", m.actions.Skills), nil
 }
 
 func cmdGoal(m Model, args string) (tea.Model, tea.Cmd) {

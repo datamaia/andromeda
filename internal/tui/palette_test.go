@@ -162,7 +162,7 @@ func TestDoctorActionWired(t *testing.T) {
 
 func TestUnwiredActionDegrades(t *testing.T) {
 	var m tea.Model = New("ollama", "llama3", nil) // no actions
-	m = typeString(m, "/mcp")
+	m = typeString(m, "/config")
 	m, _ = m.Update(key(tea.KeyEnter))
 	tr := m.(Model).Transcript()
 	if !strings.Contains(tr[len(tr)-1], "not available") {
