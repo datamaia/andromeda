@@ -8,6 +8,15 @@ Commit history by the release automation (ADR-013) and committed at release time
 
 ## [Unreleased]
 
+## [0.1.11] - 2026-07-15
+
+### Fixed
+
+- **`/clear` and `/new` now truly reset context.** They previously cleared only the on-screen
+  transcript while the agent kept earlier turns in its cross-turn memory, so it still "remembered"
+  them. They now also drop the session's conversation history and start a fresh session (the previous
+  conversation stays saved on disk under its own id) — clearing means the agent genuinely forgets.
+
 ## [0.1.10] - 2026-07-15
 
 Workspace maps the agent (and you) can navigate faster.

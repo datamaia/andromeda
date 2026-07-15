@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/datamaia/andromeda/internal/permstore"
+	"github.com/datamaia/andromeda/internal/ports"
 )
 
 func TestPermissionActionAllowDenyListRemove(t *testing.T) {
@@ -172,6 +173,17 @@ func TestAddDirAndCdActions(t *testing.T) {
 	}
 	if d, _, status := s.cdAction(context.Background(), filepath.Join(extra, "nope")); d != "" || !strings.Contains(status, "not a directory") {
 		t.Fatalf("cd invalid: d=%q status=%q", d, status)
+	}
+}
+
+func TestResetSessionAction(t *testing.T) {
+	s := &tuiSession{history: []ports.Message{{Role: "user"}, {Role: "assistant"}}, sessionID: "old-id"}
+	s.resetSessionAction(context.Background())
+	if s.history != nil {
+		t.Fatalf("history should be cleared, got %v", s.history)
+	}
+	if s.sessionID == "" || s.sessionID == "old-id" {
+		t.Fatalf("resetSession should mint a fresh id, got %q", s.sessionID)
 	}
 }
 

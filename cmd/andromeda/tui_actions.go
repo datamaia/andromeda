@@ -25,26 +25,34 @@ import (
 // never tears down the session.
 func (s *tuiSession) sessionActions() tui.Actions {
 	return tui.Actions{
-		Doctor:      s.doctorAction,
-		Update:      s.updateAction,
-		Memory:      s.memoryAction,
-		MemoryList:  s.memoryListAction,
-		Collection:  s.collectionAction,
-		Models:      s.modelsAction,
-		Config:      s.configAction,
-		Logout:      s.logoutAction,
-		Export:      s.exportAction,
-		Init:        s.initAction,
-		Files:       s.listFiles,
-		Context:     s.contextAction,
-		Ontology:    s.ontologyAction,
-		Graph:       s.graphAction,
-		Skills:      s.skillListAction,
-		Permission:  s.permissionAction,
-		Permissions: s.permissionView,
-		AddDir:      s.addDirAction,
-		Cd:          s.cdAction,
+		Doctor:       s.doctorAction,
+		Update:       s.updateAction,
+		Memory:       s.memoryAction,
+		MemoryList:   s.memoryListAction,
+		Collection:   s.collectionAction,
+		Models:       s.modelsAction,
+		Config:       s.configAction,
+		Logout:       s.logoutAction,
+		Export:       s.exportAction,
+		Init:         s.initAction,
+		Files:        s.listFiles,
+		Context:      s.contextAction,
+		Ontology:     s.ontologyAction,
+		Graph:        s.graphAction,
+		Skills:       s.skillListAction,
+		Permission:   s.permissionAction,
+		Permissions:  s.permissionView,
+		ResetSession: s.resetSessionAction,
+		AddDir:       s.addDirAction,
+		Cd:           s.cdAction,
 	}
+}
+
+// resetSessionAction backs /clear and /new: it drops the cross-turn history (so the next run starts
+// with empty context) and mints a fresh session id, leaving the previous conversation saved on disk.
+func (s *tuiSession) resetSessionAction(_ context.Context) {
+	s.history = nil
+	s.sessionID = app.NewSessionID()
 }
 
 // permissionView backs the /permission menu: the workspace-managed allow/deny rules (from

@@ -34,6 +34,9 @@ type Actions struct {
 	// Permissions returns the current allow/deny policy for the interactive menu.
 	Permission  func(ctx context.Context, args string) string
 	Permissions func(ctx context.Context) PermissionView
+	// ResetSession clears the driver's cross-turn conversation history so /clear and /new truly start
+	// with empty context (the previous session stays saved on disk under its own id).
+	ResetSession func(ctx context.Context)
 	// AddDir adds an extra working directory (its files join @-mention completion); returns a status.
 	AddDir func(ctx context.Context, path string) string
 	// Cd changes the session working directory; returns (resolvedDir, gitBranch, status). resolvedDir
@@ -516,8 +519,13 @@ func cmdKeys(m Model, _ string) (tea.Model, tea.Cmd) {
 	return m.sys("keys: enter send · ↑/↓ recall inputs (move in menus) · PgUp/PgDn scroll · / palette · @ files · shift+tab mode · ctrl+p provider · esc back · ctrl+c ctrl+c quit"), nil
 }
 
+// cmdClear starts a fresh session: it wipes the visible transcript AND, via ResetSession, the driver's
+// cross-turn history — so the agent genuinely forgets earlier turns rather than only hiding them.
 func cmdClear(m Model, _ string) (tea.Model, tea.Cmd) {
-	m.transcript = []entry{{"system", "conversation cleared"}}
+	if m.actions.ResetSession != nil {
+		m.actions.ResetSession(context.Background())
+	}
+	m.transcript = []entry{{"system", "conversation cleared — new session, empty context"}}
 	return m, nil
 }
 
