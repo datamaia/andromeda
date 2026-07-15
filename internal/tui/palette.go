@@ -675,7 +675,15 @@ func cmdDoctor(m Model, _ string) (tea.Model, tea.Cmd) {
 }
 
 func cmdUpdate(m Model, _ string) (tea.Model, tea.Cmd) {
-	return m.runAction("update", m.actions.Update), nil
+	if m.actions.Update == nil {
+		return m.unavailable("update"), nil
+	}
+	// The update check may hit the network; run it off the UI thread and show progress immediately so
+	// the interface never freezes while it waits.
+	fn := m.actions.Update
+	return m.sys("checking for updates…"), func() tea.Msg {
+		return noticeMsg{text: fn(context.Background())}
+	}
 }
 
 func cmdMemory(m Model, args string) (tea.Model, tea.Cmd) {

@@ -11,7 +11,6 @@ import (
 
 	"github.com/datamaia/andromeda/internal/app"
 	"github.com/datamaia/andromeda/internal/auth"
-	"github.com/datamaia/andromeda/internal/buildinfo"
 	"github.com/datamaia/andromeda/internal/graph"
 	"github.com/datamaia/andromeda/internal/memory"
 	"github.com/datamaia/andromeda/internal/ontology"
@@ -19,7 +18,6 @@ import (
 	"github.com/datamaia/andromeda/internal/skill"
 	"github.com/datamaia/andromeda/internal/storage"
 	"github.com/datamaia/andromeda/internal/tui"
-	"github.com/datamaia/andromeda/internal/updater"
 	"github.com/datamaia/andromeda/internal/workflow"
 )
 
@@ -236,16 +234,7 @@ func (s *tuiSession) doctorAction(ctx context.Context) string {
 
 func (s *tuiSession) updateAction(ctx context.Context) string {
 	self, _ := os.Executable()
-	// No release source is wired for a from-source dev build; Check reports "up to date" cleanly.
-	u := updater.New(buildinfo.Get().Version, "stable", self, nil)
-	res, err := u.Check(ctx)
-	if err != nil {
-		return "update: " + err.Error()
-	}
-	if res.Status == "update_available" {
-		return fmt.Sprintf("update available: %s → %s (channel %s)", res.Current, res.Latest, res.Channel)
-	}
-	return fmt.Sprintf("up to date: %s (channel %s)", res.Current, res.Channel)
+	return checkForUpdate(ctx, "stable", self)
 }
 
 func (s *tuiSession) memoryAction(ctx context.Context, args string) string {

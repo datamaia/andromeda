@@ -6,10 +6,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/datamaia/andromeda/internal/buildinfo"
 	"github.com/datamaia/andromeda/internal/indexer"
 	"github.com/datamaia/andromeda/internal/ports"
-	"github.com/datamaia/andromeda/internal/updater"
 	"github.com/spf13/cobra"
 )
 
@@ -98,23 +96,14 @@ func newUpdateCommand() *cobra.Command {
 	var channel string
 	c := &cobra.Command{
 		Use:   "update",
-		Short: "Check for and apply updates",
-		Args:  cobra.NoArgs,
+		Short: "Check for updates and how to apply them",
+		Long: "Report the running version and check the release feed for a newer one. Upgrades are " +
+			"applied through Homebrew or the install script, not in place, so this command tells you " +
+			"what to run rather than replacing the binary.",
+		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			self, _ := os.Executable()
-			// No release source is wired for a from-source dev build; Check reports cleanly.
-			u := updater.New(buildinfo.Get().Version, channel, self, nil)
-			res, err := u.Check(cmd.Context())
-			if err != nil {
-				return err
-			}
-			out := cmd.OutOrStdout()
-			switch res.Status {
-			case "update_available":
-				_, _ = fmt.Fprintf(out, "update available: %s → %s (channel %s)\n", res.Current, res.Latest, res.Channel)
-			default:
-				_, _ = fmt.Fprintf(out, "up to date: %s (channel %s)\n", res.Current, res.Channel)
-			}
+			_, _ = fmt.Fprintln(cmd.OutOrStdout(), checkForUpdate(cmd.Context(), channel, self))
 			return nil
 		},
 	}

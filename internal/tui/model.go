@@ -235,6 +235,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.handleAuthEvent(msg)
 	case modelsMsg:
 		return m.showModelPicker(msg.models)
+	case noticeMsg:
+		return m.sys(msg.text), nil
 	case tea.PasteMsg:
 		return m.handlePaste(msg.Content)
 	case tea.MouseWheelMsg:
@@ -263,6 +265,10 @@ func (m Model) handleMouseWheel(msg tea.MouseWheelMsg) (tea.Model, tea.Cmd) {
 
 // modelsMsg carries the result of asynchronous model discovery.
 type modelsMsg struct{ models []string }
+
+// noticeMsg carries the text of an off-thread action (e.g. a network-backed update check) to append
+// to the transcript once it completes, so the UI never blocks while the work runs.
+type noticeMsg struct{ text string }
 
 // handlePaste appends pasted text (bracketed paste) to whatever field is focused — the API-key
 // prompt or the input line — so long keys and multi-line goals can be pasted, not just typed.
