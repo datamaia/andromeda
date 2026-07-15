@@ -42,6 +42,34 @@ type Actions struct {
 	// Cd changes the session working directory; returns (resolvedDir, gitBranch, status). resolvedDir
 	// is empty on error so the caller leaves the displayed workspace unchanged.
 	Cd func(ctx context.Context, path string) (dir, branch, status string)
+	// Branch (/branch) snapshots the conversation into a new saved session and stays on the current
+	// one; Clone (/clone) freezes the current line and continues on a fresh copy. Both return status.
+	Branch func(ctx context.Context) string
+	Clone  func(ctx context.Context) string
+	// Note (/btw) queues an out-of-band note folded into the next agent message; returns status.
+	Note func(ctx context.Context, text string) string
+	// Sessions (/sessions) lists or removes saved sessions; SessionTree (/tree) renders fork lineage.
+	Sessions    func(ctx context.Context, args string) string
+	SessionTree func(ctx context.Context) string
+	// ResumeSession (/sessions resume <id>) swaps the live conversation to a saved session. It
+	// returns the transcript entries to re-seed, ok=false with a status on failure.
+	ResumeSession func(ctx context.Context, id string) (entries []HistoryEntry, ok bool, status string)
+	// Compact (/compact) summarizes the conversation via the provider and replaces the agent's
+	// cross-turn context with the summary; it returns a status line and may block on the network, so
+	// callers run it off the UI thread. AutoCompact (/autocompact) toggles automatic compaction.
+	Compact     func(ctx context.Context) string
+	AutoCompact func(ctx context.Context, args string) string
+	// Advisor (/advisor) consults a second/stronger model for a one-off opinion without adding it to
+	// the conversation; args is the question or a "model <name>" subcommand. Share (/share) uploads
+	// the transcript as a secret gist; Unshare (/unshare) deletes the last one. All may hit the
+	// network, so callers run them off the UI thread.
+	Advisor func(ctx context.Context, args string) string
+	Share   func(lines []string) string
+	Unshare func(ctx context.Context) string
+	// Editor (/editor) returns a command that suspends the TUI, runs $EDITOR on a temp file seeded
+	// with the composer text, and posts an EditorMsg with the composed prompt. The driver owns the
+	// process/filesystem work so the TUI stays exec-free.
+	Editor func(seed string) tea.Cmd
 }
 
 // WithActions wires the app-backed slash-command handlers.
@@ -62,11 +90,19 @@ func commandRegistry() []slashCommand {
 		{name: "help", desc: "getting started, modes, and keybindings", aliases: []string{"?"}, run: cmdHelp},
 		{name: "commands", desc: "every slash command with its aliases", run: cmdCommands},
 		{name: "keys", desc: "show keybindings", run: cmdKeys},
+		{name: "details", desc: "toggle verbose tool logging", aliases: []string{"verbose"}, run: cmdDetails},
+		{name: "editor", desc: "compose your next prompt in $EDITOR", run: cmdEditor},
 		{name: "clear", desc: "clear the conversation", aliases: []string{"reset", "new"}, run: cmdClear},
 		{name: "compact", desc: "summarize the conversation so far", aliases: []string{"summarize"}, run: cmdCompact},
+		{name: "autocompact", desc: "auto-summarize when the conversation grows large", run: cmdAutoCompact},
 		{name: "status", desc: "show provider, model, mode, and session", run: cmdStatus},
 		{name: "add-dir", desc: "add a working directory to the session", run: cmdAddDir},
 		{name: "cd", desc: "change the session working directory", run: cmdCd},
+		{name: "btw", desc: "add a note the agent sees on your next message", run: cmdBtw},
+		{name: "sessions", desc: "list, resume, or remove saved sessions", aliases: []string{"session"}, run: cmdSessions},
+		{name: "branch", desc: "bookmark this conversation as a new session", run: cmdBranch},
+		{name: "clone", desc: "copy this conversation and continue on the copy", run: cmdClone},
+		{name: "tree", desc: "show the session branch tree", run: cmdTree},
 		{name: "model", desc: "choose the model (/model <name> to set)", aliases: []string{"models"}, run: cmdModel},
 		{name: "effort", desc: "reasoning effort (minimal|low|medium|high)", run: cmdEffort},
 		{name: "theme", desc: "color theme (dark|light)", run: cmdTheme},
@@ -77,6 +113,9 @@ func commandRegistry() []slashCommand {
 		{name: "permission", desc: "pre-approve or block shell commands (allow/deny)", aliases: []string{"perms", "allowlist"}, run: cmdPermission},
 		{name: "init", desc: "scaffold AGENTS.md, andromeda.toml, .agents/ and .andromeda/", run: cmdInit},
 		{name: "export", desc: "save the transcript to a file", run: cmdExport},
+		{name: "advisor", desc: "ask a stronger model for a second opinion", aliases: []string{"consult"}, run: cmdAdvisor},
+		{name: "share", desc: "upload the transcript as a secret gist", run: cmdShare},
+		{name: "unshare", desc: "delete the gist made by /share", run: cmdUnshare},
 		{name: "doctor", desc: "run environment checks", run: cmdDoctor},
 		{name: "update", desc: "check for updates", run: cmdUpdate},
 		{name: "memory", desc: "manage workspace memory", aliases: []string{"mem"}, run: cmdMemory},
@@ -222,6 +261,14 @@ func argCandidates(name string) []string {
 		return []string{"build", "show", "adjust", "rm"}
 	case "graph":
 		return []string{"build", "open", "show", "adjust", "rm"}
+	case "sessions", "session":
+		return []string{"list", "resume", "rm"}
+	case "autocompact":
+		return []string{"on", "off", "status"}
+	case "advisor", "consult":
+		return []string{"model"}
+	case "details", "verbose":
+		return []string{"on", "off"}
 	}
 	return nil
 }
@@ -529,15 +576,26 @@ func cmdClear(m Model, _ string) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+// cmdCompact summarizes the conversation for real: the driver asks the provider to condense the
+// history and replaces the agent's cross-turn context with the summary. The call may hit the
+// network, so it runs off the UI thread and reports the result as a notice.
 func cmdCompact(m Model, _ string) (tea.Model, tea.Cmd) {
-	n := 0
-	for _, e := range m.transcript {
-		if e.role == "user" || e.role == "agent" {
-			n++
-		}
+	if m.actions.Compact == nil {
+		return m.unavailable("compact"), nil
 	}
-	m.transcript = []entry{{"system", fmt.Sprintf("conversation compacted (%d messages summarized)", n)}}
-	return m, nil
+	fn := m.actions.Compact
+	return m.sys("summarizing the conversation…"), func() tea.Msg {
+		return noticeMsg{text: fn(context.Background())}
+	}
+}
+
+// cmdAutoCompact toggles automatic compaction (persisted per workspace). Grammar: on | off | status
+// | (bare toggles).
+func cmdAutoCompact(m Model, args string) (tea.Model, tea.Cmd) {
+	if m.actions.AutoCompact == nil {
+		return m.unavailable("autocompact"), nil
+	}
+	return m.sys(m.actions.AutoCompact(context.Background(), strings.TrimSpace(args))), nil
 }
 
 func cmdStatus(m Model, args string) (tea.Model, tea.Cmd) {

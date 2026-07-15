@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"strings"
 
 	"github.com/datamaia/andromeda/internal/agent"
 	"github.com/datamaia/andromeda/internal/app"
@@ -15,11 +16,19 @@ import (
 // approve or deny. It returns a cancel the TUI calls to interrupt the run (Esc). Agent mode runs
 // interactively (state-changing actions prompt); plan mode runs strictly read-only.
 func (s *tuiSession) startAgentRun(goal, mode string) (<-chan tui.AgentEvent, func()) {
+	goal = s.foldPendingNotes(goal)
 	events := make(chan tui.AgentEvent, 16)
 	runCtx, cancel := context.WithCancel(s.ctx)
 	go func() {
 		defer close(events)
 		defer cancel()
+		// Auto-compact a grown conversation before the turn so the run proceeds with bounded context.
+		// It happens here (off the UI thread) and surfaces a notice so the trim is never silent.
+		if mode != "shell" {
+			if notice := s.maybeAutoCompact(runCtx); notice != "" {
+				events <- tui.AgentEvent{Notice: notice}
+			}
+		}
 		opts := app.RunAgentOptions{
 			WorkspaceRoot: s.wd, Goal: goal, Model: s.cfg.model, Effort: s.cfg.effort,
 			History: s.history, Provider: s.prov,
@@ -44,6 +53,23 @@ func (s *tuiSession) startAgentRun(goal, mode string) (<-chan tui.AgentEvent, fu
 		events <- tui.AgentEvent{Final: res.FinalText, InTokens: res.InputTokens, OutTokens: res.OutputTokens}
 	}()
 	return events, cancel
+}
+
+// foldPendingNotes prepends any /btw notes to the goal as a short context preamble, then clears
+// them, so a queued "by the way" reaches the agent with the user's next real message.
+func (s *tuiSession) foldPendingNotes(goal string) string {
+	if len(s.pendingNotes) == 0 {
+		return goal
+	}
+	var b strings.Builder
+	b.WriteString("Additional context to keep in mind:\n")
+	for _, n := range s.pendingNotes {
+		b.WriteString("- " + n + "\n")
+	}
+	b.WriteString("\n")
+	b.WriteString(goal)
+	s.pendingNotes = nil
+	return b.String()
 }
 
 // forwardRunEvent translates an agent run event into the TUI's streaming event vocabulary.

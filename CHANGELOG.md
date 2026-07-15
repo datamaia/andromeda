@@ -8,6 +8,41 @@ Commit history by the release automation (ADR-013) and committed at release time
 
 ## [Unreleased]
 
+## [0.1.12] - 2026-07-15
+
+Deep session and context commands.
+
+### Added
+
+- **Session branching.** `/branch` bookmarks the current conversation as a new saved session while
+  you keep working where you are; `/clone` freezes the current line and continues on a fresh copy so
+  the original is preserved. Each fork records its origin, and `/tree` shows the resulting lineage.
+- **Session switching.** `/sessions` lists every saved session (turns, date, title, current marked);
+  `/sessions resume <id>` swaps the live conversation in place and re-seeds the transcript;
+  `/sessions rm <id>` deletes one. The session you are in is never removed out from under you.
+- **`/btw` notes.** `/btw <note>` queues an out-of-band "by the way" that is folded into your next
+  message to the agent — context without triggering a reply now. Multiple notes stack and clear once
+  sent.
+- **Real conversation compaction.** `/compact` now actually summarizes: it asks the provider to
+  condense the conversation and replaces the agent's cross-turn context with the summary (encoded as
+  a valid user→assistant pair, so strict-alternation providers keep working), trimming token cost
+  while preserving decisions, changes, and open tasks. It runs off the UI thread.
+- **`/autocompact`.** Toggle automatic compaction (persisted per workspace in
+  `.andromeda/settings.toml`): once a conversation grows past a turn threshold, it is summarized
+  before the next turn, with a visible notice so the trim is never silent.
+- **`/advisor` — a second opinion.** `/advisor <question>` consults a stronger model for focused
+  review (risks, better approaches, trade-offs) using the current conversation as context, without
+  adding the exchange to the agent's history. `/advisor model <name>` pins the model to consult
+  (must be served by the current provider); persisted per workspace.
+- **`/share` and `/unshare`.** `/share` uploads the transcript as a **secret** GitHub gist via the
+  `gh` CLI and prints the URL; `/unshare` deletes it again. The gist id is remembered per workspace.
+  Both state plainly that content is uploaded, and never publish a public gist.
+- **`/details` verbose tool logging.** Toggle between the compact one-line tool log and a verbose
+  view that shows each tool call's full arguments and a longer result excerpt — useful for following
+  exactly what the agent did.
+- **`/editor`.** Compose your next prompt in `$EDITOR` (or `$VISUAL`): the composer's current text
+  seeds the buffer, and saving sends it as a goal — handy for long, multi-line instructions.
+
 ## [0.1.11] - 2026-07-15
 
 ### Fixed

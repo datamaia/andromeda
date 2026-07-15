@@ -18,7 +18,7 @@ func TestSlashOpensPalette(t *testing.T) {
 	}
 	view := got.View().Content
 	// The list is bounded to a scrolling window; the first commands and a "more" marker are shown.
-	for _, want := range []string{"/help", "/provider", "↓"} {
+	for _, want := range []string{"/help", "/clear", "↓"} {
 		if !strings.Contains(view, want) {
 			t.Errorf("palette view missing %q", want)
 		}

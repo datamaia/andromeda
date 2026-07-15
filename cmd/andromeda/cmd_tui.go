@@ -12,6 +12,7 @@ import (
 	"github.com/datamaia/andromeda/internal/app"
 	"github.com/datamaia/andromeda/internal/buildinfo"
 	"github.com/datamaia/andromeda/internal/ports"
+	"github.com/datamaia/andromeda/internal/settingstore"
 	"github.com/datamaia/andromeda/internal/tui"
 	"github.com/spf13/cobra"
 )
@@ -49,6 +50,14 @@ type tuiSession struct {
 	// extraDirs are additional working directories added with /add-dir; their files join @-mention
 	// completion alongside the primary workspace (s.wd).
 	extraDirs []string
+
+	// pendingNotes are out-of-band context lines queued with /btw; they are folded into the next
+	// message to the agent (and then cleared) rather than triggering a reply on their own.
+	pendingNotes []string
+
+	// autoCompact mirrors the workspace setting (.andromeda/settings.toml): when true, the history is
+	// summarized before a turn once it grows past autoCompactTurns. Toggled by /autocompact.
+	autoCompact bool
 }
 
 func (s *tuiSession) build() error {
@@ -61,6 +70,9 @@ func (s *tuiSession) build() error {
 		return err
 	}
 	s.prov = prov
+	if st, err := settingstore.Load(s.wd); err == nil {
+		s.autoCompact = st.AutoCompact
+	}
 	return nil
 }
 

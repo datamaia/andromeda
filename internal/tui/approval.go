@@ -21,6 +21,7 @@ type AgentEvent struct {
 	Delta     string           // a streamed chunk of assistant text (non-terminal)
 	Tool      *ToolStep        // a tool call starting or its result (non-terminal)
 	Approval  *ApprovalRequest // non-nil: the run is paused until the user answers
+	Notice    string           // an out-of-band system note during a run (e.g. auto-compaction); non-terminal
 	Final     string           // the run's final text (terminal, when the others are unset)
 	Err       error            // the run failed (terminal)
 	InTokens  int              // input tokens consumed by the run (reported on the terminal event)
@@ -128,6 +129,9 @@ func (m Model) handleAgentEvent(msg agentEventMsg) (tea.Model, tea.Cmd) {
 		m.approvalCursor = 0
 		m.state = "awaiting approval"
 		return m, nil // wait for the user; do not re-subscribe yet
+	case msg.ev.Notice != "":
+		m.transcript = append(m.transcript, entry{"system", msg.ev.Notice})
+		return m, waitAgent(m.agentEvents)
 	}
 	// terminal event: canonicalize the streamed line (or append the result), then settle.
 	if msg.ev.Err != nil {
@@ -175,13 +179,23 @@ func (m Model) appendToolStep(t *ToolStep) Model {
 	switch t.Phase {
 	case "result":
 		if m.toolIdx >= 0 && m.toolIdx < len(m.transcript) {
-			if s := toolResultSummary(t.Result); s != "" {
+			s := toolResultSummary(t.Result)
+			if m.showDetails {
+				s = toolResultDetail(t.Result)
+			}
+			if s != "" {
 				m.transcript[m.toolIdx].text += "\n  ⎿  " + s
 			}
 		}
 		m.state = "thinking" // the tool is done; the model now reasons about the result
 	default: // "call"
-		m.transcript = append(m.transcript, entry{"tool", toolCallLabel(t.Name, t.Input)})
+		label := toolCallLabel(t.Name, t.Input)
+		if m.showDetails {
+			if in := strings.TrimSpace(t.Input); in != "" && in != "{}" {
+				label += "\n     ↳ " + oneLine(t.Input, 200) // full arguments in details mode
+			}
+		}
+		m.transcript = append(m.transcript, entry{"tool", label})
 		m.toolIdx = len(m.transcript) - 1
 		m.state = "working" // a tool is executing
 	}
@@ -244,6 +258,26 @@ func toolResultSummary(result string) string {
 		}
 	}
 	return summarizeText(r)
+}
+
+// toolResultDetail returns the tool's result content with a longer excerpt than toolResultSummary,
+// for /details mode: it unwraps the same JSON fields but keeps up to 300 collapsed characters so the
+// user can inspect the output without opening a file.
+func toolResultDetail(result string) string {
+	r := strings.TrimSpace(result)
+	if r == "" {
+		return ""
+	}
+	var m map[string]any
+	if json.Unmarshal([]byte(r), &m) == nil {
+		for _, k := range []string{"content", "output", "stdout", "result", "text", "message", "error"} {
+			if s, ok := m[k].(string); ok {
+				r = s
+				break
+			}
+		}
+	}
+	return oneLine(r, 300)
 }
 
 // summarizeText returns the first line of s, appending "(+N lines)" when more follow.

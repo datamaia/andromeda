@@ -24,43 +24,44 @@ const (
 // unclassified and rejected by the enforcement test, so adding a package forces a manifest
 // entry in the same change (FR-ARCH-001).
 var PackageLayer = map[string]Layer{
-	"core":       L0Core,
-	"buildinfo":  L0Core, // build metadata is pure, dependency-free
-	"ports":      L1Contract,
-	"pal":        L1Contract,
-	"arch":       L1Contract, // the manifest itself is a contract artifact
-	"storage":    L2Infrastructure,
-	"config":     L2Infrastructure,
-	"streams":    L2Infrastructure,
-	"eventbus":   L2Infrastructure,
-	"logging":    L2Infrastructure,
-	"telemetry":  L2Infrastructure,
-	"permission": L3Engine,
-	"secret":     L3Engine,
-	"sandbox":    L3Engine,
-	"git":        L3Engine,
-	"workspace":  L3Engine,
-	"provider":   L3Engine,
-	"memory":     L3Engine,
-	"memnote":    L3Engine, // file-based workspace memory notes (.andromeda/memory)
-	"indexer":    L3Engine,
-	"ontology":   L3Engine, // deterministic workspace structural map (.ttl)
-	"graph":      L3Engine, // visual workspace graph + local viewer (imports ontology)
-	"tool":       L3Engine,
-	"agent":      L3Engine,
-	"terminal":   L3Engine,
-	"workflow":   L3Engine,
-	"scheduler":  L2Infrastructure,
-	"jsonrpc":    L2Infrastructure,
-	"mcp":        L3Engine,
-	"plugin":     L3Engine,
-	"skill":      L3Engine,
-	"permstore":  L3Engine, // workspace command allow/deny store (.andromeda/permissions.toml)
-	"tui":        L5Driver,
-	"auth":       L3Engine,
-	"updater":    L3Engine,
-	"pkgmgr":     L3Engine,
-	"app":        L4Application,
+	"core":         L0Core,
+	"buildinfo":    L0Core, // build metadata is pure, dependency-free
+	"ports":        L1Contract,
+	"pal":          L1Contract,
+	"arch":         L1Contract, // the manifest itself is a contract artifact
+	"storage":      L2Infrastructure,
+	"config":       L2Infrastructure,
+	"streams":      L2Infrastructure,
+	"eventbus":     L2Infrastructure,
+	"logging":      L2Infrastructure,
+	"telemetry":    L2Infrastructure,
+	"permission":   L3Engine,
+	"secret":       L3Engine,
+	"sandbox":      L3Engine,
+	"git":          L3Engine,
+	"workspace":    L3Engine,
+	"provider":     L3Engine,
+	"memory":       L3Engine,
+	"memnote":      L3Engine, // file-based workspace memory notes (.andromeda/memory)
+	"indexer":      L3Engine,
+	"ontology":     L3Engine, // deterministic workspace structural map (.ttl)
+	"graph":        L3Engine, // visual workspace graph + local viewer (imports ontology)
+	"tool":         L3Engine,
+	"agent":        L3Engine,
+	"terminal":     L3Engine,
+	"workflow":     L3Engine,
+	"scheduler":    L2Infrastructure,
+	"jsonrpc":      L2Infrastructure,
+	"mcp":          L3Engine,
+	"plugin":       L3Engine,
+	"skill":        L3Engine,
+	"permstore":    L3Engine, // workspace command allow/deny store (.andromeda/permissions.toml)
+	"settingstore": L3Engine, // workspace UI settings store (.andromeda/settings.toml)
+	"tui":          L5Driver,
+	"auth":         L3Engine,
+	"updater":      L3Engine,
+	"pkgmgr":       L3Engine,
+	"app":          L4Application,
 }
 
 // ModulePath is the module's import path prefix.
