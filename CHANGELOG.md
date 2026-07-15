@@ -8,6 +8,20 @@ Commit history by the release automation (ADR-013) and committed at release time
 
 ## [Unreleased]
 
+## [0.1.14] - 2026-07-16
+
+Unified `$` invocation.
+
+### Changed
+
+- **`$` now invokes any context resource, not just skills.** Typing `$` opens a ranked menu of
+  everything discovered across `.agents`, `.claude`, `.codex`, `.agent`, and `.andromeda` (plus
+  `.windsurf`/`.cursor` for workflows) — **skills, workflows, custom commands**, and the workspace
+  **maps** (`$ontology`, `$graph`, `$memory`) — each tagged with its kind. Selecting one inserts
+  `$name`; on send, that resource's guidance is folded into the run (a skill's instructions, a
+  workflow's steps, a command's template, or a directive to lean on the ontology/graph/memory map),
+  and a line records each activation. Generalizes the previous skills-only `$`-mention.
+
 ## [0.1.13] - 2026-07-15
 
 Undo/redo and background orchestration.

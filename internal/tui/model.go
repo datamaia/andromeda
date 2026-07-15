@@ -125,11 +125,11 @@ type Model struct {
 	filesLoaded bool
 	atCursor    int
 
-	// $-mention skill invocation: the workspace skill list (loaded once from Actions.Skills) and the
-	// highlighted candidate.
-	skillList    []SkillNote
-	skillsLoaded bool
-	skillCursor  int
+	// $-mention invocation: the workspace mention list (skills, workflows, commands, and maps —
+	// loaded once from Actions.Mentions) and the highlighted candidate.
+	mentionList    []Mention
+	mentionsLoaded bool
+	mentionCursor  int
 
 	// plan-review handoff: after a plan-mode turn completes, an approve/refine/reject overlay opens.
 	planReview       bool
@@ -402,8 +402,8 @@ func (m Model) handleKey(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 		}
 	}
 	// The $-mention menu owns navigation keys while a "$fragment" skill token is being typed.
-	if m.skillActive() {
-		if nm, cmd, handled := m.handleSkillKey(msg); handled {
+	if m.mentionActive() {
+		if nm, cmd, handled := m.handleMentionKey(msg); handled {
 			return nm, cmd
 		}
 	}
@@ -462,9 +462,9 @@ func (m Model) handleKey(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 		if _, ok := atToken(m.input); ok && !m.filesLoaded {
 			m = m.loadFiles()
 		}
-		// Likewise load skills the first time a "$" token appears, so the invocation menu can open.
-		if _, ok := dollarToken(m.input); ok && !m.skillsLoaded {
-			m = m.loadSkills()
+		// Likewise load mentions the first time a "$" token appears, so the invocation menu can open.
+		if _, ok := dollarToken(m.input); ok && !m.mentionsLoaded {
+			m = m.loadMentions()
 		}
 	}
 	return m, nil
@@ -535,18 +535,18 @@ func (m Model) submit() (tea.Model, tea.Cmd) {
 	m.scrollOffset = 0 // jump to the bottom so the new exchange is visible
 	m.transcript = append(m.transcript, entry{"user", goal})
 	mode := m.modeOrDefault()
-	// $-mention skill invocation: fold any referenced skills' instructions into the goal sent to the
-	// agent (not shell), leaving the visible transcript as the user typed it. A short system line
-	// records each activation so it's clear the skill took effect.
+	// $-mention invocation: fold any referenced resource's guidance (skill, workflow, command, or
+	// workspace map) into the goal sent to the agent (not shell), leaving the visible transcript as
+	// the user typed it. A short system line records each activation so it's clear it took effect.
 	sendGoal := goal
 	if mode != "shell" {
-		if !m.skillsLoaded && strings.Contains(goal, "$") {
-			m = m.loadSkills()
+		if !m.mentionsLoaded && strings.Contains(goal, "$") {
+			m = m.loadMentions()
 		}
-		var used []string
-		sendGoal, used = m.expandSkillMentions(goal)
-		for _, name := range used {
-			m.transcript = append(m.transcript, entry{"system", "↯ activated skill " + name})
+		var used []Mention
+		sendGoal, used = m.expandMentions(goal)
+		for _, mn := range used {
+			m.transcript = append(m.transcript, entry{"system", "↯ activated " + mn.Kind + " " + mn.Name})
 		}
 	}
 	return m.dispatchGoal(sendGoal, mode)
@@ -641,7 +641,7 @@ func (m Model) bodyString() string {
 	// The splash is the start-screen greeting; it shows only until there is real content to display
 	// (a conversation turn OR any command output). It is also hidden while the palette is open or a
 	// sign-in is in flight, so the command list / progress messages and the prompt stay on screen.
-	showSplash := !m.hasContent() && m.menuKind() == "" && !m.atActive() && !m.skillActive() && !m.authing
+	showSplash := !m.hasContent() && m.menuKind() == "" && !m.atActive() && !m.mentionActive() && !m.authing
 	if showSplash {
 		b.WriteString(m.Splash(m.width))
 	}
@@ -679,8 +679,8 @@ func (m Model) footerString() string {
 		b.WriteString(m.renderPalette())
 	case m.atActive():
 		b.WriteString(m.renderAtMenu())
-	case m.skillActive():
-		b.WriteString(m.renderSkillMenu())
+	case m.mentionActive():
+		b.WriteString(m.renderMentionMenu())
 	default:
 		// A thin rule + blank line give the compose area room to breathe, so it reads like a proper
 		// chat box separated from the conversation above (only when no overlay owns the space).

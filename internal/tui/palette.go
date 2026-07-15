@@ -29,7 +29,7 @@ type Actions struct {
 	Context    func(ctx context.Context) []string          // workspace context lines for the /status panel
 	Ontology   func(ctx context.Context, op string) string // op: build|show|rm — deterministic .ttl map
 	Graph      func(ctx context.Context, op string) string // op: build|open|show|rm — visual map + viewer
-	Skills     func(ctx context.Context) []SkillNote       // discovered skills for $-mention invocation
+	Mentions   func(ctx context.Context) []Mention         // $-invokable resources: skills, workflows, commands, maps
 	// Permission runs the /permission text subcommands (allow|deny <cmd>, rm <list> <cmd>, list);
 	// Permissions returns the current allow/deny policy for the interactive menu.
 	Permission  func(ctx context.Context, args string) string
@@ -546,7 +546,7 @@ func cmdHelp(m Model, _ string) (tea.Model, tea.Cmd) {
 	b.WriteString("\n  plan    think through an approach; no edits are made")
 	b.WriteString("\n  shell   run shell commands directly")
 	b.WriteString("\n\ninline:")
-	b.WriteString("\n  /   command palette      @   mention a file      $   invoke a skill")
+	b.WriteString("\n  /   command palette      @   mention a file      $   invoke skill/workflow/command/map")
 	b.WriteString("\n\nkeybindings:")
 	b.WriteString("\n  enter          send the current line")
 	b.WriteString("\n  ↑/↓            recall previous/next inputs (navigate a menu when one is open)")
