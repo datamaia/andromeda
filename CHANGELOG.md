@@ -8,8 +8,19 @@ Commit history by the release automation (ADR-013) and committed at release time
 
 ## [Unreleased]
 
+## [0.1.6] - 2026-07-15
+
 ### Added
 
+- **Ontology and graph workspace maps.** Two context-engineering surfaces that give an agent
+  (or a person) a fast, deterministic map of a repository before touching it.
+  `andromeda ontology build` scans the workspace (honoring `.gitignore`) and writes a Turtle
+  (`.ttl`) description of how files and directories relate — byte-for-byte reproducible, with no
+  timestamps. `andromeda graph serve` derives a node/edge graph, writes `graph.json` plus
+  human-readable Markdown notes, and opens a self-contained, dependency-free force-directed viewer
+  on localhost. Both are exposed in the TUI as the `/ontology` and `/graph` slash commands, each
+  with a build / show / adjust-via-chat / delete menu. Artifacts live under the gitignored
+  `.andromeda/` surface (ADR-028).
 - **Roadmap board automation (FR-GH-008).** `project.yml` now drives the full status lifecycle of
   the Andromeda Roadmap board, not just intake: a linked PR opening moves its issues to
   `In Review`, merging moves them to `Validation`, a published release moves every `Validation`
