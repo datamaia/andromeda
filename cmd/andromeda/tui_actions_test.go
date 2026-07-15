@@ -9,6 +9,7 @@ import (
 
 	"github.com/datamaia/andromeda/internal/permstore"
 	"github.com/datamaia/andromeda/internal/ports"
+	"github.com/datamaia/andromeda/internal/tui"
 )
 
 func TestPermissionActionAllowDenyListRemove(t *testing.T) {
@@ -88,9 +89,9 @@ func TestSkillCollectionAndListAction(t *testing.T) {
 	if len(cv.Entries) != 1 || cv.Entries[0].Title != "greeter" {
 		t.Fatalf("skillCollection = %+v", cv.Entries)
 	}
-	notes := s.skillListAction(context.Background())
-	if len(notes) != 1 || notes[0].Name != "greeter" || !strings.Contains(notes[0].Body, "hello") {
-		t.Fatalf("skillListAction = %+v", notes)
+	notes := s.mentionsAction(context.Background())
+	if len(notes) != 1 || notes[0].Name != "greeter" || notes[0].Kind != "skill" || !strings.Contains(notes[0].Body, "hello") {
+		t.Fatalf("mentionsAction = %+v", notes)
 	}
 }
 
@@ -204,4 +205,59 @@ func TestConfigStrings(t *testing.T) {
 			t.Errorf("configStrings(%v) = %v, want len %d", c.in, got, c.want)
 		}
 	}
+}
+
+func TestMentionsActionAggregatesAllSources(t *testing.T) {
+	wd := t.TempDir()
+	// A skill, a workflow, a custom command, and the memory index.
+	mk := func(rel, content string) {
+		p := filepath.Join(wd, rel)
+		if err := os.MkdirAll(filepath.Dir(p), 0o750); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(p, []byte(content), 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	mk(".agents/skills/greeter/SKILL.md", "---\nname: greeter\ndescription: says hi\n---\nSay hello.")
+	mk(".agents/workflows/ship.md", "---\ndescription: release it\n---\n1. build\n2. test")
+	mk(".claude/commands/review.md", "---\ndescription: review a diff\n---\nReview $ARGUMENTS carefully.")
+	mk(".andromeda/memory/MEMORY.md", "# Memory index\n- durable fact one")
+	mk(".andromeda/ontology/project.ttl", "@prefix x: <y> .")
+
+	s := &tuiSession{wd: wd, ctx: context.Background()}
+	got := s.mentionsAction(context.Background())
+
+	byKind := map[string]tui.Mention{}
+	for _, m := range got {
+		byKind[m.Kind] = m
+	}
+	for _, kind := range []string{"skill", "workflow", "command", "memory", "ontology"} {
+		if _, ok := byKind[kind]; !ok {
+			t.Fatalf("mentionsAction missing kind %q; got kinds %v", kind, kindsOf(got))
+		}
+	}
+	if byKind["skill"].Name != "greeter" || !strings.Contains(byKind["skill"].Body, "hello") {
+		t.Fatalf("skill mention wrong: %+v", byKind["skill"])
+	}
+	if byKind["workflow"].Name != "ship" || !strings.Contains(byKind["workflow"].Body, "build") {
+		t.Fatalf("workflow mention wrong: %+v", byKind["workflow"])
+	}
+	if byKind["command"].Name != "review" {
+		t.Fatalf("command mention wrong: %+v", byKind["command"])
+	}
+	if byKind["memory"].Name != "memory" || !strings.Contains(byKind["memory"].Body, "durable fact") {
+		t.Fatalf("memory mention wrong: %+v", byKind["memory"])
+	}
+	if byKind["ontology"].Name != "ontology" || !strings.Contains(byKind["ontology"].Body, "ontology") {
+		t.Fatalf("ontology mention wrong: %+v", byKind["ontology"])
+	}
+}
+
+func kindsOf(ms []tui.Mention) []string {
+	var out []string
+	for _, m := range ms {
+		out = append(out, m.Kind)
+	}
+	return out
 }

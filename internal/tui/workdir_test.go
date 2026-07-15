@@ -12,13 +12,13 @@ func TestCmdCdUpdatesHeader(t *testing.T) {
 		},
 	})
 	m.filesLoaded = true
-	m.skillsLoaded = true
+	m.mentionsLoaded = true
 	nm, _ := cmdCd(m, "somewhere")
 	got := nm.(Model)
 	if got.workspaceRoot != "/new/dir" || got.branch != "feature" {
 		t.Fatalf("/cd should update the header: root=%q branch=%q", got.workspaceRoot, got.branch)
 	}
-	if got.filesLoaded || got.skillsLoaded {
+	if got.filesLoaded || got.mentionsLoaded {
 		t.Fatal("/cd should invalidate the file and skill caches")
 	}
 }

@@ -40,7 +40,7 @@ func cmdCd(m Model, args string) (tea.Model, tea.Cmd) {
 		m.workspaceRoot = dir
 		m.branch = branch
 		m.filesLoaded = false
-		m.skillsLoaded = false
+		m.mentionsLoaded = false
 	}
 	return m.sys(status), nil
 }

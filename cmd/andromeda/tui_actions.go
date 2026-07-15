@@ -39,7 +39,7 @@ func (s *tuiSession) sessionActions() tui.Actions {
 		Context:       s.contextAction,
 		Ontology:      s.ontologyAction,
 		Graph:         s.graphAction,
-		Skills:        s.skillListAction,
+		Mentions:      s.mentionsAction,
 		Permission:    s.permissionAction,
 		Permissions:   s.permissionView,
 		ResetSession:  s.resetSessionAction,
@@ -180,21 +180,69 @@ func configStrings(v any) []string {
 	return out
 }
 
-// skillListAction backs the $-mention skill invocation: it discovers the workspace's skills (across
-// .agents/.claude/.codex/.agent) and returns them with their instruction bodies so the TUI can both
-// complete "$name" and fold the selected skill's instructions into the run.
-func (s *tuiSession) skillListAction(_ context.Context) []tui.SkillNote {
-	ds := skill.Discover(s.wd)
-	out := make([]tui.SkillNote, 0, len(ds))
-	for _, d := range ds {
-		out = append(out, tui.SkillNote{
-			Name:        d.Manifest.Name,
-			Description: d.Manifest.Description,
-			Path:        d.Path,
-			Body:        d.Prompt,
-		})
+// mentionsAction backs the $-mention invocation: it discovers every workspace resource that guides
+// the agent — skills, workflows, and custom commands (across .agents/.claude/.codex/.agent and
+// .andromeda/.windsurf/.cursor), plus the workspace maps (ontology, graph, memory) when present — and
+// returns them with the guidance body folded into the run when "$name" is invoked. Names must be
+// single tokens (a $-mention is whitespace-delimited); collisions are resolved first-wins.
+func (s *tuiSession) mentionsAction(_ context.Context) []tui.Mention {
+	var out []tui.Mention
+	seen := map[string]bool{}
+	add := func(kind, name, desc, path, body string) {
+		name = strings.TrimSpace(name)
+		if name == "" || strings.ContainsAny(name, " \t") { // $-tokens are single words
+			return
+		}
+		key := strings.ToLower(name)
+		if seen[key] {
+			return
+		}
+		seen[key] = true
+		out = append(out, tui.Mention{Kind: kind, Name: name, Description: desc, Path: path, Body: body})
+	}
+
+	for _, d := range skill.Discover(s.wd) {
+		add("skill", d.Manifest.Name, d.Manifest.Description, d.Path, d.Prompt)
+	}
+	for _, e := range s.workflowCollection().Entries {
+		add("workflow", e.Title, e.Detail, e.Path, e.Body)
+	}
+	for _, c := range discoverCustomCommands(s.wd) {
+		add("command", c.Name, c.Desc, "", c.Template)
+	}
+
+	// Workspace maps: point the agent at the precomputed structure (already available passively in the
+	// system prompt, but $-invoking one tells it to lean on that map for this task).
+	ontoDir := filepath.Join(s.wd, ".andromeda", "ontology")
+	if fileExists(ontoDir, "project.ttl") {
+		add("ontology", "ontology", "structural .ttl map of the workspace", filepath.Join(ontoDir, "project.ttl"),
+			"Use the workspace ontology at .andromeda/ontology/project.ttl — a deterministic Turtle map of "+
+				"how files and directories relate. Consult it to navigate the codebase before exploring by hand.")
+	}
+	graphDir := filepath.Join(s.wd, ".andromeda", "graph")
+	if fileExists(graphDir, "index.md") {
+		add("graph", "graph", "node/edge map with per-file summaries", filepath.Join(graphDir, "index.md"),
+			"Use the workspace graph at .andromeda/graph/ (index.md, graph.json) — a node/edge map of the "+
+				"workspace with per-file summaries. Consult it to understand structure and relationships.")
+	}
+	if idx := memoryIndex(s.wd); idx != "" {
+		add("memory", "memory", "durable workspace notes", filepath.Join(s.wd, ".andromeda", "memory", "MEMORY.md"), idx)
 	}
 	return out
+}
+
+// memoryIndex reads the workspace memory index (.andromeda/memory/MEMORY.md), size-capped, so
+// $memory folds the durable-notes index into the run. Empty when there is no memory.
+func memoryIndex(root string) string {
+	data, err := os.ReadFile(filepath.Join(root, ".andromeda", "memory", "MEMORY.md")) //nolint:gosec // the workspace's own memory index
+	if err != nil {
+		return ""
+	}
+	const maxBytes = 4096
+	if len(data) > maxBytes {
+		data = data[:maxBytes]
+	}
+	return strings.TrimSpace(string(data))
 }
 
 // ontologyAction backs the /ontology slash command: it scans the workspace and manages the
