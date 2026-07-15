@@ -8,6 +8,35 @@ Commit history by the release automation (ADR-013) and committed at release time
 
 ## [Unreleased]
 
+## [0.1.7] - 2026-07-15
+
+Interactive TUI overhaul.
+
+### Added
+
+- **Navigable command menus.** `/skills`, `/mcp`, `/workflows`, and a new `/plugins` open an
+  interactive menu that lists what exists (each drilling into a detail view with its file path and
+  an "edit via chat" action), shows a friendly empty state when there is nothing, and offers to
+  create a new one. `/ontology`, `/graph`, and `/memory` use the same drill-in/back framework
+  (breadcrumb, per-row descriptions, ↑/↓ · enter/→ · esc/←).
+- **File-based workspace memory.** `/memory` is now a CRUD menu over Markdown notes under
+  `.andromeda/memory/` — each with frontmatter (a consecutive id, title, tags, date) and a generated
+  `MEMORY.md` index — with tag/text search. The index is folded into the agent's system prompt,
+  alongside `AGENTS.md`, so the model can recall durable facts.
+- **Header badge and version.** The top banner shows a colored active-mode badge (agent / plan /
+  shell) and the running version.
+- **Remembered setup.** A bare launch defaults to the provider and model you last used and skips
+  onboarding when it builds cleanly.
+
+### Fixed
+
+- **Command output on the start screen.** Slash commands run before the first conversation turn no
+  longer vanish behind the brand splash — the splash yields to the transcript as soon as a command
+  produces output.
+- **`update` is descriptive.** `andromeda update` (and `/update`) now report the running version,
+  channel, and build, check the real release feed, explain a development build, and show the exact
+  upgrade command instead of a bare "up to date". The TUI runs the check off the UI thread.
+
 ## [0.1.6] - 2026-07-15
 
 ### Added
