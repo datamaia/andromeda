@@ -63,7 +63,7 @@ jobs:
       && github.event.issue.state_reason == 'not_planned'
       && vars.ROADMAP_PROJECT_URL != ''
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Remove the issue's item from the board
         env:
           GH_TOKEN: ${{ secrets.ROADMAP_PROJECT_TOKEN }}
@@ -78,7 +78,7 @@ jobs:
       && github.event.action != 'closed'
       && vars.ROADMAP_PROJECT_URL != ''
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Move linked issues to In Review
         env:
           GH_TOKEN: ${{ secrets.ROADMAP_PROJECT_TOKEN }}
@@ -94,7 +94,7 @@ jobs:
       && github.event.pull_request.merged == true
       && vars.ROADMAP_PROJECT_URL != ''
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Move linked issues to Validation
         env:
           GH_TOKEN: ${{ secrets.ROADMAP_PROJECT_TOKEN }}
@@ -106,7 +106,7 @@ jobs:
     runs-on: ubuntu-24.04
     if: github.event_name == 'release' && vars.ROADMAP_PROJECT_URL != ''
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Move Validation items to Released and stamp the tag
         env:
           GH_TOKEN: ${{ secrets.ROADMAP_PROJECT_TOKEN }}
