@@ -3,6 +3,7 @@
 **Your terminal companion for shipping great software.**
 
 [![Website](https://img.shields.io/badge/web-andromedacli.com-7C5CFF)](https://andromedacli.com)
+[![Docs](https://img.shields.io/badge/docs-andromedacli.com%2Fdocs-7C5CFF)](https://andromedacli.com/docs)
 [![CI](https://github.com/datamaia/andromeda/actions/workflows/ci.yml/badge.svg)](https://github.com/datamaia/andromeda/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/datamaia/andromeda?sort=semver)](https://github.com/datamaia/andromeda/releases)
 [![Go](https://img.shields.io/badge/go-1.25-00ADD8?logo=go&logoColor=white)](go.mod)
@@ -89,6 +90,13 @@ andromeda run "add a health-check endpoint" --provider openai-chatgpt --allow-wr
 
 Capabilities are opt-in per run — `--allow-write`, `--allow-exec`, `--allow-network`. Without
 them the agent is read-only.
+
+## Documentation
+
+Full documentation lives at **[andromedacli.com/docs](https://andromedacli.com/docs)** — install,
+providers & authentication, the engineering harness, working with agents, configuration, and the
+command reference. A printable getting-started guide is at
+**[andromedacli.com/guide](https://andromedacli.com/guide)**.
 
 ## Configuration
 
