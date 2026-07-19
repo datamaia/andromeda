@@ -4,9 +4,43 @@ Living tracker of the build. The **specification** (a private companion document
 file tracks the **implementation** against Volume 15's epics and milestones. Updated and
 pushed on every advance.
 
-**Last updated:** 2026-07-12 · **MVP phase functionally complete** · **Public repo · v0.1.0 released (signed)** ·
-**Ports:** 18/18 ✅ · **CLI:** 20 command groups · **TUI:** ✅ · **Built-in tools:** 20/20 ·
+**Last updated:** 2026-07-19 · **MVP complete + 14 releases shipped** · **Public repo · v0.1.14 released (signed)** ·
+**Web:** [andromedacli.com](https://andromedacli.com) — landing + docs (`/docs`, `/guide`) ·
+**Ports:** 18/18 ✅ · **CLI:** 20 command groups · **TUI:** ✅ (full slash-command suite) · **Built-in tools:** 20/20 ·
+**Providers:** 12 (Anthropic, OpenAI, ChatGPT-OAuth, Gemini, xAI, Groq, Cerebras, OpenRouter, Hugging Face, Ollama, vLLM, Kiro) ·
 **CI:** matrix (Linux amd64/arm64, macOS arm64), golangci-lint gate green · ~20k LOC Go, 60 test files, `make ci` green
+
+## Releases since v0.1.0 (v0.1.1 → v0.1.14 — all signed, Homebrew cask bumped, goreleaser green)
+
+Fourteen releases shipped after the MVP, taking Andromeda from a working CLI to a full interactive
+product with a live web presence. Highlights:
+
+- **v0.1.1 – v0.1.5** — TUI/UX overhaul (Bubble Tea v2 splash + status bar, provider/model menus,
+  interactive permission approval), session persistence, `AGENTS.md` + `/init`, ChatGPT OAuth fix,
+  Windows binaries + `install.ps1`, and the `[permission]` allow/deny allowlist wired at runtime.
+- **v0.1.6** — ontology + graph workspace maps (`ontology`/`graph` CLI + TUI `/ontology` `/graph`),
+  deterministic `.ttl` repo map, and a localhost force-directed graph viewer.
+- **v0.1.7** — navigable TUI menu framework, mode badge + version in the header, remembered
+  provider/model (`prefs.json`), and file-based workspace memory (`internal/memnote`, `/memory`).
+- **v0.1.8** — `SKILL.md` skills, `$`-invocation, runnable Markdown workflows, and a `/permission`
+  store (`.andromeda/permissions.toml`).
+- **v0.1.9** — AWS **Kiro** provider (the 12th provider), `/help` vs `/commands` split, a distinct
+  "thinking" spinner, and `/add-dir` + `/cd`.
+- **v0.1.10** — ontology/graph maps folded into the agent's system prompt; Obsidian-style graph
+  node previews.
+- **v0.1.11** — `/clear` + `/new` reset the driver's cross-turn context (a real forget), not just
+  the display.
+- **v0.1.12 – v0.1.13** — the **deep slash-command program**: session branching (`/branch`,
+  `/clone`, `/tree`, `/sessions`, `/btw`), real conversation compaction (`/compact` +
+  `/autocompact`, `internal/settingstore`), `/advisor`, `/share`, `/details`, `/editor`, `/undo` +
+  `/redo` (git-snapshot checkpoints, `internal/checkpoint`), `/background`, and `/autofix-pr`.
+- **v0.1.14** — unified `$`-invocation across skills, workflows, custom commands, and workspace
+  maps (`$ontology`/`$graph`/`$memory`).
+
+**Web (2026-07):** [andromedacli.com](https://andromedacli.com) is live on Vercel — the landing
+plus a `vercel.json` proxy of the canonical install scripts, and now a **documentation section**:
+`/docs` (full docs — install, providers & auth, the harness, agents, config, command reference) and
+`/guide` (a printable getting-started guide). Deployed via the Vercel REST API (not Git-connected).
 
 ## MVP-minimum coverage (Volume 1 chapter 05, 27 items)
 
