@@ -8,6 +8,28 @@ Commit history by the release automation (ADR-013) and committed at release time
 
 ## [Unreleased]
 
+## [0.1.15] - 2026-07-21
+
+Windows fixes: ChatGPT sign-in and Defender guidance.
+
+### Fixed
+
+- **ChatGPT sign-in on Windows (`E-SEC-021`).** The Windows credential backend stored secrets
+  without chunking, but the Windows Credential Manager caps a single credential blob at 2560 bytes —
+  a ChatGPT (`openai-chatgpt`) OAuth token bundle exceeded it and failed with a secret-backend error.
+  Large secrets are now split across credential entries (as the macOS/Linux backend already did), and
+  a missing Windows credential now reports "not found" (`E-SEC-020`) rather than a backend error.
+
+### Added
+
+- **Windows Defender / SmartScreen guidance.** A README section explains why the unsigned Windows
+  build can be flagged by SmartScreen or the "advanced ransomware protection" ASR rule (a false
+  positive), with self-service `Add-MpPreference` steps and a ready-to-send exclusion-request template
+  for managed devices.
+- **Windows Authenticode signing wiring.** The release pipeline is ready to code-sign `andromeda.exe`
+  (credential-gated, mirroring the macOS notarization block); it activates once a signing certificate
+  is provisioned.
+
 ## [0.1.14] - 2026-07-16
 
 Unified `$` invocation.
