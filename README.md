@@ -106,9 +106,9 @@ to your IT/security team:
 > - **Suggested exclusion** (Intune / Defender for Endpoint → *ASR only exclusions*, or admin
 >   PowerShell): `Add-MpPreference -AttackSurfaceReductionOnlyExclusions "C:\Users\<user>\AppData\Local\Programs\andromeda\andromeda.exe"`
 
-Authenticode code signing — which removes the warning at the source — is wired and ready to activate
-(the `binary_signs` block in `.goreleaser.yaml`); it turns on once a signing certificate is
-provisioned.
+Authenticode code signing — which removes the warning at the source — is prepared and one step from
+active: a ready-to-enable `binary_signs` block in `.goreleaser.yaml` plus `scripts/sign-windows.sh`.
+Uncomment the block and provision a signing certificate (e.g. Azure Trusted Signing) to turn it on.
 
 ## Quick start
 
