@@ -49,6 +49,19 @@ notarize:
         key_id: "{{.Env.MACOS_NOTARY_KEY_ID}}"
         key: "{{.Env.MACOS_NOTARY_KEY}}"
 
+# Windows Authenticode signing (mirrors the macOS notarize block above: credential-gated, a no-op
+# until a signing cert is provisioned, so releases keep succeeding unsigned). scripts/sign-windows.sh
+# signs andromeda.exe with osslsigncode when WINDOWS_SIGN_CERT/WINDOWS_SIGN_PASSWORD are set and
+# leaves it untouched otherwise. A signed .exe barely trips Microsoft Defender ASR / SmartScreen
+# (see README "Windows Defender / SmartScreen"). Provision via Azure Trusted Signing or a PFX cert.
+binary_signs:
+  - id: windows-authenticode
+    ids: [andromeda]
+    signature: "${artifact}"
+    cmd: ./scripts/sign-windows.sh
+    args: ["${artifact}"]
+    output: true
+
 checksum:
   name_template: "checksums.txt"
   algorithm: sha256

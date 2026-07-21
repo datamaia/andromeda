@@ -73,6 +73,43 @@ go install github.com/datamaia/andromeda/cmd/andromeda@latest
 Prebuilt binaries and checksums for every release are on the
 [releases page](https://github.com/datamaia/andromeda/releases).
 
+### Windows Defender / SmartScreen
+
+The Windows build isn't code-signed yet, so Microsoft Defender may flag `andromeda.exe` — usually
+SmartScreen's "unknown publisher" prompt, or the ASR rule **"Use advanced protection against
+ransomware"** blocking it. This is a **false positive**: as a coding agent, Andromeda legitimately
+reads and writes many files in your workspace, which trips the anti-ransomware heuristic. It never
+encrypts, exfiltrates, or touches files outside the workspace you point it at, and every release is
+SHA256-checksummed (`checksums.txt`) and cosign-signed.
+
+**On your own PC** (you're the admin) — allow it once in an elevated PowerShell:
+
+```powershell
+$exe = "$env:LOCALAPPDATA\Programs\andromeda\andromeda.exe"
+Add-MpPreference -AttackSurfaceReductionOnlyExclusions $exe        # the ASR ransomware rule
+Add-MpPreference -ControlledFolderAccessAllowedApplications $exe   # if Controlled Folder Access is on
+```
+
+…or via **Windows Security → Virus & threat protection → Ransomware protection → Allow an app
+through Controlled folder access**.
+
+**On a managed (company) PC** — ASR rules are enforced by IT and you can't self-exclude. Send this
+to your IT/security team:
+
+> Please add an exclusion from the Microsoft Defender ASR rule **"Use advanced protection against
+> ransomware"** (GUID `c1db55ab-c21a-4637-bb3f-a12568109d35`) for **Andromeda CLI**, an open-source
+> (Apache-2.0) developer tool — https://github.com/datamaia/andromeda
+> - **Executable:** `C:\Users\<user>\AppData\Local\Programs\andromeda\andromeda.exe`
+> - **Why:** it's a coding agent that reads/writes files in the developer's working repo; that
+>   legitimate multi-file write pattern trips the ransomware heuristic (false positive). It doesn't
+>   encrypt or exfiltrate anything; releases are SHA256-checksummed and cosign-signed.
+> - **Suggested exclusion** (Intune / Defender for Endpoint → *ASR only exclusions*, or admin
+>   PowerShell): `Add-MpPreference -AttackSurfaceReductionOnlyExclusions "C:\Users\<user>\AppData\Local\Programs\andromeda\andromeda.exe"`
+
+Authenticode code signing — which removes the warning at the source — is wired and ready to activate
+(the `binary_signs` block in `.goreleaser.yaml`); it turns on once a signing certificate is
+provisioned.
+
 ## Quick start
 
 Launch the interactive TUI by running `andromeda` with no arguments:
