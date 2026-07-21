@@ -4,13 +4,10 @@ package pal
 
 import (
 	"context"
-	"encoding/base64"
 	"errors"
 	"os"
 	"path/filepath"
 	"time"
-
-	"github.com/zalando/go-keyring"
 )
 
 // This file provides the Windows backends of the platform surfaces (Volume 3 chapter 07,
@@ -124,27 +121,27 @@ func (l *windowsFileLock) Release() error { return os.Remove(l.path) }
 
 type windowsCredentialStore struct{}
 
-// NewCredentialStore returns the Windows CredentialStore surface, backed by the Windows
-// Credential Manager via zalando/go-keyring.
+// NewCredentialStore returns the Windows CredentialStore surface, backed by the Windows Credential
+// Manager via zalando/go-keyring. Large secrets are transparently chunked (shared logic in
+// credentials_keyring.go): the Credential Manager caps a single credential blob at 2560 bytes, so an
+// OAuth token bundle (several JWTs) exceeds it and previously failed to store with E-SEC-021.
 func NewCredentialStore() CredentialStore { return windowsCredentialStore{} }
 
+// windowsChunkSize is the max base64 characters per Credential Manager item, kept well under the
+// 2560-byte CRED_MAX_CREDENTIAL_BLOB_SIZE cap with margin even if the backend stores the value as
+// UTF-16 (which would double the byte count).
+const windowsChunkSize = 1000
+
 func (windowsCredentialStore) Get(service, account string) ([]byte, error) {
-	enc, err := keyring.Get(service, account)
-	if err != nil {
-		return nil, err
-	}
-	return base64.StdEncoding.DecodeString(enc)
+	return keyringGet(service, account)
 }
 
 func (windowsCredentialStore) Set(service, account string, secret []byte) error {
-	return keyring.Set(service, account, base64.StdEncoding.EncodeToString(secret))
+	return keyringSet(windowsChunkSize, service, account, secret)
 }
 
 func (windowsCredentialStore) Delete(service, account string) error {
-	return keyring.Delete(service, account)
+	return keyringDelete(service, account)
 }
 
-func (windowsCredentialStore) Available() bool {
-	_, err := keyring.Get("andromeda.probe", "availability")
-	return err == nil || errors.Is(err, keyring.ErrNotFound)
-}
+func (windowsCredentialStore) Available() bool { return keyringAvailable() }
