@@ -8,6 +8,42 @@ Commit history by the release automation (ADR-013) and committed at release time
 
 ## [Unreleased]
 
+## [0.1.16] - 2026-08-13
+
+Deeper workspace maps: a self-contained 3D graph viewer and an AST-level ontology code graph.
+
+### Added
+
+- **Offline 3D graph viewer (`graph-3d.html`).** `andromeda graph` now writes a self-contained,
+  dependency-free 3D navigator to `.andromeda/graph/graph-3d.html` — HTML5 + Canvas 2D + vanilla JS
+  with the graph JSON embedded, so it opens straight from `file://` with no server, no CDN, and no
+  external requests. It uses a deterministic `depth-ring-3d-v1` layout (no force engine, so nodes
+  never collapse toward the center) and DPR-correct hit-testing (so the cursor lands on the node you
+  see). `andromeda graph open` (and the TUI `/graph` → **Open 3D (offline)**) opens it directly;
+  `andromeda graph serve` now serves this 3D view over localhost, with the previous 2D viewer kept at
+  `/2d`. Orbit, zoom, pan, drag nodes, search, filter by kind/group, toggle labels/edges, and save or
+  clear a manual layout (persisted only in your browser — the generated layout stays deterministic).
+- **AST-level ontology code graph (`code.ttl`).** `andromeda ontology build` now emits a second
+  Turtle document, `.andromeda/ontology/code.ttl`, built from a real `go/parser` pass over the
+  workspace's Go source. It captures **packages, types (struct/interface), functions and methods**,
+  and the correlations between them — **internal imports** (`am:imports`), **resolved calls**
+  (`am:calls` intra-package, `am:callsApprox` cross-package), and **structural interface
+  implementations** (`am:implements`). The `am:` vocabulary is now formally declared in the file.
+  Unresolved and standard-library calls are dropped and edges deduped, so the graph is signal, not
+  noise. `andromeda ontology code` prints it. The structural `project.ttl` is unchanged and stays the
+  lightweight map folded into agent context.
+
+### Changed
+
+- **Reproducibility metadata.** `.andromeda/graph/manifest.json` now records `graphHash`,
+  `layoutAlgorithm`, `layoutHash`, and `generatorVersion`; `.andromeda/ontology/manifest.json` records
+  code-graph counts and a `codeHash`. No timestamps participate in any hash, so an unchanged tree
+  yields byte-identical artifacts.
+- **Batched, bounded generation.** The ontology code graph is streamed to disk one package at a time
+  (bounded memory and output regardless of repo size) and capped, marking the manifest `truncated`
+  rather than silently dropping data. Both maps document a batch-oriented workflow for large
+  workspaces (inspect metadata and samples rather than loading whole artifacts).
+
 ## [0.1.15] - 2026-07-21
 
 Windows fixes: ChatGPT sign-in and Defender guidance.
