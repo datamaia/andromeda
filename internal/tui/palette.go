@@ -274,7 +274,7 @@ func argCandidates(name string) []string {
 	case "ontology":
 		return []string{"build", "show", "adjust", "rm"}
 	case "graph":
-		return []string{"build", "open", "show", "adjust", "rm"}
+		return []string{"build", "open3d", "open", "show", "adjust", "rm"}
 	case "sessions", "session":
 		return []string{"list", "resume", "rm"}
 	case "autocompact":

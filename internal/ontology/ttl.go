@@ -1,6 +1,7 @@
 package ontology
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -77,8 +78,9 @@ func (m *Model) TTL() string {
 	return b.String()
 }
 
-// Write regenerates the ontology artifacts under <root>/.andromeda/ontology/ (project.ttl and a
-// manifest.json), replacing them atomically. It returns the path to the written .ttl file.
+// Write regenerates the structural ontology artifacts under <root>/.andromeda/ontology/ (project.ttl
+// and a manifest.json), replacing them atomically. It returns the path to the written .ttl file. This
+// is the structure-only path; Generate additionally builds the AST-level code graph.
 func Write(root string, m *Model) (string, error) {
 	dir := filepath.Join(root, markerDir, ontologySubdir)
 	if err := os.MkdirAll(dir, 0o700); err != nil {
@@ -88,10 +90,40 @@ func Write(root string, m *Model) (string, error) {
 	if err := atomicWrite(ttlPath, []byte(m.TTL())); err != nil {
 		return "", err
 	}
-	if err := atomicWrite(filepath.Join(dir, "manifest.json"), m.manifest()); err != nil {
+	if err := atomicWrite(filepath.Join(dir, "manifest.json"), m.manifest(nil, "")); err != nil {
 		return "", err
 	}
 	return ttlPath, nil
+}
+
+// Generate scans the workspace and writes both ontologies under <root>/.andromeda/ontology/: the
+// structural project.ttl (files/directories/containment) and the AST-level code.ttl (packages, types,
+// functions, and their import/call/implements correlations), plus a combined manifest. It returns the
+// structural and code models. The code graph is streamed per package so output stays manageable.
+func Generate(ctx context.Context, root string) (*Model, *CodeModel, error) {
+	m, err := Scan(ctx, root)
+	if err != nil {
+		return nil, nil, err
+	}
+	cm, err := ScanCode(ctx, root, m)
+	if err != nil {
+		return nil, nil, err
+	}
+	dir := filepath.Join(root, markerDir, ontologySubdir)
+	if err := os.MkdirAll(dir, 0o700); err != nil {
+		return nil, nil, err
+	}
+	if err := atomicWrite(filepath.Join(dir, "project.ttl"), []byte(m.TTL())); err != nil {
+		return nil, nil, err
+	}
+	_, codeHash, err := WriteCode(root, cm)
+	if err != nil {
+		return nil, nil, err
+	}
+	if err := atomicWrite(filepath.Join(dir, "manifest.json"), m.manifest(cm, codeHash)); err != nil {
+		return nil, nil, err
+	}
+	return m, cm, nil
 }
 
 // Remove deletes the generated ontology directory. Missing is not an error.
@@ -121,20 +153,37 @@ func (m *Model) Stats() string {
 }
 
 // manifest is a deterministic JSON sidecar: counts, language profile, and a content hash over the
-// (path, size) pairs so a caller can detect whether a re-scan would change anything.
-func (m *Model) manifest() []byte {
+// (path, size) pairs so a caller can detect whether a re-scan would change anything. When a code
+// model is supplied (Generate path), it also records the code-graph stats and a content hash of
+// code.ttl; when nil (structure-only Write path), the output is the original structural manifest.
+func (m *Model) manifest(cm *CodeModel, codeHash string) []byte {
 	h := sha256.New()
 	for _, f := range m.Files {
 		_, _ = fmt.Fprintf(h, "%s\x00%d\n", f.Path, f.Size)
 	}
-	man := struct {
+	base := struct {
 		Name           string         `json:"name"`
 		FileCount      int            `json:"fileCount"`
 		DirectoryCount int            `json:"directoryCount"`
 		Languages      map[string]int `json:"languages"`
 		Hash           string         `json:"hash"`
 	}{m.Name, len(m.Files), len(m.Dirs), m.Languages, hex.EncodeToString(h.Sum(nil))}
-	data, _ := json.MarshalIndent(man, "", "  ")
+
+	var data []byte
+	if cm == nil {
+		data, _ = json.MarshalIndent(base, "", "  ")
+	} else {
+		ext := struct {
+			Name           string         `json:"name"`
+			FileCount      int            `json:"fileCount"`
+			DirectoryCount int            `json:"directoryCount"`
+			Languages      map[string]int `json:"languages"`
+			Hash           string         `json:"hash"`
+			Code           codeStats      `json:"code"`
+			CodeHash       string         `json:"codeHash"`
+		}{base.Name, base.FileCount, base.DirectoryCount, base.Languages, base.Hash, cm.stats(), codeHash}
+		data, _ = json.MarshalIndent(ext, "", "  ")
+	}
 	return append(data, '\n')
 }
 

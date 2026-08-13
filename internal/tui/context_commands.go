@@ -46,6 +46,7 @@ func (m Model) openGraphMenu() (tea.Model, tea.Cmd) {
 		title: "Graph · visual workspace map",
 		items: []menuItem{
 			{label: "Build", desc: "scan & (re)write the graph", run: graphOpItem("build")},
+			{label: "Open 3D (offline)", desc: "open the self-contained 3D viewer from disk", run: graphOpItem("open3d")},
 			{label: "Open viewer", desc: "serve the interactive graph in your browser", run: graphOpItem("open")},
 			{label: "Show", desc: "print the graph overview", run: graphOpItem("show")},
 			{label: "Adjust via chat", desc: "describe a change for the agent", run: graphOpItem("adjust")},
@@ -88,13 +89,13 @@ func (m Model) runGraphOp(op string) Model {
 	case "adjust":
 		m.input = "Adjust the graph notes under .andromeda/graph/ to "
 		return m.sys("describe the change and press enter — the agent will edit the graph notes")
-	case "build", "show", "rm", "open":
+	case "build", "show", "rm", "open", "open3d":
 		if m.actions.Graph == nil {
 			return m.unavailable("graph")
 		}
 		return m.sys(m.actions.Graph(context.Background(), op))
 	default:
-		return m.sys("usage: /graph build | open | show | adjust | rm")
+		return m.sys("usage: /graph build | open | open3d | show | adjust | rm")
 	}
 }
 

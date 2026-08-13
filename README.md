@@ -171,8 +171,9 @@ andromeda provider check              # validate connectivity
 | `andromeda provider list` | List supported model providers |
 | `andromeda model list` | List models the configured provider exposes |
 | `andromeda memory add <text>` | Add a workspace memory record |
-| `andromeda ontology build` | Write a deterministic structural map of the repo (`.andromeda/ontology/project.ttl`) |
-| `andromeda graph serve` | Build the workspace graph and open an interactive viewer on localhost |
+| `andromeda ontology build` | Write deterministic repo maps: structural `project.ttl` + AST-level `code.ttl` (packages, types, functions, calls, implements) |
+| `andromeda graph open` | Build the workspace graph and open the offline 3D viewer (`.andromeda/graph/graph-3d.html`, no server) |
+| `andromeda graph serve` | Build the graph and serve the 3D viewer on localhost (live refresh) |
 | `andromeda doctor` | Diagnose your environment |
 | `andromeda version` | Print the version |
 

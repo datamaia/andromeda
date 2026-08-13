@@ -77,12 +77,12 @@ func TestGraphMenuSelectionRunsOp(t *testing.T) {
 	if !got.menuOpen() {
 		t.Fatal("/graph should open a navigable menu")
 	}
-	// Move to "Open viewer" (second item) and select it.
+	// Move to "Open 3D (offline)" (second item) and select it.
 	var tm tea.Model = got
 	tm, _ = tm.Update(key(tea.KeyDown))
 	tm, _ = tm.Update(key(tea.KeyEnter))
-	if called != "open" {
-		t.Errorf("selected op = %q, want open", called)
+	if called != "open3d" {
+		t.Errorf("selected op = %q, want open3d", called)
 	}
 	if tm.(Model).menuOpen() {
 		t.Error("menu should close after selecting an op")
