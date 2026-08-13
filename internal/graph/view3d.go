@@ -12,9 +12,9 @@ const LayoutAlgorithm = "depth-ring-3d-v1"
 //go:embed graph3d.html
 var view3DTemplate string
 
-// graphDataToken is the placeholder inside graph3d.html's graph-data <script> that render3D replaces
-// with the real graph JSON.
-const graphDataToken = "__ANDROMEDA_GRAPH_DATA__"
+// graphDataMarker is the placeholder inside graph3d.html's graph-data <script> that render3D
+// replaces with the real graph JSON.
+const graphDataMarker = "__ANDROMEDA_GRAPH_DATA__"
 
 // render3D produces the self-contained, offline 3D viewer by embedding the graph JSON into the
 // template's graph-data <script>. It is deterministic: the same graph yields byte-for-byte identical
@@ -26,5 +26,5 @@ const graphDataToken = "__ANDROMEDA_GRAPH_DATA__"
 // valid JSON that document.getElementById('graph-data') can JSON.parse without HTML-entity decoding.
 func render3D(g *Graph) []byte {
 	data := strings.ReplaceAll(string(g.JSON()), "</", "<\\/")
-	return []byte(strings.Replace(view3DTemplate, graphDataToken, data, 1))
+	return []byte(strings.Replace(view3DTemplate, graphDataMarker, data, 1))
 }

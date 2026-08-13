@@ -115,8 +115,12 @@ func TestScanCodeImplements(t *testing.T) {
 func TestCodeTTLDeterministicAndWellFormed(t *testing.T) {
 	cm := scanCode(t, codeTree(t))
 	var a, b bytes.Buffer
-	writeCodeTTL(&a, cm)
-	writeCodeTTL(&b, cm)
+	if err := writeCodeTTL(&a, cm); err != nil {
+		t.Fatal(err)
+	}
+	if err := writeCodeTTL(&b, cm); err != nil {
+		t.Fatal(err)
+	}
 	if a.String() != b.String() {
 		t.Fatal("code.ttl is not deterministic")
 	}

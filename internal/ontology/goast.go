@@ -225,7 +225,7 @@ func ScanCode(_ context.Context, root string, m *Model) (*CodeModel, error) {
 	}
 
 	finalizePackages(cm, pkgs, importSet)
-	cm.Calls = resolveCalls(raws, cm.Packages, fileImports, modPath)
+	cm.Calls = resolveCalls(raws, cm.Packages, fileImports)
 	cm.Implements = resolveImplements(cm.Packages, methodsByType)
 	return cm, nil
 }
@@ -246,7 +246,7 @@ func finalizePackages(cm *CodeModel, pkgs map[string]*CodePackage, importSet map
 // function in the same package; package selectors resolve to an exported function in an imported
 // module-internal package (marked Approx). Everything else — builtins, stdlib, value-method calls
 // (which need full type resolution) — is dropped, which is what keeps the graph low-noise.
-func resolveCalls(raws []rawCall, packages []*CodePackage, fileImports map[string]map[string]string, modPath string) []CallEdge {
+func resolveCalls(raws []rawCall, packages []*CodePackage, fileImports map[string]map[string]string) []CallEdge {
 	plainFuncs := map[string]map[string]struct{}{}    // dir -> set of plain func names
 	exportedFuncs := map[string]map[string]struct{}{} // dir -> set of exported plain func names
 	dirByImport := map[string]string{}

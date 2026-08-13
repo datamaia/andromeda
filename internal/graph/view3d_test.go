@@ -55,7 +55,7 @@ func TestRender3DEmbedsParseableJSON(t *testing.T) {
 		t.Fatal("no graph-data script found in rendered HTML")
 	}
 	// The placeholder must have been replaced.
-	if strings.Contains(html, graphDataToken) {
+	if strings.Contains(html, graphDataMarker) {
 		t.Fatal("graph-data placeholder was not replaced")
 	}
 	var embedded Graph
