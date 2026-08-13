@@ -8,6 +8,17 @@ Commit history by the release automation (ADR-013) and committed at release time
 
 ## [Unreleased]
 
+### Added
+
+- **3D graph dashboard: lineage, neighbors, clusters, and field search.** The offline `graph-3d.html`
+  viewer gained a left-hand control panel. **Search by field** — match (path/label), group, kind, or
+  relation — highlights matching nodes live. Selecting a node highlights its **lineage** (ancestors +
+  descendants along containment), its **neighbors**, or its whole **cluster/group**, switchable from
+  the panel; hovering shows neighbors transiently. Nodes can be **colored by kind or by group/cluster**,
+  the view **isolated** to just the highlighted set, and the camera **framed** to a selection. The node
+  detail panel now shows ancestor/descendant/neighbor counts with quick actions (frame, view cluster,
+  view lineage, open file). Everything stays self-contained and deterministic (no server, no CDN).
+
 ## [0.1.16] - 2026-08-13
 
 Deeper workspace maps: a self-contained 3D graph viewer and an AST-level ontology code graph.

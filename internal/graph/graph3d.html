@@ -23,37 +23,61 @@
   header .meta{color:var(--muted);font-size:.8rem;margin-left:.2rem}
   .panel{position:fixed;background:var(--panel);border:1px solid var(--line);border-radius:12px;
     box-shadow:0 8px 30px #0008;z-index:4}
-  #legend{left:1rem;bottom:1rem;padding:.7rem .85rem;min-width:150px}
-  #legend h2{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);
-    margin:0 0 .5rem}
-  #legend .row{display:flex;align-items:center;gap:.5rem;font-size:.8rem;padding:.12rem 0;cursor:pointer;
+
+  /* Dashboard (left) */
+  #dash{left:1rem;top:3.4rem;width:236px;max-height:calc(100vh - 4.6rem);overflow:auto;padding:.75rem .8rem;
+    display:flex;flex-direction:column;gap:.5rem}
+  #dash .stat{font-size:.74rem;color:var(--muted);line-height:1.5}
+  #dash .stat b{color:var(--ink);font-weight:600}
+  #dash .lbl{font-size:.64rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-top:.25rem}
+  #dash input,#dash select{background:#101216;border:1px solid var(--line);color:var(--ink);
+    border-radius:8px;padding:.38rem .55rem;font-size:.8rem;width:100%;outline:none}
+  #dash input:focus,#dash select:focus{border-color:var(--violet)}
+  .row2{display:flex;gap:.35rem}
+  .row2 input{flex:1 1 auto}
+  .row2 select{flex:0 0 92px;width:92px}
+  .seg{display:flex;gap:.3rem}
+  .seg button{flex:1 1 0;background:transparent;border:1px solid var(--line);color:var(--muted);
+    border-radius:7px;padding:.32rem 0;font-size:.72rem;cursor:pointer}
+  .seg button:hover{color:var(--ink)}
+  .seg button.on{border-color:var(--violet);color:var(--violet);background:#7c5cff14}
+  #legend{display:flex;flex-direction:column;gap:.05rem}
+  #legend .row{display:flex;align-items:center;gap:.5rem;font-size:.78rem;padding:.1rem 0;cursor:pointer;
     opacity:.9;user-select:none}
   #legend .row:hover{opacity:1}
-  #legend .row.off{opacity:.35}
-  #legend .dot{width:11px;height:11px;border-radius:50%;flex:0 0 auto}
+  #legend .row.off{opacity:.32}
+  #legend .dot{width:10px;height:10px;border-radius:50%;flex:0 0 auto}
+
+  /* Tools (top-right) */
   #tools{right:1rem;top:1rem;display:flex;flex-wrap:wrap;gap:.4rem;padding:.45rem;max-width:250px;justify-content:flex-end}
   #tools button{background:transparent;border:1px solid var(--line);color:var(--ink);
     height:30px;padding:0 .55rem;border-radius:8px;font-size:.76rem;cursor:pointer;line-height:1}
   #tools button:hover{border-color:var(--violet);color:var(--violet)}
   #tools button.on{border-color:var(--violet);color:var(--violet)}
-  #filters{right:1rem;top:5.1rem;display:flex;flex-direction:column;gap:.4rem;z-index:4}
-  #filters input,#filters select{background:var(--panel);border:1px solid var(--line);color:var(--ink);
-    border-radius:9px;padding:.4rem .7rem;font-size:.82rem;width:210px;outline:none}
-  #filters input:focus,#filters select:focus{border-color:var(--violet)}
+
+  /* Hover tooltip */
   #tip{position:fixed;pointer-events:none;background:#0d0f12ee;border:1px solid var(--line);
     border-radius:8px;padding:.4rem .6rem;font-size:.78rem;z-index:6;max-width:340px;display:none}
   #tip .p{color:var(--violet-soft);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all}
   #tip .s{color:var(--muted);display:block;margin-top:.2rem}
-  #detail{right:1rem;bottom:1rem;padding:.8rem .9rem;width:260px;display:none}
-  #detail h3{margin:0 0 .4rem;font-size:.82rem;color:var(--violet-soft);
+
+  /* Detail (bottom-right) */
+  #detail{right:1rem;bottom:1rem;padding:.8rem .9rem;width:264px;display:none}
+  #detail h3{margin:0 0 .45rem;font-size:.82rem;color:var(--violet-soft);
     font-family:ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all}
-  #detail dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:.15rem .6rem;font-size:.76rem}
+  #detail dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:.14rem .6rem;font-size:.76rem}
   #detail dt{color:var(--muted)}
-  #detail .sum{margin-top:.5rem;font-size:.76rem;color:#cfc9c0;font-style:italic;line-height:1.35;
-    max-height:6.5rem;overflow:auto}
-  #detail .hint{margin-top:.5rem;font-size:.72rem;color:var(--muted)}
-  #help{left:1rem;top:3.4rem;padding:.55rem .7rem;font-size:.72rem;color:var(--muted);max-width:230px;line-height:1.5}
-  #help b{color:var(--ink);font-weight:600}
+  #detail .rel{margin-top:.5rem;display:flex;gap:.35rem;flex-wrap:wrap}
+  #detail .rel .chip{font-size:.7rem;color:var(--ink);border:1px solid var(--line);border-radius:999px;
+    padding:.12rem .5rem}
+  #detail .rel .chip b{color:var(--violet-soft)}
+  #detail .sum{margin-top:.5rem;font-size:.75rem;color:#cfc9c0;font-style:italic;line-height:1.35;
+    max-height:5.5rem;overflow:auto}
+  #detail .acts{margin-top:.6rem;display:flex;gap:.35rem;flex-wrap:wrap}
+  #detail .acts button{background:transparent;border:1px solid var(--line);color:var(--ink);
+    border-radius:7px;padding:.3rem .5rem;font-size:.72rem;cursor:pointer}
+  #detail .acts button:hover{border-color:var(--violet);color:var(--violet)}
+
   #empty{position:fixed;inset:0;display:none;align-items:center;justify-content:center;
     flex-direction:column;gap:.5rem;color:var(--muted);text-align:center;padding:2rem}
   #empty .cat{font-size:2rem}
@@ -66,23 +90,51 @@
   <h1><b>ANDROMEDA</b> · workspace graph · 3D</h1>
   <span class="meta" id="meta"></span>
 </header>
+
+<div id="dash" class="panel">
+  <div class="stat" id="stat"></div>
+
+  <div class="lbl">Buscar por</div>
+  <div class="row2">
+    <input id="q" type="search" placeholder="texto… (/)" autocomplete="off">
+    <select id="qfield" title="Campo de búsqueda">
+      <option value="match">coincid.</option>
+      <option value="group">grupo</option>
+      <option value="kind">kind</option>
+      <option value="relation">relación</option>
+    </select>
+  </div>
+
+  <div class="lbl">Al seleccionar, resaltar</div>
+  <div class="seg" id="hmode">
+    <button data-m="lineage" class="on" title="Ancestros + descendientes (linaje de contención)">linaje</button>
+    <button data-m="neighbors" title="Nodos conectados directamente">vecinos</button>
+    <button data-m="cluster" title="Todo el grupo/clúster top-level">clúster</button>
+  </div>
+
+  <div class="lbl">Color</div>
+  <div class="seg" id="colorby">
+    <button data-c="kind" class="on">kind</button>
+    <button data-c="group">grupo/clúster</button>
+  </div>
+
+  <div class="lbl" id="glabel">Filtrar grupo</div>
+  <select id="group"><option value="">todos los grupos</option></select>
+
+  <div class="lbl">Leyenda</div>
+  <div id="legend"></div>
+</div>
+
 <div id="tools" class="panel">
-  <button id="reset" title="Reset the camera to the default view">reset</button>
-  <button id="fit" title="Frame all visible nodes">fit</button>
-  <button id="labels" title="Toggle labels" class="on">labels</button>
-  <button id="edges" title="Toggle edges" class="on">edges</button>
-  <button id="save" title="Save your manual layout to this browser">save</button>
-  <button id="clear" title="Clear the saved layout and return to the deterministic one">clear</button>
+  <button id="reset" title="Reset de cámara">reset</button>
+  <button id="fit" title="Encuadrar">fit</button>
+  <button id="labels" title="Etiquetas" class="on">labels</button>
+  <button id="edges" title="Aristas" class="on">edges</button>
+  <button id="isolate" title="Aislar el resaltado (ocultar el resto)">aislar</button>
+  <button id="save" title="Guardar layout manual en este navegador">save</button>
+  <button id="clear" title="Limpiar el layout guardado y volver al determinista">clear</button>
 </div>
-<div id="filters">
-  <input id="q" type="search" placeholder="Search nodes… (/)" autocomplete="off">
-  <select id="group"><option value="">All groups</option></select>
-</div>
-<div id="help" class="panel">
-  <b>drag</b> orbit · <b>wheel</b> zoom · <b>shift+drag</b> pan<br>
-  <b>drag node</b> move · <b>double-click file</b> open
-</div>
-<div id="legend" class="panel"><h2>Kinds</h2><div id="legend-rows"></div></div>
+
 <div id="detail" class="panel"></div>
 <div id="tip"></div>
 <div id="empty"><span class="cat">🐈‍⬛</span><div>No graph data embedded.<br>Run <code>andromeda graph build</code> and reopen.</div></div>
@@ -94,6 +146,7 @@
 // Self-contained, offline 3D workspace viewer. No network, no dependencies: HTML5 + Canvas 2D +
 // vanilla JS + a hand-rolled 3D projection. The graph is embedded above as real JSON; the layout is
 // deterministic (depth-ring-3d-v1) so the same graph always opens the same way until the user drags.
+// Dashboard: search by field, highlight lineage/neighbors/cluster on select, color by kind or group.
 
 const KIND_COLOR = {
   project:"#7C5CFF", directory:"#8C7B6E", code:"#7C5CFF", doc:"#E4B36E",
@@ -115,13 +168,21 @@ const detail = document.getElementById("detail");
 let DPR = 1, W = 0, H = 0;
 let graphName = "", nodes = [], edges = [], byId = new Map();
 let cam = Object.assign({}, DEFAULT_CAM);
-let showLabels = true, showEdges = true;
+let showLabels = true, showEdges = true, isolate = false, colorBy = "kind";
 const hiddenKinds = new Set();
-let groupFilter = "", query = "";
+let groupFilter = "", query = "", queryField = "match", highlightMode = "lineage";
 let hover = null, selected = null;
 let dragNode = null, dragZ2 = 0, orbiting = false, panning = false, last = { x: 0, y: 0 };
 let dirty = true;
 const requestDraw = () => { dirty = true; };
+
+// adjacency, derived from the containment edges (from CONTAINS to → parent=from, child=to)
+const parentOf = new Map();     // childId -> parent node
+const childrenOf = new Map();   // parentId -> [child node]
+const neighborsOf = new Map();  // id -> Set(node)
+const groupColorCache = new Map();
+
+let emphasis = null;            // Set(node) currently highlighted, or null (no dimming)
 
 function readGraph(){
   const el = document.getElementById("graph-data");
@@ -139,8 +200,6 @@ function resize(){
 window.addEventListener("resize", resize);
 
 // --- deterministic depth-ring layout -------------------------------------
-// Group nodes by depth, sort each group by (group, kind, path, id), then place them on a 3D ring
-// whose radius and z grow with depth. Pure and reproducible: no forces, no randomness, no timing.
 function sortKey(a, b){
   return (a.group||"").localeCompare(b.group||"") ||
          (a.kind||"").localeCompare(b.kind||"")  ||
@@ -163,7 +222,7 @@ function layout(){
     const count = group.length;
     for (let i = 0; i < count; i++){
       const n = group[i];
-      if (count === 1){ n.x = 0; n.y = 0; n.z = z; continue; } // lone node (e.g. project) at the axis
+      if (count === 1){ n.x = 0; n.y = 0; n.z = z; continue; }
       const angle = 2 * Math.PI * i / count + d * DEPTH_TWIST;
       n.x = Math.cos(angle) * ring;
       n.y = Math.sin(angle) * ring;
@@ -173,27 +232,22 @@ function layout(){
 }
 
 // --- 3D projection -------------------------------------------------------
-function project(n){
+function camSpace(x, y, z){
   const cy = Math.cos(cam.yaw), sy = Math.sin(cam.yaw);
-  const x1 = n.x * cy + n.z * sy;
-  const z1 = -n.x * sy + n.z * cy;
-  const y1 = n.y;
+  const x1 = x * cy + z * sy, z1 = -x * sy + z * cy, y1 = y;
   const cp = Math.cos(cam.pitch), sp = Math.sin(cam.pitch);
-  const y2 = y1 * cp - z1 * sp;
-  const z2 = y1 * sp + z1 * cp;
-  const x2 = x1;
-  const zc = z2 + cam.dist;
+  return { x2: x1, y2: y1 * cp - z1 * sp, z2: y1 * sp + z1 * cp };
+}
+function project(n){
+  const c = camSpace(n.x, n.y, n.z);
+  const zc = c.z2 + cam.dist;
   if (zc < NEAR) return null;
   const f = FOCAL / zc;
-  return { sx: W / 2 + cam.tx + x2 * f, sy: H / 2 + cam.ty + y2 * f, scale: f, depth: zc, z2 };
+  return { sx: W / 2 + cam.tx + c.x2 * f, sy: H / 2 + cam.ty + c.y2 * f, scale: f, depth: zc, z2: c.z2 };
 }
-// Inverse of the two rotations: camera-space (x2,y2,z2) back to world (x,y,z). Used when dragging a
-// node so it follows the cursor within its current camera-depth plane.
 function unproject(x2, y2, z2){
   const cp = Math.cos(cam.pitch), sp = Math.sin(cam.pitch);
-  const y1 = y2 * cp + z2 * sp;
-  const z1 = -y2 * sp + z2 * cp;
-  const x1 = x2;
+  const y1 = y2 * cp + z2 * sp, z1 = -y2 * sp + z2 * cp, x1 = x2;
   const cy = Math.cos(cam.yaw), sy = Math.sin(cam.yaw);
   return { x: x1 * cy - z1 * sy, y: y1, z: x1 * sy + z1 * cy };
 }
@@ -203,10 +257,61 @@ function baseRadius(n){
   if (n.kind === "directory") return 6;
   return 3 + Math.min(5, Math.log10((n.size || 0) + 10));
 }
+function groupColor(g){
+  if (!g) return KIND_COLOR.other;
+  if (groupColorCache.has(g)) return groupColorCache.get(g);
+  let h = 0; for (let i = 0; i < g.length; i++) h = (h * 31 + g.charCodeAt(i)) >>> 0;
+  const col = "hsl(" + (h % 360) + " 62% 62%)";
+  groupColorCache.set(g, col);
+  return col;
+}
+function nodeColor(n){ return colorBy === "group" ? groupColor(n.group) : (KIND_COLOR[n.kind] || KIND_COLOR.other); }
+
 const kindVisible = n => !hiddenKinds.has(n.kind);
-function matchesQuery(n){ return !query || (n.path || n.label || "").toLowerCase().includes(query); }
 function matchesGroup(n){ return !groupFilter || n.group === groupFilter || n.id === "project"; }
 const visible = n => kindVisible(n) && matchesGroup(n);
+
+// --- adjacency-derived sets ---------------------------------------------
+function ancestors(node){ const a = []; let c = node; while (parentOf.has(c.id)){ c = parentOf.get(c.id); a.push(c); } return a; }
+function descendants(node){
+  const set = new Set(); const st = [node];
+  while (st.length){ const n = st.pop(); for (const c of (childrenOf.get(n.id) || [])){ if (!set.has(c)){ set.add(c); st.push(c); } } }
+  return set;
+}
+function neighborSet(node){ const s = new Set([node]); for (const nb of (neighborsOf.get(node.id) || [])) s.add(nb); return s; }
+function lineageSet(node){ const s = new Set([node]); for (const a of ancestors(node)) s.add(a); for (const d of descendants(node)) s.add(d); return s; }
+function clusterSet(node){ const s = new Set([node]); for (const n of nodes) if (n.group === node.group) s.add(n); return s; }
+function focusFor(node, mode){
+  if (mode === "neighbors") return neighborSet(node);
+  if (mode === "cluster") return clusterSet(node);
+  return lineageSet(node);
+}
+
+// --- emphasis (search field OR selection OR hover) ----------------------
+function searchSet(q, field){
+  const set = new Set();
+  if (field === "relation"){
+    for (const e of edges){ if ((e.rel || "contains").toLowerCase().includes(q)){ set.add(e.source); set.add(e.target); } }
+    return set;
+  }
+  for (const n of nodes){
+    let hay;
+    if (field === "group") hay = n.group || "";
+    else if (field === "kind") hay = n.kind || "";
+    else hay = n.path || n.label || "";
+    if (hay.toLowerCase().includes(q)) set.add(n);
+  }
+  return set;
+}
+function recomputeEmphasis(){
+  const q = query.trim().toLowerCase();
+  if (q) emphasis = searchSet(q, queryField);
+  else if (selected) emphasis = focusFor(selected, highlightMode);
+  else if (hover) emphasis = neighborSet(hover);
+  else emphasis = null;
+  updateStats();
+  requestDraw();
+}
 
 // --- render --------------------------------------------------------------
 function draw(){
@@ -215,31 +320,32 @@ function draw(){
   for (const n of nodes){
     n._p = null;
     if (!visible(n)) continue;
+    const emph = !emphasis || emphasis.has(n);
+    if (isolate && !emph) continue;        // aislar: hide the rest entirely
     const p = project(n);
     if (!p) continue;
-    n._p = p;
+    n._p = p; n._emph = emph;
     drawable.push(n);
   }
   drawable.sort((a, b) => b._p.depth - a._p.depth); // painter's order: far first
 
   if (showEdges){
-    ctx.lineWidth = 0.8;
-    ctx.strokeStyle = "rgba(140,123,110,0.26)";
-    ctx.beginPath();
     for (const e of edges){
       const s = e.source, t = e.target;
       if (!s._p || !t._p) continue;
-      ctx.moveTo(s._p.sx, s._p.sy); ctx.lineTo(t._p.sx, t._p.sy);
+      const on = !emphasis || (s._emph && t._emph);
+      ctx.strokeStyle = on ? "rgba(140,123,110,0.34)" : "rgba(140,123,110,0.07)";
+      ctx.lineWidth = on ? 0.9 : 0.6;
+      ctx.beginPath(); ctx.moveTo(s._p.sx, s._p.sy); ctx.lineTo(t._p.sx, t._p.sy); ctx.stroke();
     }
-    ctx.stroke();
   }
 
   for (const n of drawable){
     const p = n._p;
-    const dim = query && !matchesQuery(n);
+    const dim = emphasis && !n._emph;
     const r = Math.max(1.4, baseRadius(n) * p.scale);
     ctx.beginPath(); ctx.arc(p.sx, p.sy, r, 0, 6.2832);
-    ctx.fillStyle = KIND_COLOR[n.kind] || KIND_COLOR.other;
+    ctx.fillStyle = nodeColor(n);
     ctx.globalAlpha = dim ? 0.12 : 1;
     ctx.fill();
     if (n === selected || n === hover || n.kind === "project"){
@@ -272,21 +378,22 @@ function pick(px, py){
   }
   return best;
 }
-function eventPos(e){
-  const rect = canvas.getBoundingClientRect();
-  return { x: e.clientX - rect.left, y: e.clientY - rect.top };
-}
+function eventPos(e){ const rect = canvas.getBoundingClientRect(); return { x: e.clientX - rect.left, y: e.clientY - rect.top }; }
 
 // --- camera helpers ------------------------------------------------------
-function fit(){
-  let maxR = 1, maxZ = 1;
-  for (const n of nodes){
-    if (!visible(n)) continue;
-    maxR = Math.max(maxR, Math.hypot(n.x, n.y));
-    maxZ = Math.max(maxZ, Math.abs(n.z));
-  }
-  cam.dist = maxZ + maxR * 2.3 + 140;
-  cam.tx = 0; cam.ty = 0;
+function fit(){ fitTo(nodes.filter(visible)); }
+function fitTo(list){
+  const arr = (list && list.length) ? list : nodes.filter(visible);
+  if (!arr.length) return;
+  let cx = 0, cy = 0, cz = 0;
+  for (const n of arr){ cx += n.x; cy += n.y; cz += n.z; }
+  cx /= arr.length; cy /= arr.length; cz /= arr.length;
+  let maxr = 1;
+  for (const n of arr) maxr = Math.max(maxr, Math.hypot(n.x - cx, n.y - cy, n.z - cz));
+  cam.dist = Math.max(200, maxr * 2.6 + 160);
+  const c = camSpace(cx, cy, cz);
+  const f = FOCAL / (c.z2 + cam.dist);
+  cam.tx = -c.x2 * f; cam.ty = -c.y2 * f;
   requestDraw();
 }
 function resetCamera(){ cam = Object.assign({}, DEFAULT_CAM); fit(); }
@@ -295,187 +402,187 @@ function resetCamera(){ cam = Object.assign({}, DEFAULT_CAM); fit(); }
 canvas.addEventListener("mousedown", e => {
   const p = eventPos(e);
   const n = pick(p.x, p.y);
-  if (n){
-    dragNode = n; dragZ2 = n._p.z2;
-    canvas.classList.add("pointer");
-    select(n);
-  } else if (e.shiftKey){
-    panning = true; last = p; canvas.classList.add("grabbing");
-  } else {
-    orbiting = true; last = p; canvas.classList.add("grabbing");
-  }
+  if (n){ dragNode = n; dragZ2 = n._p.z2; canvas.classList.add("pointer"); select(n); }
+  else if (e.shiftKey){ panning = true; last = p; canvas.classList.add("grabbing"); }
+  else { orbiting = true; last = p; canvas.classList.add("grabbing"); }
 });
 window.addEventListener("mousemove", e => {
   const p = eventPos(e);
   if (dragNode){
     const f = FOCAL / (dragZ2 + cam.dist);
-    const x2 = (p.x - W / 2 - cam.tx) / f;
-    const y2 = (p.y - H / 2 - cam.ty) / f;
-    const w = unproject(x2, y2, dragZ2);
-    dragNode.x = w.x; dragNode.y = w.y; dragNode.z = w.z;
-    requestDraw(); return;
+    const w = unproject((p.x - W / 2 - cam.tx) / f, (p.y - H / 2 - cam.ty) / f, dragZ2);
+    dragNode.x = w.x; dragNode.y = w.y; dragNode.z = w.z; requestDraw(); return;
   }
   if (orbiting){
-    cam.yaw += (p.x - last.x) * 0.008;
-    cam.pitch += (p.y - last.y) * 0.008;
-    cam.pitch = Math.max(-1.4, Math.min(1.4, cam.pitch));
-    last = p; requestDraw(); return;
+    cam.yaw += (p.x - last.x) * 0.008; cam.pitch += (p.y - last.y) * 0.008;
+    cam.pitch = Math.max(-1.4, Math.min(1.4, cam.pitch)); last = p; requestDraw(); return;
   }
   if (panning){ cam.tx += p.x - last.x; cam.ty += p.y - last.y; last = p; requestDraw(); return; }
-  // hover
   const n = pick(p.x, p.y);
-  if (n !== hover){ hover = n; requestDraw(); }
+  if (n !== hover){ hover = n; if (!selected && !query.trim()) recomputeEmphasis(); else requestDraw(); }
   if (n){
     canvas.classList.add("pointer");
     tip.style.display = "block";
     tip.style.left = (e.clientX + 14) + "px"; tip.style.top = (e.clientY + 14) + "px";
     tip.innerHTML = '<span class="p">' + esc(n.path || n.label) + "</span>" +
-      '<span class="s">' + esc(n.kind) + (n.size ? " · " + fmtBytes(n.size) : "") + "</span>";
-  } else {
-    canvas.classList.remove("pointer");
-    tip.style.display = "none";
-  }
+      '<span class="s">' + esc(n.kind) + (n.group ? " · " + esc(n.group) : "") + (n.size ? " · " + fmtBytes(n.size) : "") + "</span>";
+  } else { canvas.classList.remove("pointer"); tip.style.display = "none"; }
 });
-window.addEventListener("mouseup", () => {
-  dragNode = null; orbiting = false; panning = false;
-  canvas.classList.remove("grabbing");
-});
+window.addEventListener("mouseup", () => { dragNode = null; orbiting = false; panning = false; canvas.classList.remove("grabbing"); });
 canvas.addEventListener("wheel", e => {
   e.preventDefault();
-  cam.dist *= e.deltaY < 0 ? 0.9 : 1.1;
-  cam.dist = Math.max(120, Math.min(60000, cam.dist));
-  requestDraw();
+  cam.dist *= e.deltaY < 0 ? 0.9 : 1.1; cam.dist = Math.max(120, Math.min(60000, cam.dist)); requestDraw();
 }, { passive: false });
 canvas.addEventListener("dblclick", e => {
-  const p = eventPos(e);
-  const n = pick(p.x, p.y);
+  const p = eventPos(e); const n = pick(p.x, p.y);
   if (n && n.path && n.kind !== "directory" && n.kind !== "project"){
-    // graph-3d.html lives at <root>/.andromeda/graph/, so a workspace-relative path is two levels up.
-    window.open("../../" + n.path, "_blank");
+    window.open("../../" + n.path, "_blank"); // graph-3d.html lives at <root>/.andromeda/graph/
   }
 });
 
 function select(n){
   selected = n;
-  if (!n){ detail.style.display = "none"; requestDraw(); return; }
+  recomputeEmphasis();
+  renderDetail();
+}
+function renderDetail(){
+  const n = selected;
+  if (!n){ detail.style.display = "none"; return; }
+  const anc = ancestors(n), desc = descendants(n), nb = neighborsOf.get(n.id) || new Set();
   let rows = "<dt>kind</dt><dd>" + esc(n.kind) + "</dd>";
+  if (n.group) rows += "<dt>grupo</dt><dd>" + esc(n.group) + "</dd>";
   if (n.path) rows += "<dt>path</dt><dd>" + esc(n.path) + "</dd>";
-  if (n.language) rows += "<dt>language</dt><dd>" + esc(n.language) + "</dd>";
+  if (n.language) rows += "<dt>lang</dt><dd>" + esc(n.language) + "</dd>";
   if (n.size) rows += "<dt>size</dt><dd>" + fmtBytes(n.size) + "</dd>";
   rows += "<dt>depth</dt><dd>" + (n.depth || 0) + "</dd>";
-  detail.innerHTML = "<h3>" + esc(n.label) + "</h3><dl>" + rows + "</dl>" +
+  detail.innerHTML =
+    "<h3>" + esc(n.label) + "</h3><dl>" + rows + "</dl>" +
+    '<div class="rel">' +
+      '<span class="chip">ancestros <b>' + anc.length + "</b></span>" +
+      '<span class="chip">descend. <b>' + desc.size + "</b></span>" +
+      '<span class="chip">vecinos <b>' + nb.size + "</b></span>" +
+    "</div>" +
     (n.summary ? '<div class="sum">' + esc(n.summary) + "</div>" : "") +
-    (n.path && n.kind !== "directory" ? '<div class="hint">double-click to open the file</div>' : "");
+    '<div class="acts">' +
+      '<button data-a="frame">encuadrar</button>' +
+      '<button data-a="cluster">ver clúster</button>' +
+      '<button data-a="lineage">ver linaje</button>' +
+      (n.path && n.kind !== "directory" ? '<button data-a="open">abrir archivo</button>' : "") +
+      '<button data-a="clear">limpiar</button>' +
+    "</div>";
+  detail.querySelectorAll(".acts button").forEach(b => { b.onclick = () => nodeAction(b.dataset.a); });
   detail.style.display = "block";
-  requestDraw();
 }
+function nodeAction(a){
+  const n = selected; if (!n) return;
+  if (a === "frame"){ fitTo(Array.from(emphasis || focusFor(n, highlightMode))); }
+  else if (a === "cluster"){ setHighlightMode("cluster"); recomputeEmphasis(); fitTo(Array.from(clusterSet(n))); }
+  else if (a === "lineage"){ setHighlightMode("lineage"); recomputeEmphasis(); fitTo(Array.from(lineageSet(n))); }
+  else if (a === "open"){ if (n.path) window.open("../../" + n.path, "_blank"); }
+  else if (a === "clear"){ clearSelection(); }
+}
+function clearSelection(){ selected = null; detail.style.display = "none"; recomputeEmphasis(); }
 
 // --- UI chrome -----------------------------------------------------------
+function updateStats(){
+  const vis = nodes.filter(visible).length;
+  const emph = emphasis ? nodes.filter(n => visible(n) && emphasis.has(n)).length : vis;
+  document.getElementById("stat").innerHTML =
+    "<b>" + esc(graphName) + "</b><br>" + nodes.length + " nodos · " + edges.length + " aristas<br>" +
+    "visibles <b>" + vis + "</b>" + (emphasis ? " · resaltados <b>" + emph + "</b>" : "");
+}
 function buildLegend(){
   const present = new Set(nodes.map(n => n.kind));
-  const box = document.getElementById("legend-rows");
-  box.innerHTML = "";
+  const box = document.getElementById("legend"); box.innerHTML = "";
   KIND_ORDER.filter(k => present.has(k)).forEach(k => {
     const row = document.createElement("div");
-    row.className = "row";
+    row.className = "row" + (hiddenKinds.has(k) ? " off" : "");
     row.innerHTML = '<span class="dot" style="background:' + KIND_COLOR[k] + '"></span>' + k;
-    row.onclick = () => {
-      hiddenKinds.has(k) ? hiddenKinds.delete(k) : hiddenKinds.add(k);
-      row.classList.toggle("off");
-      requestDraw();
-    };
+    row.onclick = () => { hiddenKinds.has(k) ? hiddenKinds.delete(k) : hiddenKinds.add(k); row.classList.toggle("off"); recomputeEmphasis(); };
     box.appendChild(row);
   });
 }
 function buildGroups(){
   const groups = Array.from(new Set(nodes.map(n => n.group).filter(Boolean))).sort();
   const sel = document.getElementById("group");
-  for (const g of groups){
-    const opt = document.createElement("option");
-    opt.value = g; opt.textContent = g; sel.appendChild(opt);
-  }
-  sel.onchange = () => { groupFilter = sel.value; requestDraw(); };
+  for (const g of groups){ const o = document.createElement("option"); o.value = g; o.textContent = g; sel.appendChild(o); }
+  sel.onchange = () => { groupFilter = sel.value; recomputeEmphasis(); };
 }
-function bindTools(){
-  const toggle = (id, get, set) => {
-    const btn = document.getElementById(id);
-    btn.onclick = () => { set(!get()); btn.classList.toggle("on", get()); requestDraw(); };
-  };
+function setHighlightMode(m){
+  highlightMode = m;
+  document.querySelectorAll("#hmode button").forEach(b => b.classList.toggle("on", b.dataset.m === m));
+}
+function bindUI(){
+  const toggle = (id, get, set) => { const b = document.getElementById(id); b.onclick = () => { set(!get()); b.classList.toggle("on", get()); requestDraw(); }; };
   document.getElementById("reset").onclick = resetCamera;
-  document.getElementById("fit").onclick = fit;
+  document.getElementById("fit").onclick = () => fit();
   toggle("labels", () => showLabels, v => showLabels = v);
   toggle("edges", () => showEdges, v => showEdges = v);
+  document.getElementById("isolate").onclick = () => { isolate = !isolate; document.getElementById("isolate").classList.toggle("on", isolate); requestDraw(); };
   document.getElementById("save").onclick = saveLayout;
   document.getElementById("clear").onclick = clearLayout;
 
   const q = document.getElementById("q");
-  q.addEventListener("input", () => { query = q.value.trim().toLowerCase(); requestDraw(); });
+  q.addEventListener("input", () => { query = q.value; recomputeEmphasis(); });
+  document.getElementById("qfield").onchange = e => { queryField = e.target.value; recomputeEmphasis(); };
+
+  document.querySelectorAll("#hmode button").forEach(b => b.onclick = () => { setHighlightMode(b.dataset.m); recomputeEmphasis(); });
+  document.querySelectorAll("#colorby button").forEach(b => b.onclick = () => {
+    colorBy = b.dataset.c;
+    document.querySelectorAll("#colorby button").forEach(x => x.classList.toggle("on", x.dataset.c === colorBy));
+    requestDraw();
+  });
+
   window.addEventListener("keydown", e => {
     if (e.key === "/" && document.activeElement !== q){ e.preventDefault(); q.focus(); }
-    if (e.key === "Escape"){ q.value = ""; query = ""; select(null); requestDraw(); q.blur(); }
+    if (e.key === "Escape"){ q.value = ""; query = ""; clearSelection(); q.blur(); }
   });
 }
 
 // --- optional manual-layout persistence (never touches graph.json) -------
 function saveLayout(){
   try {
-    const pos = {};
-    for (const n of nodes) pos[n.id] = [round(n.x), round(n.y), round(n.z)];
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ name: graphName, positions: pos }));
-    flash("save", "saved");
+    const pos = {}; for (const n of nodes) pos[n.id] = [round(n.x), round(n.y), round(n.z)];
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ name: graphName, positions: pos })); flash("save", "saved");
   } catch (e){ flash("save", "no store"); }
 }
 function loadLayout(){
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return false;
-    const saved = JSON.parse(raw);
-    if (!saved || saved.name !== graphName || !saved.positions) return false;
+    const raw = localStorage.getItem(STORAGE_KEY); if (!raw) return false;
+    const saved = JSON.parse(raw); if (!saved || saved.name !== graphName || !saved.positions) return false;
     let applied = 0;
-    for (const n of nodes){
-      const p = saved.positions[n.id];
-      if (p){ n.x = p[0]; n.y = p[1]; n.z = p[2]; applied++; }
-    }
+    for (const n of nodes){ const p = saved.positions[n.id]; if (p){ n.x = p[0]; n.y = p[1]; n.z = p[2]; applied++; } }
     return applied > 0;
   } catch (e){ return false; }
 }
-function clearLayout(){
-  try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
-  layout(); fit(); flash("clear", "reset");
-}
-function flash(id, text){
-  const btn = document.getElementById(id), was = btn.textContent;
-  btn.textContent = text;
-  setTimeout(() => { btn.textContent = was; }, 900);
-}
+function clearLayout(){ try { localStorage.removeItem(STORAGE_KEY); } catch (e) {} layout(); fit(); flash("clear", "reset"); }
+function flash(id, text){ const b = document.getElementById(id), was = b.textContent; b.textContent = text; setTimeout(() => { b.textContent = was; }, 900); }
 
 // --- helpers -------------------------------------------------------------
 function round(v){ return Math.round(v * 100) / 100; }
-function fmtBytes(b){
-  if (b < 1024) return b + " B";
-  if (b < 1048576) return (b / 1024).toFixed(1) + " KB";
-  return (b / 1048576).toFixed(1) + " MB";
-}
-// esc HTML-escapes untrusted text (node summaries/paths come from the scanned tree) for the DOM.
-function esc(s){
-  return String(s).replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
-}
+function fmtBytes(b){ if (b < 1024) return b + " B"; if (b < 1048576) return (b / 1024).toFixed(1) + " KB"; return (b / 1048576).toFixed(1) + " MB"; }
+function esc(s){ return String(s).replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c])); }
 
 // --- boot ----------------------------------------------------------------
 function init(){
   const data = readGraph();
-  if (!data || !data.nodes || !data.nodes.length){
-    document.getElementById("empty").style.display = "flex";
-    return;
-  }
+  if (!data || !data.nodes || !data.nodes.length){ document.getElementById("empty").style.display = "flex"; return; }
   graphName = data.name || "workspace";
   nodes = data.nodes.map(n => Object.assign({}, n, { x: 0, y: 0, z: 0, _p: null }));
   byId = new Map(nodes.map(n => [n.id, n]));
   edges = (data.edges || [])
-    .map(e => ({ source: byId.get(e.from), target: byId.get(e.to), rel: e.rel }))
+    .map(e => ({ source: byId.get(e.from), target: byId.get(e.to), rel: e.rel || "contains" }))
     .filter(e => e.source && e.target);
-  document.getElementById("meta").textContent =
-    graphName + " · " + nodes.length + " nodes · " + edges.length + " edges";
+  for (const e of edges){
+    parentOf.set(e.target.id, e.source);
+    if (!childrenOf.has(e.source.id)) childrenOf.set(e.source.id, []);
+    childrenOf.get(e.source.id).push(e.target);
+    if (!neighborsOf.has(e.source.id)) neighborsOf.set(e.source.id, new Set());
+    if (!neighborsOf.has(e.target.id)) neighborsOf.set(e.target.id, new Set());
+    neighborsOf.get(e.source.id).add(e.target);
+    neighborsOf.get(e.target.id).add(e.source);
+  }
+  document.getElementById("meta").textContent = graphName + " · " + nodes.length + " nodos · " + edges.length + " aristas";
   document.title = "Andromeda — " + graphName + " graph (3D)";
 
   resize();
@@ -484,7 +591,8 @@ function init(){
   fit();
   buildLegend();
   buildGroups();
-  bindTools();
+  bindUI();
+  updateStats();
   requestAnimationFrame(loop);
 }
 init();
