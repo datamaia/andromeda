@@ -11,6 +11,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/datamaia/andromeda/internal/buildinfo"
 	"github.com/datamaia/andromeda/internal/ontology"
 )
 
@@ -31,7 +32,12 @@ func Write(root string, m *ontology.Model) (*Graph, string, error) {
 		return nil, "", err
 	}
 
-	if err := atomicWrite(filepath.Join(dir, "graph.json"), g.JSON()); err != nil {
+	graphJSON := g.JSON()
+	if err := atomicWrite(filepath.Join(dir, "graph.json"), graphJSON); err != nil {
+		return nil, "", err
+	}
+	// The offline, self-contained 3D viewer: graph.json embedded, opens straight from file://.
+	if err := atomicWrite(filepath.Join(dir, "graph-3d.html"), render3D(g)); err != nil {
 		return nil, "", err
 	}
 	for rel, content := range renderMarkdown(m) {
@@ -43,7 +49,7 @@ func Write(root string, m *ontology.Model) (*Graph, string, error) {
 			return nil, "", err
 		}
 	}
-	if err := atomicWrite(filepath.Join(dir, "manifest.json"), g.manifest()); err != nil {
+	if err := atomicWrite(filepath.Join(dir, "manifest.json"), g.manifest(graphJSON)); err != nil {
 		return nil, "", err
 	}
 	return g, dir, nil
@@ -146,24 +152,60 @@ func (g *Graph) Stats() string {
 		len(g.Nodes), files, dirs, len(g.Edges))
 }
 
-// manifest is a deterministic JSON sidecar: counts plus a content hash over the node ids, so a
-// caller can detect whether a re-scan would change the graph.
-func (g *Graph) manifest() []byte {
+// manifest is a deterministic JSON sidecar for reproducibility (see GRAPH_TOOL_3D_REPLICABLE_SPEC):
+// counts, a content hash over the node ids (kept as "hash" for compatibility), a graphHash over the
+// serialized graph.json, the layout algorithm and a layoutHash derived from the ordering inputs (not
+// positions, so it is computable without running the viewer), and the generator version. No
+// timestamp participates in any hash, so an unchanged tree yields identical bytes.
+func (g *Graph) manifest(graphJSON []byte) []byte {
 	ids := make([]string, len(g.Nodes))
 	for i, n := range g.Nodes {
 		ids[i] = n.ID
 	}
 	sort.Strings(ids)
-	h := sha256.New()
+	idHash := sha256.New()
 	for _, id := range ids {
-		_, _ = fmt.Fprintf(h, "%s\n", id)
+		_, _ = fmt.Fprintf(idHash, "%s\n", id)
 	}
+
+	graphHash := sha256.Sum256(graphJSON)
+
+	// layoutHash captures everything the deterministic layout depends on: the sorted node ids, the
+	// sorted edge triples, the algorithm name, and its ring/z parameters.
+	edges := make([]string, len(g.Edges))
+	for i, e := range g.Edges {
+		edges[i] = e.From + "|" + e.To + "|" + e.Rel
+	}
+	sort.Strings(edges)
+	lh := sha256.New()
+	_, _ = fmt.Fprintf(lh, "algo=%s\n", LayoutAlgorithm)
+	_, _ = fmt.Fprint(lh, "params=ring:90+95*d;z:115;twist:0.618\n")
+	for _, id := range ids {
+		_, _ = fmt.Fprintf(lh, "n:%s\n", id)
+	}
+	for _, e := range edges {
+		_, _ = fmt.Fprintf(lh, "e:%s\n", e)
+	}
+
 	man := struct {
-		Name      string `json:"name"`
-		NodeCount int    `json:"nodeCount"`
-		EdgeCount int    `json:"edgeCount"`
-		Hash      string `json:"hash"`
-	}{g.Name, len(g.Nodes), len(g.Edges), hex.EncodeToString(h.Sum(nil))}
+		Name             string `json:"name"`
+		NodeCount        int    `json:"nodeCount"`
+		EdgeCount        int    `json:"edgeCount"`
+		Hash             string `json:"hash"`
+		GraphHash        string `json:"graphHash"`
+		LayoutAlgorithm  string `json:"layoutAlgorithm"`
+		LayoutHash       string `json:"layoutHash"`
+		GeneratorVersion string `json:"generatorVersion"`
+	}{
+		Name:             g.Name,
+		NodeCount:        len(g.Nodes),
+		EdgeCount:        len(g.Edges),
+		Hash:             hex.EncodeToString(idHash.Sum(nil)),
+		GraphHash:        hex.EncodeToString(graphHash[:]),
+		LayoutAlgorithm:  LayoutAlgorithm,
+		LayoutHash:       hex.EncodeToString(lh.Sum(nil)),
+		GeneratorVersion: "andromeda-graph-" + buildinfo.Get().Version,
+	}
 	data, _ := json.MarshalIndent(man, "", "  ")
 	return append(data, '\n')
 }

@@ -15,9 +15,10 @@ import (
 //go:embed viewer.html
 var viewerHTML []byte
 
-// Serve starts a localhost HTTP server that renders the workspace graph in a self-contained,
-// dependency-free force-directed viewer. It binds 127.0.0.1:<port> (port 0 picks a free port),
-// invokes onReady with the resolved URL once listening, and serves until ctx is cancelled.
+// Serve starts a localhost HTTP server that renders the workspace graph. The default route ("/")
+// serves the self-contained 3D viewer (graph-3d.html, generated with graph.json embedded); the 2D
+// force-directed viewer stays available at "/2d". It binds 127.0.0.1:<port> (port 0 picks a free
+// port), invokes onReady with the resolved URL once listening, and serves until ctx is cancelled.
 // graph.json is read live from the graph output directory, so re-running `andromeda graph` is
 // reflected on the next refresh.
 func Serve(ctx context.Context, root string, port int, onReady func(url string)) error {
@@ -28,6 +29,15 @@ func Serve(ctx context.Context, root string, port int, onReady func(url string))
 			http.NotFound(w, r)
 			return
 		}
+		data, err := os.ReadFile(filepath.Join(dir, "graph-3d.html")) //nolint:gosec // fixed path under the workspace marker dir
+		if err != nil {
+			http.Error(w, "no graph yet — run `andromeda graph build`", http.StatusNotFound)
+			return
+		}
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		_, _ = w.Write(data)
+	})
+	mux.HandleFunc("/2d", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		_, _ = w.Write(viewerHTML)
 	})

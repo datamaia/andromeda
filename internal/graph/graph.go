@@ -21,13 +21,15 @@ const graphSubdir = "graph"
 
 // Node is a vertex in the workspace graph: the project root, a directory, or a file.
 type Node struct {
-	ID      string `json:"id"`                // stable identity: "project", "d/<dir>", or "f/<path>"
-	Label   string `json:"label"`             // display name (base name)
-	Kind    string `json:"kind"`              // project | directory | code | doc | config | data | asset | other
-	Path    string `json:"path"`              // workspace-relative path ("" for the project node)
-	Group   string `json:"group"`             // top-level directory, for clustering/coloring ("" at the root)
-	Size    int64  `json:"size"`              // byte size for files (0 for project/directories)
-	Summary string `json:"summary,omitempty"` // a short excerpt of a text file, shown on hover (Obsidian-style)
+	ID       string `json:"id"`                 // stable identity: "project", "d/<dir>", or "f/<path>"
+	Label    string `json:"label"`              // display name (base name)
+	Kind     string `json:"kind"`               // project | directory | code | doc | config | data | asset | other
+	Path     string `json:"path"`               // workspace-relative path ("" for the project node)
+	Group    string `json:"group"`              // top-level directory, for clustering/coloring ("" at the root)
+	Size     int64  `json:"size"`               // byte size for files (0 for project/directories)
+	Depth    int    `json:"depth"`              // distance from the project root along containment (project = 0)
+	Language string `json:"language,omitempty"` // human-readable language for file nodes ("" otherwise)
+	Summary  string `json:"summary,omitempty"`  // a short excerpt of a text file, shown on hover (Obsidian-style)
 }
 
 // Edge is a directed containment relationship: From contains To.
@@ -59,22 +61,35 @@ func Build(m *ontology.Model) *Graph {
 			Kind:  "directory",
 			Path:  d,
 			Group: topLevel(d),
+			Depth: depthOf(d),
 		})
 		g.Edges = append(g.Edges, Edge{From: parentID(d), To: dirID(d), Rel: "contains"})
 	}
 
 	for _, f := range m.Files {
 		g.Nodes = append(g.Nodes, Node{
-			ID:    fileID(f.Path),
-			Label: f.Name,
-			Kind:  f.Kind,
-			Path:  f.Path,
-			Group: topLevel(f.Path),
-			Size:  f.Size,
+			ID:       fileID(f.Path),
+			Label:    f.Name,
+			Kind:     f.Kind,
+			Path:     f.Path,
+			Group:    topLevel(f.Path),
+			Size:     f.Size,
+			Depth:    depthOf(f.Path),
+			Language: f.Language,
 		})
 		g.Edges = append(g.Edges, Edge{From: parentID(f.Path), To: fileID(f.Path), Rel: "contains"})
 	}
 	return g
+}
+
+// depthOf is a node's distance from the project root along containment: the number of path
+// segments (project root = 0, a top-level entry = 1, and so on). It equals walking the contains
+// edges up to the project, but is computed directly from the slash-separated path.
+func depthOf(p string) int {
+	if p == "" {
+		return 0
+	}
+	return strings.Count(p, "/") + 1
 }
 
 // JSON renders the graph as pretty-printed, deterministic JSON (trailing newline).

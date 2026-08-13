@@ -19,8 +19,9 @@ func newGraphCommand() *cobra.Command {
 		Use:   "graph",
 		Short: "Build and view a visual graph of the workspace",
 		Long: "Scan every file in the workspace (honoring .gitignore) and write a deterministic graph " +
-			"model — graph.json plus human-readable Markdown notes — to .andromeda/graph/. Then " +
-			"`andromeda graph serve` opens a dependency-free force-directed viewer in your browser.",
+			"model — graph.json plus a self-contained 3D viewer (graph-3d.html) and human-readable " +
+			"Markdown notes — to .andromeda/graph/. Then `andromeda graph open` opens the offline 3D " +
+			"viewer from disk, or `andromeda graph serve` serves it over localhost with live refresh.",
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error { _, err := runGraphBuild(cmd); return err },
 	}
@@ -42,6 +43,16 @@ func newGraphCommand() *cobra.Command {
 	serve.Flags().IntVar(&port, "port", 0, "localhost port to bind (0 = pick a free port)")
 	serve.Flags().BoolVar(&noOpen, "no-open", false, "do not open the system browser")
 	c.AddCommand(serve)
+
+	c.AddCommand(&cobra.Command{
+		Use:   "open",
+		Short: "Build the graph and open the offline 3D viewer (no server)",
+		Long: "Build the graph and open .andromeda/graph/graph-3d.html directly in your browser — a " +
+			"self-contained, dependency-free 3D view that runs from the filesystem with no localhost " +
+			"server. Use `graph serve` instead when you want the live-refreshing localhost viewer.",
+		Args: cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, _ []string) error { return runGraphOpen(cmd) },
+	})
 
 	c.AddCommand(&cobra.Command{
 		Use:   "show",
@@ -107,6 +118,23 @@ func runGraphServe(cmd *cobra.Command, port int, noOpen bool) error {
 			_ = openBrowser(url)
 		}
 	})
+}
+
+// runGraphOpen rebuilds the graph and opens the self-contained 3D viewer from the filesystem via a
+// file:// URL — no localhost server. The relative links in the viewer resolve because it lives two
+// levels under the workspace root (.andromeda/graph/).
+func runGraphOpen(cmd *cobra.Command) error {
+	if _, err := runGraphBuild(cmd); err != nil {
+		return err
+	}
+	wd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+	htmlPath := filepath.Join(graph.Dir(wd), "graph-3d.html")
+	url := "file://" + filepath.ToSlash(htmlPath)
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "opening %s\n", url)
+	return openBrowser(url)
 }
 
 func runGraphShow(cmd *cobra.Command) error {

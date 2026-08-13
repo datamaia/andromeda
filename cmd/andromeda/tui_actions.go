@@ -250,15 +250,11 @@ func memoryIndex(root string) string {
 func (s *tuiSession) ontologyAction(ctx context.Context, op string) string {
 	switch op {
 	case "build":
-		m, err := ontology.Scan(ctx, s.wd)
+		m, cm, err := ontology.Generate(ctx, s.wd)
 		if err != nil {
 			return "ontology: " + err.Error()
 		}
-		path, err := ontology.Write(s.wd, m)
-		if err != nil {
-			return "ontology: " + err.Error()
-		}
-		return "ontology · " + m.Stats() + "\n  written to " + relOr(s.wd, path)
+		return "ontology · " + m.Stats() + "\n  " + cm.Stats() + "\n  written to " + relOr(s.wd, ontology.Dir(s.wd))
 	case "show":
 		data, err := os.ReadFile(filepath.Join(ontology.Dir(s.wd), "project.ttl")) //nolint:gosec // fixed path under the workspace marker dir
 		if err != nil {
@@ -294,6 +290,8 @@ func (s *tuiSession) graphAction(ctx context.Context, op string) string {
 		return "graph · " + g.Stats() + "\n  written to " + relOr(s.wd, dir)
 	case "open":
 		return s.graphOpen(ctx)
+	case "open3d":
+		return s.graphOpen3D(ctx)
 	case "show":
 		data, err := os.ReadFile(filepath.Join(graph.Dir(s.wd), "index.md")) //nolint:gosec // fixed path under the workspace marker dir
 		if err != nil {
@@ -309,8 +307,23 @@ func (s *tuiSession) graphAction(ctx context.Context, op string) string {
 		}
 		return "removed .andromeda/graph"
 	default:
-		return "graph subcommands: build · open · show · rm"
+		return "graph subcommands: build · open · open3d · show · rm"
 	}
+}
+
+// graphOpen3D rebuilds the graph and opens the self-contained 3D viewer from the filesystem (via a
+// file:// URL) with no localhost server — the offline counterpart to graphOpen.
+func (s *tuiSession) graphOpen3D(ctx context.Context) string {
+	m, err := ontology.Scan(ctx, s.wd)
+	if err != nil {
+		return "graph: " + err.Error()
+	}
+	if _, _, err := graph.Write(s.wd, m); err != nil {
+		return "graph: " + err.Error()
+	}
+	url := "file://" + filepath.ToSlash(filepath.Join(graph.Dir(s.wd), "graph-3d.html"))
+	_ = openBrowser(url)
+	return "graph · offline 3D viewer opened\n  " + url
 }
 
 // graphOpen rebuilds the graph (so the viewer reflects the current tree) and serves the interactive

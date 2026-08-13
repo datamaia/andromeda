@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Andromeda — workspace graph (3D)</title>
+<style>
+  :root{
+    --bg:#121417; --panel:#181B20; --ink:#F5F2ED; --muted:#8C7B6E;
+    --violet:#7C5CFF; --violet-soft:#B58CFF; --line:#2A2E35;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
+    font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow:hidden}
+  #stage{position:fixed;inset:0;display:block;cursor:grab}
+  #stage.grabbing{cursor:grabbing}
+  #stage.pointer{cursor:pointer}
+  header{position:fixed;top:0;left:0;right:0;display:flex;align-items:center;gap:.6rem;
+    padding:.7rem 1rem;background:linear-gradient(#121417ee,#12141700);pointer-events:none;z-index:3}
+  header .cat{font-size:1.2rem}
+  header h1{font-size:.95rem;font-weight:600;margin:0;letter-spacing:.01em}
+  header h1 b{color:var(--violet);font-weight:700}
+  header .meta{color:var(--muted);font-size:.8rem;margin-left:.2rem}
+  .panel{position:fixed;background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    box-shadow:0 8px 30px #0008;z-index:4}
+  #legend{left:1rem;bottom:1rem;padding:.7rem .85rem;min-width:150px}
+  #legend h2{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);
+    margin:0 0 .5rem}
+  #legend .row{display:flex;align-items:center;gap:.5rem;font-size:.8rem;padding:.12rem 0;cursor:pointer;
+    opacity:.9;user-select:none}
+  #legend .row:hover{opacity:1}
+  #legend .row.off{opacity:.35}
+  #legend .dot{width:11px;height:11px;border-radius:50%;flex:0 0 auto}
+  #tools{right:1rem;top:1rem;display:flex;flex-wrap:wrap;gap:.4rem;padding:.45rem;max-width:250px;justify-content:flex-end}
+  #tools button{background:transparent;border:1px solid var(--line);color:var(--ink);
+    height:30px;padding:0 .55rem;border-radius:8px;font-size:.76rem;cursor:pointer;line-height:1}
+  #tools button:hover{border-color:var(--violet);color:var(--violet)}
+  #tools button.on{border-color:var(--violet);color:var(--violet)}
+  #filters{right:1rem;top:5.1rem;display:flex;flex-direction:column;gap:.4rem;z-index:4}
+  #filters input,#filters select{background:var(--panel);border:1px solid var(--line);color:var(--ink);
+    border-radius:9px;padding:.4rem .7rem;font-size:.82rem;width:210px;outline:none}
+  #filters input:focus,#filters select:focus{border-color:var(--violet)}
+  #tip{position:fixed;pointer-events:none;background:#0d0f12ee;border:1px solid var(--line);
+    border-radius:8px;padding:.4rem .6rem;font-size:.78rem;z-index:6;max-width:340px;display:none}
+  #tip .p{color:var(--violet-soft);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all}
+  #tip .s{color:var(--muted);display:block;margin-top:.2rem}
+  #detail{right:1rem;bottom:1rem;padding:.8rem .9rem;width:260px;display:none}
+  #detail h3{margin:0 0 .4rem;font-size:.82rem;color:var(--violet-soft);
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all}
+  #detail dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:.15rem .6rem;font-size:.76rem}
+  #detail dt{color:var(--muted)}
+  #detail .sum{margin-top:.5rem;font-size:.76rem;color:#cfc9c0;font-style:italic;line-height:1.35;
+    max-height:6.5rem;overflow:auto}
+  #detail .hint{margin-top:.5rem;font-size:.72rem;color:var(--muted)}
+  #help{left:1rem;top:3.4rem;padding:.55rem .7rem;font-size:.72rem;color:var(--muted);max-width:230px;line-height:1.5}
+  #help b{color:var(--ink);font-weight:600}
+  #empty{position:fixed;inset:0;display:none;align-items:center;justify-content:center;
+    flex-direction:column;gap:.5rem;color:var(--muted);text-align:center;padding:2rem}
+  #empty .cat{font-size:2rem}
+</style>
+</head>
+<body>
+<canvas id="stage"></canvas>
+<header>
+  <span class="cat">🐈‍⬛</span>
+  <h1><b>ANDROMEDA</b> · workspace graph · 3D</h1>
+  <span class="meta" id="meta"></span>
+</header>
+<div id="tools" class="panel">
+  <button id="reset" title="Reset the camera to the default view">reset</button>
+  <button id="fit" title="Frame all visible nodes">fit</button>
+  <button id="labels" title="Toggle labels" class="on">labels</button>
+  <button id="edges" title="Toggle edges" class="on">edges</button>
+  <button id="save" title="Save your manual layout to this browser">save</button>
+  <button id="clear" title="Clear the saved layout and return to the deterministic one">clear</button>
+</div>
+<div id="filters">
+  <input id="q" type="search" placeholder="Search nodes… (/)" autocomplete="off">
+  <select id="group"><option value="">All groups</option></select>
+</div>
+<div id="help" class="panel">
+  <b>drag</b> orbit · <b>wheel</b> zoom · <b>shift+drag</b> pan<br>
+  <b>drag node</b> move · <b>double-click file</b> open
+</div>
+<div id="legend" class="panel"><h2>Kinds</h2><div id="legend-rows"></div></div>
+<div id="detail" class="panel"></div>
+<div id="tip"></div>
+<div id="empty"><span class="cat">🐈‍⬛</span><div>No graph data embedded.<br>Run <code>andromeda graph build</code> and reopen.</div></div>
+
+<script id="graph-data" type="application/json">__ANDROMEDA_GRAPH_DATA__</script>
+
+<script>
+"use strict";
+// Self-contained, offline 3D workspace viewer. No network, no dependencies: HTML5 + Canvas 2D +
+// vanilla JS + a hand-rolled 3D projection. The graph is embedded above as real JSON; the layout is
+// deterministic (depth-ring-3d-v1) so the same graph always opens the same way until the user drags.
+
+const KIND_COLOR = {
+  project:"#7C5CFF", directory:"#8C7B6E", code:"#7C5CFF", doc:"#E4B36E",
+  config:"#6FB2C9", data:"#6EC18C", asset:"#B58CFF", other:"#6B6F76",
+};
+const KIND_ORDER = ["project","directory","code","doc","config","data","asset","other"];
+const STORAGE_KEY = "andromeda-graph-3d-layout-v1";
+
+// --- deterministic layout parameters (depth-ring-3d-v1) ---
+const BASE_RING = 90, RING_STEP = 95, Z_STEP = 115, DEPTH_TWIST = 0.618;
+// --- projection / camera ---
+const FOCAL = 760, NEAR = 1;
+const DEFAULT_CAM = { yaw: 0.6, pitch: 0.5, dist: 1400, tx: 0, ty: 0 };
+
+const canvas = document.getElementById("stage");
+const ctx = canvas.getContext("2d");
+const tip = document.getElementById("tip");
+const detail = document.getElementById("detail");
+let DPR = 1, W = 0, H = 0;
+let graphName = "", nodes = [], edges = [], byId = new Map();
+let cam = Object.assign({}, DEFAULT_CAM);
+let showLabels = true, showEdges = true;
+const hiddenKinds = new Set();
+let groupFilter = "", query = "";
+let hover = null, selected = null;
+let dragNode = null, dragZ2 = 0, orbiting = false, panning = false, last = { x: 0, y: 0 };
+let dirty = true;
+const requestDraw = () => { dirty = true; };
+
+function readGraph(){
+  const el = document.getElementById("graph-data");
+  try { return JSON.parse(el.textContent); } catch (e) { return null; }
+}
+
+function resize(){
+  DPR = Math.max(1, window.devicePixelRatio || 1);
+  W = window.innerWidth; H = window.innerHeight;
+  canvas.style.width = W + "px"; canvas.style.height = H + "px";
+  canvas.width = Math.round(W * DPR); canvas.height = Math.round(H * DPR);
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0); // draw in CSS pixels; backing store uses DPR for sharpness
+  requestDraw();
+}
+window.addEventListener("resize", resize);
+
+// --- deterministic depth-ring layout -------------------------------------
+// Group nodes by depth, sort each group by (group, kind, path, id), then place them on a 3D ring
+// whose radius and z grow with depth. Pure and reproducible: no forces, no randomness, no timing.
+function sortKey(a, b){
+  return (a.group||"").localeCompare(b.group||"") ||
+         (a.kind||"").localeCompare(b.kind||"")  ||
+         (a.path||"").localeCompare(b.path||"")  ||
+         (a.id||"").localeCompare(b.id||"");
+}
+function layout(){
+  const byDepth = new Map();
+  let maxDepth = 0;
+  for (const n of nodes){
+    const d = n.depth || 0;
+    if (!byDepth.has(d)) byDepth.set(d, []);
+    byDepth.get(d).push(n);
+    if (d > maxDepth) maxDepth = d;
+  }
+  for (const [d, group] of byDepth){
+    group.sort(sortKey);
+    const ring = BASE_RING + d * RING_STEP;
+    const z = (d - maxDepth / 2) * Z_STEP;
+    const count = group.length;
+    for (let i = 0; i < count; i++){
+      const n = group[i];
+      if (count === 1){ n.x = 0; n.y = 0; n.z = z; continue; } // lone node (e.g. project) at the axis
+      const angle = 2 * Math.PI * i / count + d * DEPTH_TWIST;
+      n.x = Math.cos(angle) * ring;
+      n.y = Math.sin(angle) * ring;
+      n.z = z;
+    }
+  }
+}
+
+// --- 3D projection -------------------------------------------------------
+function project(n){
+  const cy = Math.cos(cam.yaw), sy = Math.sin(cam.yaw);
+  const x1 = n.x * cy + n.z * sy;
+  const z1 = -n.x * sy + n.z * cy;
+  const y1 = n.y;
+  const cp = Math.cos(cam.pitch), sp = Math.sin(cam.pitch);
+  const y2 = y1 * cp - z1 * sp;
+  const z2 = y1 * sp + z1 * cp;
+  const x2 = x1;
+  const zc = z2 + cam.dist;
+  if (zc < NEAR) return null;
+  const f = FOCAL / zc;
+  return { sx: W / 2 + cam.tx + x2 * f, sy: H / 2 + cam.ty + y2 * f, scale: f, depth: zc, z2 };
+}
+// Inverse of the two rotations: camera-space (x2,y2,z2) back to world (x,y,z). Used when dragging a
+// node so it follows the cursor within its current camera-depth plane.
+function unproject(x2, y2, z2){
+  const cp = Math.cos(cam.pitch), sp = Math.sin(cam.pitch);
+  const y1 = y2 * cp + z2 * sp;
+  const z1 = -y2 * sp + z2 * cp;
+  const x1 = x2;
+  const cy = Math.cos(cam.yaw), sy = Math.sin(cam.yaw);
+  return { x: x1 * cy - z1 * sy, y: y1, z: x1 * sy + z1 * cy };
+}
+
+function baseRadius(n){
+  if (n.kind === "project") return 10;
+  if (n.kind === "directory") return 6;
+  return 3 + Math.min(5, Math.log10((n.size || 0) + 10));
+}
+const kindVisible = n => !hiddenKinds.has(n.kind);
+function matchesQuery(n){ return !query || (n.path || n.label || "").toLowerCase().includes(query); }
+function matchesGroup(n){ return !groupFilter || n.group === groupFilter || n.id === "project"; }
+const visible = n => kindVisible(n) && matchesGroup(n);
+
+// --- render --------------------------------------------------------------
+function draw(){
+  ctx.clearRect(0, 0, W, H);
+  const drawable = [];
+  for (const n of nodes){
+    n._p = null;
+    if (!visible(n)) continue;
+    const p = project(n);
+    if (!p) continue;
+    n._p = p;
+    drawable.push(n);
+  }
+  drawable.sort((a, b) => b._p.depth - a._p.depth); // painter's order: far first
+
+  if (showEdges){
+    ctx.lineWidth = 0.8;
+    ctx.strokeStyle = "rgba(140,123,110,0.26)";
+    ctx.beginPath();
+    for (const e of edges){
+      const s = e.source, t = e.target;
+      if (!s._p || !t._p) continue;
+      ctx.moveTo(s._p.sx, s._p.sy); ctx.lineTo(t._p.sx, t._p.sy);
+    }
+    ctx.stroke();
+  }
+
+  for (const n of drawable){
+    const p = n._p;
+    const dim = query && !matchesQuery(n);
+    const r = Math.max(1.4, baseRadius(n) * p.scale);
+    ctx.beginPath(); ctx.arc(p.sx, p.sy, r, 0, 6.2832);
+    ctx.fillStyle = KIND_COLOR[n.kind] || KIND_COLOR.other;
+    ctx.globalAlpha = dim ? 0.12 : 1;
+    ctx.fill();
+    if (n === selected || n === hover || n.kind === "project"){
+      ctx.lineWidth = n === selected ? 2.5 : 1.5;
+      ctx.strokeStyle = n === selected ? "#F5F2ED" : "rgba(245,242,237,0.6)";
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    const label = showLabels && !dim &&
+      (n.kind === "project" || n.kind === "directory" || n === hover || n === selected || p.scale > 0.9);
+    if (label){
+      ctx.fillStyle = "#F5F2ED";
+      ctx.globalAlpha = (n === hover || n === selected) ? 1 : 0.8;
+      ctx.font = (n.kind === "project" ? 13 : 11) + "px ui-sans-serif,system-ui";
+      ctx.fillText(n.label, p.sx + r + 3, p.sy + 3);
+      ctx.globalAlpha = 1;
+    }
+  }
+}
+function loop(){ if (dirty){ draw(); dirty = false; } requestAnimationFrame(loop); }
+
+// --- hit-testing (CSS pixels vs projected CSS pixels) --------------------
+function pick(px, py){
+  let best = null, bd = 1e9;
+  for (const n of nodes){
+    const p = n._p; if (!p) continue;
+    const r = Math.max(1.4, baseRadius(n) * p.scale) + 6;
+    const dx = px - p.sx, dy = py - p.sy, d = dx * dx + dy * dy;
+    if (d < r * r && p.depth < bd){ bd = p.depth; best = n; }
+  }
+  return best;
+}
+function eventPos(e){
+  const rect = canvas.getBoundingClientRect();
+  return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+}
+
+// --- camera helpers ------------------------------------------------------
+function fit(){
+  let maxR = 1, maxZ = 1;
+  for (const n of nodes){
+    if (!visible(n)) continue;
+    maxR = Math.max(maxR, Math.hypot(n.x, n.y));
+    maxZ = Math.max(maxZ, Math.abs(n.z));
+  }
+  cam.dist = maxZ + maxR * 2.3 + 140;
+  cam.tx = 0; cam.ty = 0;
+  requestDraw();
+}
+function resetCamera(){ cam = Object.assign({}, DEFAULT_CAM); fit(); }
+
+// --- interaction ---------------------------------------------------------
+canvas.addEventListener("mousedown", e => {
+  const p = eventPos(e);
+  const n = pick(p.x, p.y);
+  if (n){
+    dragNode = n; dragZ2 = n._p.z2;
+    canvas.classList.add("pointer");
+    select(n);
+  } else if (e.shiftKey){
+    panning = true; last = p; canvas.classList.add("grabbing");
+  } else {
+    orbiting = true; last = p; canvas.classList.add("grabbing");
+  }
+});
+window.addEventListener("mousemove", e => {
+  const p = eventPos(e);
+  if (dragNode){
+    const f = FOCAL / (dragZ2 + cam.dist);
+    const x2 = (p.x - W / 2 - cam.tx) / f;
+    const y2 = (p.y - H / 2 - cam.ty) / f;
+    const w = unproject(x2, y2, dragZ2);
+    dragNode.x = w.x; dragNode.y = w.y; dragNode.z = w.z;
+    requestDraw(); return;
+  }
+  if (orbiting){
+    cam.yaw += (p.x - last.x) * 0.008;
+    cam.pitch += (p.y - last.y) * 0.008;
+    cam.pitch = Math.max(-1.4, Math.min(1.4, cam.pitch));
+    last = p; requestDraw(); return;
+  }
+  if (panning){ cam.tx += p.x - last.x; cam.ty += p.y - last.y; last = p; requestDraw(); return; }
+  // hover
+  const n = pick(p.x, p.y);
+  if (n !== hover){ hover = n; requestDraw(); }
+  if (n){
+    canvas.classList.add("pointer");
+    tip.style.display = "block";
+    tip.style.left = (e.clientX + 14) + "px"; tip.style.top = (e.clientY + 14) + "px";
+    tip.innerHTML = '<span class="p">' + esc(n.path || n.label) + "</span>" +
+      '<span class="s">' + esc(n.kind) + (n.size ? " · " + fmtBytes(n.size) : "") + "</span>";
+  } else {
+    canvas.classList.remove("pointer");
+    tip.style.display = "none";
+  }
+});
+window.addEventListener("mouseup", () => {
+  dragNode = null; orbiting = false; panning = false;
+  canvas.classList.remove("grabbing");
+});
+canvas.addEventListener("wheel", e => {
+  e.preventDefault();
+  cam.dist *= e.deltaY < 0 ? 0.9 : 1.1;
+  cam.dist = Math.max(120, Math.min(60000, cam.dist));
+  requestDraw();
+}, { passive: false });
+canvas.addEventListener("dblclick", e => {
+  const p = eventPos(e);
+  const n = pick(p.x, p.y);
+  if (n && n.path && n.kind !== "directory" && n.kind !== "project"){
+    // graph-3d.html lives at <root>/.andromeda/graph/, so a workspace-relative path is two levels up.
+    window.open("../../" + n.path, "_blank");
+  }
+});
+
+function select(n){
+  selected = n;
+  if (!n){ detail.style.display = "none"; requestDraw(); return; }
+  let rows = "<dt>kind</dt><dd>" + esc(n.kind) + "</dd>";
+  if (n.path) rows += "<dt>path</dt><dd>" + esc(n.path) + "</dd>";
+  if (n.language) rows += "<dt>language</dt><dd>" + esc(n.language) + "</dd>";
+  if (n.size) rows += "<dt>size</dt><dd>" + fmtBytes(n.size) + "</dd>";
+  rows += "<dt>depth</dt><dd>" + (n.depth || 0) + "</dd>";
+  detail.innerHTML = "<h3>" + esc(n.label) + "</h3><dl>" + rows + "</dl>" +
+    (n.summary ? '<div class="sum">' + esc(n.summary) + "</div>" : "") +
+    (n.path && n.kind !== "directory" ? '<div class="hint">double-click to open the file</div>' : "");
+  detail.style.display = "block";
+  requestDraw();
+}
+
+// --- UI chrome -----------------------------------------------------------
+function buildLegend(){
+  const present = new Set(nodes.map(n => n.kind));
+  const box = document.getElementById("legend-rows");
+  box.innerHTML = "";
+  KIND_ORDER.filter(k => present.has(k)).forEach(k => {
+    const row = document.createElement("div");
+    row.className = "row";
+    row.innerHTML = '<span class="dot" style="background:' + KIND_COLOR[k] + '"></span>' + k;
+    row.onclick = () => {
+      hiddenKinds.has(k) ? hiddenKinds.delete(k) : hiddenKinds.add(k);
+      row.classList.toggle("off");
+      requestDraw();
+    };
+    box.appendChild(row);
+  });
+}
+function buildGroups(){
+  const groups = Array.from(new Set(nodes.map(n => n.group).filter(Boolean))).sort();
+  const sel = document.getElementById("group");
+  for (const g of groups){
+    const opt = document.createElement("option");
+    opt.value = g; opt.textContent = g; sel.appendChild(opt);
+  }
+  sel.onchange = () => { groupFilter = sel.value; requestDraw(); };
+}
+function bindTools(){
+  const toggle = (id, get, set) => {
+    const btn = document.getElementById(id);
+    btn.onclick = () => { set(!get()); btn.classList.toggle("on", get()); requestDraw(); };
+  };
+  document.getElementById("reset").onclick = resetCamera;
+  document.getElementById("fit").onclick = fit;
+  toggle("labels", () => showLabels, v => showLabels = v);
+  toggle("edges", () => showEdges, v => showEdges = v);
+  document.getElementById("save").onclick = saveLayout;
+  document.getElementById("clear").onclick = clearLayout;
+
+  const q = document.getElementById("q");
+  q.addEventListener("input", () => { query = q.value.trim().toLowerCase(); requestDraw(); });
+  window.addEventListener("keydown", e => {
+    if (e.key === "/" && document.activeElement !== q){ e.preventDefault(); q.focus(); }
+    if (e.key === "Escape"){ q.value = ""; query = ""; select(null); requestDraw(); q.blur(); }
+  });
+}
+
+// --- optional manual-layout persistence (never touches graph.json) -------
+function saveLayout(){
+  try {
+    const pos = {};
+    for (const n of nodes) pos[n.id] = [round(n.x), round(n.y), round(n.z)];
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ name: graphName, positions: pos }));
+    flash("save", "saved");
+  } catch (e){ flash("save", "no store"); }
+}
+function loadLayout(){
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    const saved = JSON.parse(raw);
+    if (!saved || saved.name !== graphName || !saved.positions) return false;
+    let applied = 0;
+    for (const n of nodes){
+      const p = saved.positions[n.id];
+      if (p){ n.x = p[0]; n.y = p[1]; n.z = p[2]; applied++; }
+    }
+    return applied > 0;
+  } catch (e){ return false; }
+}
+function clearLayout(){
+  try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+  layout(); fit(); flash("clear", "reset");
+}
+function flash(id, text){
+  const btn = document.getElementById(id), was = btn.textContent;
+  btn.textContent = text;
+  setTimeout(() => { btn.textContent = was; }, 900);
+}
+
+// --- helpers -------------------------------------------------------------
+function round(v){ return Math.round(v * 100) / 100; }
+function fmtBytes(b){
+  if (b < 1024) return b + " B";
+  if (b < 1048576) return (b / 1024).toFixed(1) + " KB";
+  return (b / 1048576).toFixed(1) + " MB";
+}
+// esc HTML-escapes untrusted text (node summaries/paths come from the scanned tree) for the DOM.
+function esc(s){
+  return String(s).replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
+}
+
+// --- boot ----------------------------------------------------------------
+function init(){
+  const data = readGraph();
+  if (!data || !data.nodes || !data.nodes.length){
+    document.getElementById("empty").style.display = "flex";
+    return;
+  }
+  graphName = data.name || "workspace";
+  nodes = data.nodes.map(n => Object.assign({}, n, { x: 0, y: 0, z: 0, _p: null }));
+  byId = new Map(nodes.map(n => [n.id, n]));
+  edges = (data.edges || [])
+    .map(e => ({ source: byId.get(e.from), target: byId.get(e.to), rel: e.rel }))
+    .filter(e => e.source && e.target);
+  document.getElementById("meta").textContent =
+    graphName + " · " + nodes.length + " nodes · " + edges.length + " edges";
+  document.title = "Andromeda — " + graphName + " graph (3D)";
+
+  resize();
+  layout();
+  loadLayout();      // apply the user's saved drags on top of the deterministic base, if any
+  fit();
+  buildLegend();
+  buildGroups();
+  bindTools();
+  requestAnimationFrame(loop);
+}
+init();
+</script>
+</body>
+</html>

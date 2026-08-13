@@ -28,6 +28,18 @@ func renderIndex(m *ontology.Model) string {
 	b.WriteString("Regenerate to update; do not hand-edit.\n\n")
 	fmt.Fprintf(&b, "- **Files:** %d\n- **Directories:** %d\n\n", len(m.Files), len(m.Dirs))
 
+	b.WriteString("## Viewing\n\n")
+	b.WriteString("Open **[`graph-3d.html`](graph-3d.html)** — a self-contained, offline 3D navigator ")
+	b.WriteString("(no server, no dependencies). It opens straight from the filesystem; ")
+	b.WriteString("`andromeda graph open` does this for you, and `andromeda graph serve` offers the same ")
+	b.WriteString("view over localhost with live refresh.\n\n")
+	b.WriteString("Controls: **drag** to orbit · **wheel** to zoom · **shift+drag** to pan · **drag a node** ")
+	b.WriteString("to move it · **double-click a file** to open it · search, filter by kind/group, toggle ")
+	b.WriteString("labels/edges, and save or clear a manual layout (stored only in your browser).\n\n")
+	b.WriteString("The raw model lives in `graph.json` (the source of truth); `graph-3d.html` embeds it. ")
+	b.WriteString("For large workspaces, work in batches — inspect `graph.json` metadata and samples ")
+	b.WriteString("rather than loading the whole file, and let the viewer's search/filter cull the view.\n\n")
+
 	b.WriteString("## Languages\n\n")
 	if len(m.Languages) == 0 {
 		b.WriteString("_none detected_\n\n")
